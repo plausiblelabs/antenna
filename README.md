@@ -1,4 +1,4 @@
-== PoC Client for Apple Radar ==
+# PoC Client for Apple Radar
 
 Uses the (undocumented, private) JSON API to fetch data from Radar.
 
