@@ -17,6 +17,10 @@
 - (void) applicationDidFinishLaunching: (NSNotification *) aNotification {
     _networkClient = [[RATNetworkClient alloc] init];
     [_networkClient login];
+    
+    [[NSNotificationCenter defaultCenter] addObserverForName:  RATNetworkClientDidLoginNotification object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+        [_networkClient reportSummariesForSection: @"Open"];
+    }];
 }
 
 @end

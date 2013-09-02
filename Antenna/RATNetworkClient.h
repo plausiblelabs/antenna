@@ -35,5 +35,6 @@ extern NSString *RATNetworkClientDidLoginNotification;
 + (NSURL *) bugreporterURL;
 
 - (void) login;
+- (void) reportSummariesForSection: (NSString *) sectionName;
 
 @end

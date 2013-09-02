@@ -48,7 +48,7 @@
 					<reference key="NSNextResponder"/>
 					<int key="NSvFlags">256</int>
 					<array class="NSMutableArray" key="NSSubviews">
-						<object class="WebView" id="235197245">
+						<object class="WebView" id="330680823">
 							<reference key="NSNextResponder" ref="1006"/>
 							<int key="NSvFlags">256</int>
 							<set class="NSMutableSet" key="NSDragTypes">
@@ -93,7 +93,7 @@
 					<string key="NSFrameSize">{480, 270}</string>
 					<reference key="NSSuperview"/>
 					<reference key="NSWindow"/>
-					<reference key="NSNextKeyView" ref="235197245"/>
+					<reference key="NSNextKeyView" ref="330680823"/>
 				</object>
 				<string key="NSScreenRect">{{0, 0}, {2560, 1418}}</string>
 				<string key="NSMaxSize">{10000000000000, 10000000000000}</string>
@@ -114,7 +114,7 @@
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">_webView</string>
 						<reference key="source" ref="1001"/>
-						<reference key="destination" ref="235197245"/>
+						<reference key="destination" ref="330680823"/>
 					</object>
 					<int key="connectionID">12</int>
 				</object>
@@ -129,10 +129,18 @@
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
 						<string key="label">resourceLoadDelegate</string>
-						<reference key="source" ref="235197245"/>
+						<reference key="source" ref="330680823"/>
 						<reference key="destination" ref="1001"/>
 					</object>
 					<int key="connectionID">20</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">frameLoadDelegate</string>
+						<reference key="source" ref="330680823"/>
+						<reference key="destination" ref="1001"/>
+					</object>
+					<int key="connectionID">21</int>
 				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -173,9 +181,9 @@
 						<int key="objectID">2</int>
 						<reference key="object" ref="1006"/>
 						<array class="NSMutableArray" key="children">
-							<reference ref="235197245"/>
-							<object class="IBNSLayoutConstraint" id="123446240">
-								<reference key="firstItem" ref="235197245"/>
+							<reference ref="330680823"/>
+							<object class="IBNSLayoutConstraint" id="430236428">
+								<reference key="firstItem" ref="330680823"/>
 								<int key="firstAttribute">4</int>
 								<int key="relation">0</int>
 								<reference key="secondItem" ref="1006"/>
@@ -190,8 +198,8 @@
 								<float key="scoringTypeFloat">29</float>
 								<int key="contentType">3</int>
 							</object>
-							<object class="IBNSLayoutConstraint" id="204616946">
-								<reference key="firstItem" ref="235197245"/>
+							<object class="IBNSLayoutConstraint" id="457980417">
+								<reference key="firstItem" ref="330680823"/>
 								<int key="firstAttribute">6</int>
 								<int key="relation">0</int>
 								<reference key="secondItem" ref="1006"/>
@@ -206,8 +214,8 @@
 								<float key="scoringTypeFloat">29</float>
 								<int key="contentType">3</int>
 							</object>
-							<object class="IBNSLayoutConstraint" id="855768753">
-								<reference key="firstItem" ref="235197245"/>
+							<object class="IBNSLayoutConstraint" id="159567789">
+								<reference key="firstItem" ref="330680823"/>
 								<int key="firstAttribute">5</int>
 								<int key="relation">0</int>
 								<reference key="secondItem" ref="1006"/>
@@ -222,8 +230,8 @@
 								<float key="scoringTypeFloat">29</float>
 								<int key="contentType">3</int>
 							</object>
-							<object class="IBNSLayoutConstraint" id="530258223">
-								<reference key="firstItem" ref="235197245"/>
+							<object class="IBNSLayoutConstraint" id="437638429">
+								<reference key="firstItem" ref="330680823"/>
 								<int key="firstAttribute">3</int>
 								<int key="relation">0</int>
 								<reference key="secondItem" ref="1006"/>
@@ -243,28 +251,28 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">5</int>
-						<reference key="object" ref="235197245"/>
+						<reference key="object" ref="330680823"/>
 						<array class="NSMutableArray" key="children"/>
 						<reference key="parent" ref="1006"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">10</int>
-						<reference key="object" ref="204616946"/>
+						<reference key="object" ref="457980417"/>
 						<reference key="parent" ref="1006"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">6</int>
-						<reference key="object" ref="530258223"/>
+						<reference key="object" ref="437638429"/>
 						<reference key="parent" ref="1006"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">7</int>
-						<reference key="object" ref="855768753"/>
+						<reference key="object" ref="159567789"/>
 						<reference key="parent" ref="1006"/>
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">11</int>
-						<reference key="object" ref="123446240"/>
+						<reference key="object" ref="430236428"/>
 						<reference key="parent" ref="1006"/>
 					</object>
 				</array>
@@ -279,10 +287,10 @@
 				<string key="10.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<string key="11.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<array key="2.IBNSViewMetadataConstraints">
-					<reference ref="530258223"/>
-					<reference ref="855768753"/>
-					<reference ref="204616946"/>
-					<reference ref="123446240"/>
+					<reference ref="437638429"/>
+					<reference ref="159567789"/>
+					<reference ref="457980417"/>
+					<reference ref="430236428"/>
 				</array>
 				<string key="2.IBPluginDependency">com.apple.InterfaceBuilder.CocoaPlugin</string>
 				<boolean value="NO" key="5.IBNSViewMetadataTranslatesAutoresizingMaskIntoConstraints"/>
@@ -294,7 +302,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">20</int>
+			<int key="maxID">21</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">

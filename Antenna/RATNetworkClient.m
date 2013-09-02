@@ -42,6 +42,7 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
 @implementation RATNetworkClient {
 @private
     RATLoginWindowController *_loginWindowController;
+    NSString *_csrfToken;
 }
 
 /**
@@ -49,6 +50,35 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
  */
 + (NSURL *) bugreporterURL {
     return [NSURL URLWithString: @"https://bugreport.apple.com"];
+}
+
+- (void) reportSummariesForSection: (NSString *) sectionName {
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject: @{@"reportID" : sectionName, @"orderBy" : @"DateOriginated,Descending", @"rowStartString":@"1" }
+                                                       options: 0
+                                                         error: &error];
+
+    NSURL *url = [NSURL URLWithString: @"/developer/problem/getSectionProblems" relativeToURL: [RATNetworkClient bugreporterURL]];
+    
+    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL: url];
+    [req setHTTPMethod: @"POST"];
+    [req setHTTPBody: jsonData];
+    
+    [req setValue: [[RATNetworkClient bugreporterURL] absoluteString] forHTTPHeaderField: @"Origin"];
+    [req setValue: @"XMLHTTPRequest" forHTTPHeaderField: @"X-Requested-With"];
+    [req setValue: @"application/json; charset=UTF-8" forHTTPHeaderField: @"Content-Type"];
+    [req addValue: _csrfToken forHTTPHeaderField:@"csrftokencheck"];
+    [req addValue: @"no-cache" forHTTPHeaderField: @"Cache-Control"];
+
+    [req setCachePolicy: NSURLCacheStorageNotAllowed];
+    [req setHTTPShouldHandleCookies: YES];
+
+    [NSURLConnection sendAsynchronousRequest: req queue: [NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *resp, NSData *data, NSError *error) {
+        NSLog(@"Response is: %@", resp);
+        NSLog(@"DATA: %@", [NSJSONSerialization JSONObjectWithData: data options:0 error:NULL]);
+        NSLog(@"SDATA: %@", [[NSString alloc] initWithData: data encoding: NSUTF8StringEncoding]);
+        NSLog(@"%@", error);
+    }];
 }
 
 /**
@@ -63,9 +93,10 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
 }
 
 // from RATLoginWindowControllerDelegate protocol
-- (void) loginWindowControllerDidFinish: (RATLoginWindowController *) sender {
+- (void) loginWindowController: (RATLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken {
     [_loginWindowController close];
     _loginWindowController = nil;
+    _csrfToken = csrfToken;
 
     [[NSNotificationCenter defaultCenter] postNotificationName: RATNetworkClientDidLoginNotification object: self];
 }

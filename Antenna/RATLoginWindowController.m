@@ -38,6 +38,9 @@
 @implementation RATLoginWindowController {
 @private
     __weak IBOutlet WebView *_webView;
+
+    BOOL _loginDone;
+    BOOL _loginNotifyDone;
 }
 
 /**
@@ -57,9 +60,29 @@
     [[_webView mainFrame] loadRequest: req];
 }
 
+- (void) webView: (WebView *) sender didFinishLoadForFrame: (WebFrame *) frame {
+    if (!_loginDone)
+        return;
+    
+    if (_loginNotifyDone)
+        return;
+    
+    _loginNotifyDone = YES;
+
+    /* Try to fetch the CSRF token */
+    NSString *csrfToken = [[_webView windowScriptObject] evaluateWebScript: @"$(\"#csrftokenPage\").val()"];
+    
+    /* Success! */
+    [_delegate loginWindowController: self didFinishWithToken: csrfToken];
+}
+
 - (void) webView: (WebView *) sender resource: (id) identifier didReceiveResponse: (NSURLResponse *) response fromDataSource: (WebDataSource *) dataSource {
+    if (_loginDone)
+        return;
+
     if (![response isKindOfClass: [NSHTTPURLResponse class]])
         return;
+
     NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *) response;
 
     /* Response must be a 200 (non-redirect) */
@@ -71,8 +94,9 @@
     if (![[[httpResponse URL] host] isEqual: expectedHost])
         return;
 
-    /* Success! */
-    [_delegate loginWindowControllerDidFinish: self];
+    /* Mark login as complete */
+    _loginDone = YES;
+
 }
 
 @end

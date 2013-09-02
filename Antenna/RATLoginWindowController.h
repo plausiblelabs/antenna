@@ -35,7 +35,7 @@
 /**
  * Delegate message sent when login has completed successfully.
  */
-- (void) loginWindowControllerDidFinish: (RATLoginWindowController *) sender;
+- (void) loginWindowController: (RATLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken;
 
 @end
 
