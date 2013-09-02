@@ -1,5 +1,11 @@
-# PoC Client for Apple Radar
+# Native Client for Apple Radar
 
 Uses the (undocumented, private) JSON API to fetch data from Radar.
 
-This is intended to serve as a proof-of-concept.
+This is (initially, anyway) intended to serve as a proof-of-concept.
+
+Wishlist items:
+
+* Drill down on categories and specific issues.
+* Full support for submission, commenting, attachments.
+* Automatic submission to OpenRadar.
