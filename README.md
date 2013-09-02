@@ -11,4 +11,4 @@ Wishlist items:
 * Automatic submission to OpenRadar.
 
 # Screen Shots
-![Radar List](Documentation/radar_summary_screenshot.png)
+![Radar List](https://opensource.plausible.coop/stash/projects/ANT/repos/antenna/browse/Documentation/radar_summary_screenshot.png?at=43319238cd6d6e274e59fa4b6450029ea4f3b6e6&raw)
