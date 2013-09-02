@@ -21,14 +21,11 @@
 		05C9DA1317D43FB90089603A /* ANTLoginWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1117D43FB90089603A /* ANTLoginWindowController.m */; };
 		05C9DA1417D43FB90089603A /* ANTLoginWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 05C9DA1217D43FB90089603A /* ANTLoginWindowController.xib */; };
 		05C9DA1617D4432B0089603A /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9DA1517D4432B0089603A /* WebKit.framework */; };
-		05C9DA3317D45F830089603A /* MAErrorReportingArray.h in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1B17D45F430089603A /* MAErrorReportingArray.h */; };
 		05C9DA3417D45F830089603A /* MAErrorReportingArray.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1C17D45F430089603A /* MAErrorReportingArray.m */; };
-		05C9DA3517D45F830089603A /* MAErrorReportingDictionary.h in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1D17D45F430089603A /* MAErrorReportingDictionary.h */; };
 		05C9DA3617D45F830089603A /* MAErrorReportingDictionary.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1E17D45F430089603A /* MAErrorReportingDictionary.m */; };
-		05C9DA3717D45F830089603A /* MAErrorReportingObject.h in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1F17D45F430089603A /* MAErrorReportingObject.h */; };
 		05C9DA3817D45F830089603A /* MAErrorReportingObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2017D45F430089603A /* MAErrorReportingObject.m */; };
-		05C9DA3917D45F830089603A /* NSObject+MAErrorReporting.h in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2217D45F430089603A /* NSObject+MAErrorReporting.h */; };
 		05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2317D45F430089603A /* NSObject+MAErrorReporting.m */; };
+		05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -82,6 +79,8 @@
 		05C9DA2A17D45F430089603A /* MAPlistTypeCheckingTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MAPlistTypeCheckingTests-Info.plist"; sourceTree = "<group>"; };
 		05C9DA2B17D45F430089603A /* MAPlistTypeCheckingTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MAPlistTypeCheckingTests.m; sourceTree = "<group>"; };
 		05C9DA2C17D45F430089603A /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
+		05C9DA3B17D462EE0089603A /* ANTRadarSummaryResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarSummaryResponse.h; sourceTree = "<group>"; };
+		05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarSummaryResponse.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -199,6 +198,8 @@
 				05C9DA1017D43FB90089603A /* ANTLoginWindowController.h */,
 				05C9DA1117D43FB90089603A /* ANTLoginWindowController.m */,
 				05C9DA1217D43FB90089603A /* ANTLoginWindowController.xib */,
+				05C9DA3B17D462EE0089603A /* ANTRadarSummaryResponse.h */,
+				05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */,
 			);
 			name = "Network Client";
 			sourceTree = "<group>";
@@ -362,14 +363,11 @@
 				05C9D9E617D43DF90089603A /* AntennaAppDelegate.m in Sources */,
 				05C9DA0917D43EB00089603A /* ANTNetworkClient.m in Sources */,
 				05C9DA1317D43FB90089603A /* ANTLoginWindowController.m in Sources */,
-				05C9DA3317D45F830089603A /* MAErrorReportingArray.h in Sources */,
 				05C9DA3417D45F830089603A /* MAErrorReportingArray.m in Sources */,
-				05C9DA3517D45F830089603A /* MAErrorReportingDictionary.h in Sources */,
 				05C9DA3617D45F830089603A /* MAErrorReportingDictionary.m in Sources */,
-				05C9DA3717D45F830089603A /* MAErrorReportingObject.h in Sources */,
 				05C9DA3817D45F830089603A /* MAErrorReportingObject.m in Sources */,
-				05C9DA3917D45F830089603A /* NSObject+MAErrorReporting.h in Sources */,
 				05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */,
+				05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -465,6 +463,12 @@
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Werror",
+					"-Wextra",
+					"-Wno-unused-parameter",
+				);
 			};
 			name = Debug;
 		};
@@ -491,6 +495,12 @@
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
 				SDKROOT = macosx;
+				WARNING_CFLAGS = (
+					"-Wall",
+					"-Werror",
+					"-Wextra",
+					"-Wno-unused-parameter",
+				);
 			};
 			name = Release;
 		};

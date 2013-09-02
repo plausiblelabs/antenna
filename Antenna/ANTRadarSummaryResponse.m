@@ -26,16 +26,36 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
 #import "ANTRadarSummaryResponse.h"
 
-extern NSString *RATNetworkClientDidLoginNotification;
+/**
+ * An issue summary network response.
+ */
+@implementation ANTRadarSummaryResponse
 
-@interface ANTNetworkClient : NSObject
+/**
+ * Initialize a new instance.
+ */
+- (id) initWithRadarId: (NSString *) radarId
+             stateName: (NSString *) stateName
+               summary: (NSString *) summary
+         componentName: (NSString *) componentName
+                hidden: (BOOL) hidden
+           description: (NSString *) description
+        originatedDate: (NSDate *) originatedDate
+{
+    if ((self = [super init]) == nil)
+        return nil;
 
-+ (NSURL *) bugreporterURL;
-
-- (void) login;
-- (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
+    _radarId = radarId;
+    _stateName = stateName;
+    _summary = summary;
+    _componentName = componentName;
+    _hidden = hidden;
+    _description = description;
+    _originatedDate = originatedDate;
+    
+    return self;
+}
 
 @end

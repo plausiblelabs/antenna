@@ -27,15 +27,40 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "ANTRadarSummaryResponse.h"
 
-extern NSString *RATNetworkClientDidLoginNotification;
+/**
+ * A single problem summary entry.
+ */
+@interface ANTRadarSummaryResponse : NSObject
 
-@interface ANTNetworkClient : NSObject
+- (id) initWithRadarId: (NSString *) radarId
+             stateName: (NSString *) stateName
+               summary: (NSString *) summary
+         componentName: (NSString *) componentName
+                hidden: (BOOL) hidden
+           description: (NSString *) description
+        originatedDate: (NSDate *) originatedDate;
 
-+ (NSURL *) bugreporterURL;
+/** The Radar issue number for this bug. */
+@property(nonatomic, readonly) NSString *radarId;
 
-- (void) login;
-- (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
+/** The issue state (eg, Open, Closed) */
+@property(nonatomic, readonly) NSString *stateName;
+
+/** The issue's title (eg, summary). */
+@property(nonatomic, readonly) NSString *summary;
+
+/** The component name (eg, "Developer Tools" or "iPhone SDK") */
+@property(nonatomic, readonly) NSString *componentName;
+
+/** Whether the issue should be hidden. */
+@property(nonatomic, readonly) BOOL hidden;
+
+/** A truncated copy of the issue description. */
+@property(nonatomic, readonly) NSString *description;
+
+/** The issue's originated date. */
+@property(nonatomic, readonly) NSDate *originatedDate;
+
 
 @end

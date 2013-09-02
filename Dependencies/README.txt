@@ -9,4 +9,4 @@ MAPlistTypeChecking
       MIT
 
     Modifications:
-      - None
+      - Added a -description method to MAErrorReportingObject.

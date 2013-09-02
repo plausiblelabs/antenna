@@ -65,4 +65,8 @@
     return _errors;
 }
 
+- (NSString *) description {
+    return [NSString stringWithFormat: @"%@ = (%@)", [super description], [_wrappedObject description]];
+}
+
 @end

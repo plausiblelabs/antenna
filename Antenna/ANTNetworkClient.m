@@ -29,6 +29,9 @@
 #import "ANTNetworkClient.h"
 #import "ANTLoginWindowController.h"
 
+#import "MAErrorReportingDictionary.h"
+#import "NSObject+MAErrorReporting.h"
+
 /**
  * Notification dispatched on successful login. The notification object will
  * be the authenticated network client instance.
@@ -41,8 +44,28 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
 
 @implementation ANTNetworkClient {
 @private
+    /** The login window controller (nil if login is not pending). */
     ANTLoginWindowController *_loginWindowController;
+
+    /** CSRF token extracted from the webview */
     NSString *_csrfToken;
+    
+
+    /** Date formatter to use for report dates (DD-MON-YYYY HH:MM) */
+    NSDateFormatter *_dateFormatter;
+}
+
+/**
+ * Initialize a new instance.
+ */
+- (id) init {
+    if ((self = [super init]) == nil)
+        return nil;
+    
+    _dateFormatter = [[NSDateFormatter alloc] init];
+    [_dateFormatter setDateFormat:@"dd-MMM-yyyy HH:mm"];
+
+    return self;
 }
 
 /**
@@ -52,11 +75,75 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
     return [NSURL URLWithString: @"https://bugreport.apple.com"];
 }
 
+/**
+ * Request all radar issue summaries for @a sectionName.
+ *
+ * @param sectionName The section name.
+ * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil.
+ *
+ * @todo Define constants for supported sections ('Open', etc).
+ */
 - (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler {
     NSDictionary *req = @{@"reportID" : sectionName, @"orderBy" : @"DateOriginated,Descending", @"rowStartString":@"1" };
     [self postJSON: req toPath: @"/developer/problem/getSectionProblems" completionHandler:^(id jsonData, NSError *error) {
-        // TODO - parse types correctly
-        handler(jsonData, error);
+        /* Verify the response type */
+        if (![jsonData isKindOfClass: [NSDictionary class]]) {
+            handler(nil, [NSError errorWithDomain: NSCocoaErrorDomain code: NSURLErrorCannotParseResponse userInfo: nil]);
+            return;
+        }
+    
+        /* Parse out the data */
+        MAErrorReportingDictionary *jsonDict = [[MAErrorReportingDictionary alloc] initWithDictionary: jsonData];
+        id (^Check)(id) = ^(id value) {
+            if (value == nil) {
+                handler(nil, [jsonDict error]);
+                return (id) nil;
+            }
+            
+            return value;
+        };
+        
+#define GetValue(_varname, _type, _source) \
+    _type *_varname = Check([_type ma_castRequiredObject: _source]); \
+    if (_varname == nil) { \
+        NSLog(@"Missing required var " # _source " in %@", jsonDict); \
+        return; \
+    }
+
+        /* It's called a list, but it's actually a dictionary. Go figure */
+        GetValue(list, NSDictionary, jsonDict[@"List"]);
+        GetValue(issues, NSArray, list[@"RDRGetMyOrignatedProblems"]);
+
+        NSMutableArray *results = [NSMutableArray arrayWithCapacity: [issues count]];
+        for (id issueVal in issues) {
+            GetValue(issue, NSDictionary, issueVal);
+            GetValue(radarId,           NSNumber,   issue[@"problemID"]);
+            GetValue(stateName,         NSString,   issue[@"probstatename"]);
+            GetValue(summary,           NSString,   issue[@"problemTitle"]);
+            GetValue(componentName,     NSString,   issue[@"compNameForWeb"]);
+            GetValue(hidden,            NSNumber,   issue[@"hide"]);
+            GetValue(description,       NSString,   issue[@"problemDescription"]);
+            GetValue(origDateString,   NSString,   issue[@"whenOriginatedDate"]);
+
+            NSDate *origDate = [_dateFormatter dateFromString: origDateString];
+            if (origDate == nil) {
+                NSLog(@"Could not format date: %@", origDateString);
+                handler(nil, [NSError errorWithDomain: NSCocoaErrorDomain code: NSURLErrorCannotParseResponse userInfo: nil]);
+                return;
+            }
+
+            ANTRadarSummaryResponse *summaryEntry;
+            summaryEntry = [[ANTRadarSummaryResponse alloc] initWithRadarId: [radarId stringValue]
+                                                                  stateName: stateName
+                                                                    summary: summary
+                                                              componentName: componentName
+                                                                     hidden: [hidden boolValue]
+                                                                description: description
+                                                             originatedDate: origDate];
+            [results addObject: summary];
+        }
+        
+        handler(results, error);
     }];
 }
 
