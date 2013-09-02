@@ -46,6 +46,9 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
 @private
     /** The login window controller (nil if login is not pending). */
     ANTLoginWindowController *_loginWindowController;
+    
+    /** YES if authenticated, NO otherwise */
+    BOOL _isAuthenticated;
 
     /** CSRF token extracted from the webview */
     NSString *_csrfToken;
@@ -79,9 +82,13 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
  * Request all radar issue summaries for @a sectionName.
  *
  * @param sectionName The section name.
- * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil.
+ * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
+ * will be provided as an ordered array of ANTRadarSummaryResponse values.
  *
  * @todo Define constants for supported sections ('Open', etc).
+ * @todo Implement paging support.
+ * @todo Allow for specifying the sort order.
+ * @todo Implement cancellation support (return a cancellation ticket?).
  */
 - (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler {
     NSDictionary *req = @{@"reportID" : sectionName, @"orderBy" : @"DateOriginated,Descending", @"rowStartString":@"1" };
@@ -113,34 +120,47 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
         /* It's called a list, but it's actually a dictionary. Go figure */
         GetValue(list, NSDictionary, jsonDict[@"List"]);
         GetValue(issues, NSArray, list[@"RDRGetMyOrignatedProblems"]);
+        
+        /* Regex to match radar attribution lines, eg, '<GMT09-Aug-2013 21:14:47GMT> Landon Fuller:' */
+        NSRegularExpression *attributionLineRegex;
+        attributionLineRegex = [NSRegularExpression regularExpressionWithPattern: @"<[A-Z0-9+]+-[A-Za-z]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+[A-Z0-9+]+> .*:[ \t\n]*"
+                                                                         options: NSRegularExpressionAnchorsMatchLines
+                                                                           error: &error];
+        NSAssert(attributionLineRegex != nil, @"Failed to compile regex");
 
         NSMutableArray *results = [NSMutableArray arrayWithCapacity: [issues count]];
         for (id issueVal in issues) {
             GetValue(issue, NSDictionary, issueVal);
             GetValue(radarId,           NSNumber,   issue[@"problemID"]);
             GetValue(stateName,         NSString,   issue[@"probstatename"]);
-            GetValue(summary,           NSString,   issue[@"problemTitle"]);
+            GetValue(title,             NSString,   issue[@"problemTitle"]);
             GetValue(componentName,     NSString,   issue[@"compNameForWeb"]);
             GetValue(hidden,            NSNumber,   issue[@"hide"]);
             GetValue(description,       NSString,   issue[@"problemDescription"]);
-            GetValue(origDateString,   NSString,   issue[@"whenOriginatedDate"]);
+            GetValue(origDateString,    NSString,   issue[@"whenOriginatedDate"]);
 
+            /* Format the date */
             NSDate *origDate = [_dateFormatter dateFromString: origDateString];
             if (origDate == nil) {
                 NSLog(@"Could not format date: %@", origDateString);
                 handler(nil, [NSError errorWithDomain: NSCocoaErrorDomain code: NSURLErrorCannotParseResponse userInfo: nil]);
                 return;
             }
+            
+            /* Clean up the summary; the first line is a radar comment attributeion, eg, '<GMT09-Aug-2013 21:14:47GMT> Landon Fuller:' */
+            NSRange descriptionStart = [attributionLineRegex rangeOfFirstMatchInString: description options: 0 range: NSMakeRange(0, [description length])];
+            if (descriptionStart.location != NSNotFound)
+                description = [description substringFromIndex: NSMaxRange(descriptionStart)];
 
             ANTRadarSummaryResponse *summaryEntry;
             summaryEntry = [[ANTRadarSummaryResponse alloc] initWithRadarId: [radarId stringValue]
                                                                   stateName: stateName
-                                                                    summary: summary
+                                                                      title: title
                                                               componentName: componentName
                                                                      hidden: [hidden boolValue]
                                                                 description: description
                                                              originatedDate: origDate];
-            [results addObject: summary];
+            [results addObject: summaryEntry];
         }
         
         handler(results, error);
@@ -158,15 +178,31 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
     }
 }
 
+// property getter
+- (BOOL) isAuthenticated {
+    return _isAuthenticated;
+}
+
 // from ANTLoginWindowControllerDelegate protocol
 - (void) loginWindowController: (ANTLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken {
     [_loginWindowController close];
     _loginWindowController = nil;
     _csrfToken = csrfToken;
+    _isAuthenticated = YES;
 
     [[NSNotificationCenter defaultCenter] postNotificationName: RATNetworkClientDidLoginNotification object: self];
 }
 
+/**
+ * Post JSON request data @a json to @a resourcePath, calling @a completionHandler on finish.
+ *
+ * @param json A foundation instance that may be represented as JSON
+ * @param resourcePath The resource path to which the JSON data will be POSTed.
+ * @param handler The block to call upon completion. If an error occurs, error will be non-nil. On success, the JSON response data
+ * will be provided via jsonData.
+ *
+ * @todo Implement handling of the standard JSON error results.
+ */
 - (void) postJSON: (id) json toPath: (NSString *) resourcePath completionHandler: (void (^)(id jsonData, NSError *error)) handler {
     NSError *error;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject: json options: 0 error: &error];

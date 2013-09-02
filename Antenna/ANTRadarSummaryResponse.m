@@ -38,7 +38,7 @@
  */
 - (id) initWithRadarId: (NSString *) radarId
              stateName: (NSString *) stateName
-               summary: (NSString *) summary
+                 title: (NSString *) title
          componentName: (NSString *) componentName
                 hidden: (BOOL) hidden
            description: (NSString *) description
@@ -49,7 +49,7 @@
 
     _radarId = radarId;
     _stateName = stateName;
-    _summary = summary;
+    _title = title;
     _componentName = componentName;
     _hidden = hidden;
     _description = description;

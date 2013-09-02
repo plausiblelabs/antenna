@@ -26,20 +26,8 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
-#import "ANTRadarSummaryResponse.h"
+#import <Cocoa/Cocoa.h>
 
-extern NSString *RATNetworkClientDidLoginNotification;
-
-@interface ANTNetworkClient : NSObject
-
-+ (NSURL *) bugreporterURL;
-
-- (void) login;
-- (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
-
-
-/** YES if the client has successfully authenticated, NO otherwise. */
-@property(nonatomic, readonly, getter=isAuthenticated) BOOL authenticated;
+@interface ANTSummaryWindowController : NSWindowController
 
 @end

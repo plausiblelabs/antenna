@@ -26,6 +26,7 @@
 		05C9DA3817D45F830089603A /* MAErrorReportingObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2017D45F430089603A /* MAErrorReportingObject.m */; };
 		05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2317D45F430089603A /* NSObject+MAErrorReporting.m */; };
 		05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */; };
+		05C9DA4217D4F15D0089603A /* ANTSummaryWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +82,8 @@
 		05C9DA2C17D45F430089603A /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
 		05C9DA3B17D462EE0089603A /* ANTRadarSummaryResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarSummaryResponse.h; sourceTree = "<group>"; };
 		05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarSummaryResponse.m; sourceTree = "<group>"; };
+		05C9DA4017D4F15D0089603A /* ANTSummaryWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTSummaryWindowController.h; sourceTree = "<group>"; };
+		05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTSummaryWindowController.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,8 +155,9 @@
 			children = (
 				05C9D9E417D43DF90089603A /* AntennaAppDelegate.h */,
 				05C9D9E517D43DF90089603A /* AntennaAppDelegate.m */,
-				05C9DA0A17D43EF00089603A /* Network Client */,
+				05C9DA3F17D4F1380089603A /* Summary Window */,
 				05C9D9E717D43DF90089603A /* MainMenu.xib */,
+				05C9DA0A17D43EF00089603A /* Network Client */,
 				05C9D9D917D43DF90089603A /* Supporting Files */,
 			);
 			path = Antenna;
@@ -247,6 +251,15 @@
 				05C9DA2B17D45F430089603A /* MAPlistTypeCheckingTests.m */,
 			);
 			path = MAPlistTypeCheckingTests;
+			sourceTree = "<group>";
+		};
+		05C9DA3F17D4F1380089603A /* Summary Window */ = {
+			isa = PBXGroup;
+			children = (
+				05C9DA4017D4F15D0089603A /* ANTSummaryWindowController.h */,
+				05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */,
+			);
+			name = "Summary Window";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -368,6 +381,7 @@
 				05C9DA3817D45F830089603A /* MAErrorReportingObject.m in Sources */,
 				05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */,
 				05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */,
+				05C9DA4217D4F15D0089603A /* ANTSummaryWindowController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

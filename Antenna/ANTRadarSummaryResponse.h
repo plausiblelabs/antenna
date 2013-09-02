@@ -35,7 +35,7 @@
 
 - (id) initWithRadarId: (NSString *) radarId
              stateName: (NSString *) stateName
-               summary: (NSString *) summary
+                 title: (NSString *) summary
          componentName: (NSString *) componentName
                 hidden: (BOOL) hidden
            description: (NSString *) description
@@ -48,7 +48,7 @@
 @property(nonatomic, readonly) NSString *stateName;
 
 /** The issue's title (eg, summary). */
-@property(nonatomic, readonly) NSString *summary;
+@property(nonatomic, readonly) NSString *title;
 
 /** The component name (eg, "Developer Tools" or "iPhone SDK") */
 @property(nonatomic, readonly) NSString *componentName;
