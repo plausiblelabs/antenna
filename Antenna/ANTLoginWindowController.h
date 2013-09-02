@@ -28,18 +28,18 @@
 
 #import <Cocoa/Cocoa.h>
 
-@class RATLoginWindowController;
+@class ANTLoginWindowController;
 
 @protocol RATLoginWindowControllerDelegate <NSObject>
 
 /**
  * Delegate message sent when login has completed successfully.
  */
-- (void) loginWindowController: (RATLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken;
+- (void) loginWindowController: (ANTLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken;
 
 @end
 
-@interface RATLoginWindowController : NSWindowController
+@interface ANTLoginWindowController : NSWindowController
 
 /** Login window controller delegate */
 @property(weak, nonatomic) id<RATLoginWindowControllerDelegate> delegate;

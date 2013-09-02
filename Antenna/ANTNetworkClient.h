@@ -30,11 +30,11 @@
 
 extern NSString *RATNetworkClientDidLoginNotification;
 
-@interface RATNetworkClient : NSObject
+@interface ANTNetworkClient : NSObject
 
 + (NSURL *) bugreporterURL;
 
 - (void) login;
-- (void) reportSummariesForSection: (NSString *) sectionName;
+- (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
 
 @end

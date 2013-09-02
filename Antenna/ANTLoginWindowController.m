@@ -26,16 +26,16 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import "RATLoginWindowController.h"
+#import "ANTLoginWindowController.h"
 #import <WebKit/WebKit.h>
 
-#import "RATNetworkClient.h"
+#import "ANTNetworkClient.h"
 
-@interface RATLoginWindowController ()
+@interface ANTLoginWindowController ()
 
 @end
 
-@implementation RATLoginWindowController {
+@implementation ANTLoginWindowController {
 @private
     __weak IBOutlet WebView *_webView;
 
@@ -90,7 +90,7 @@
         return;
     
     /* Response must be on the bugreport site */
-    NSString *expectedHost = [[RATNetworkClient bugreporterURL] host];
+    NSString *expectedHost = [[ANTNetworkClient bugreporterURL] host];
     if (![[[httpResponse URL] host] isEqual: expectedHost])
         return;
 
