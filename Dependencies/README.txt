@@ -6,7 +6,7 @@ MAPlistTypeChecking
       d8940aa5299fa8dadeb0f6841e23958b4b6014a5 checked out from https://github.com/mikeash/MAPlistTypeChecking
 
     License:
-      MIT
+      BSD
 
     Modifications:
       - Added a -description method to MAErrorReportingObject.
