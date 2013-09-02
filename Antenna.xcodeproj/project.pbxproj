@@ -11,12 +11,16 @@
 		05C9D9DD17D43DF90089603A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 05C9D9DB17D43DF90089603A /* InfoPlist.strings */; };
 		05C9D9DF17D43DF90089603A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D9DE17D43DF90089603A /* main.m */; };
 		05C9D9E317D43DF90089603A /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 05C9D9E117D43DF90089603A /* Credits.rtf */; };
-		05C9D9E617D43DF90089603A /* PLAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D9E517D43DF90089603A /* PLAppDelegate.m */; };
+		05C9D9E617D43DF90089603A /* AntennaAppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D9E517D43DF90089603A /* AntennaAppDelegate.m */; };
 		05C9D9E917D43DF90089603A /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 05C9D9E717D43DF90089603A /* MainMenu.xib */; };
 		05C9D9F117D43DF90089603A /* SenTestingKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D9F017D43DF90089603A /* SenTestingKit.framework */; };
 		05C9D9F217D43DF90089603A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D9D217D43DF90089603A /* Cocoa.framework */; };
 		05C9D9FA17D43DF90089603A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 05C9D9F817D43DF90089603A /* InfoPlist.strings */; };
 		05C9D9FD17D43DF90089603A /* AntennaTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D9FC17D43DF90089603A /* AntennaTests.m */; };
+		05C9DA0917D43EB00089603A /* RATNetworkClient.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA0817D43EB00089603A /* RATNetworkClient.m */; };
+		05C9DA1317D43FB90089603A /* RATLoginWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1117D43FB90089603A /* RATLoginWindowController.m */; };
+		05C9DA1417D43FB90089603A /* RATLoginWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 05C9DA1217D43FB90089603A /* RATLoginWindowController.xib */; };
+		05C9DA1617D4432B0089603A /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9DA1517D4432B0089603A /* WebKit.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,8 +44,8 @@
 		05C9D9DE17D43DF90089603A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		05C9D9E017D43DF90089603A /* Antenna-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "Antenna-Prefix.pch"; sourceTree = "<group>"; };
 		05C9D9E217D43DF90089603A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
-		05C9D9E417D43DF90089603A /* PLAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = PLAppDelegate.h; sourceTree = "<group>"; };
-		05C9D9E517D43DF90089603A /* PLAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = PLAppDelegate.m; sourceTree = "<group>"; };
+		05C9D9E417D43DF90089603A /* AntennaAppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AntennaAppDelegate.h; sourceTree = "<group>"; };
+		05C9D9E517D43DF90089603A /* AntennaAppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AntennaAppDelegate.m; sourceTree = "<group>"; };
 		05C9D9E817D43DF90089603A /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		05C9D9EF17D43DF90089603A /* AntennaTests.octest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AntennaTests.octest; sourceTree = BUILT_PRODUCTS_DIR; };
 		05C9D9F017D43DF90089603A /* SenTestingKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SenTestingKit.framework; path = Library/Frameworks/SenTestingKit.framework; sourceTree = DEVELOPER_DIR; };
@@ -49,6 +53,13 @@
 		05C9D9F917D43DF90089603A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		05C9D9FB17D43DF90089603A /* AntennaTests.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AntennaTests.h; sourceTree = "<group>"; };
 		05C9D9FC17D43DF90089603A /* AntennaTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AntennaTests.m; sourceTree = "<group>"; };
+		05C9DA0617D43E1C0089603A /* README.md */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.md; sourceTree = "<group>"; };
+		05C9DA0717D43EB00089603A /* RATNetworkClient.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RATNetworkClient.h; sourceTree = "<group>"; };
+		05C9DA0817D43EB00089603A /* RATNetworkClient.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RATNetworkClient.m; sourceTree = "<group>"; };
+		05C9DA1017D43FB90089603A /* RATLoginWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RATLoginWindowController.h; sourceTree = "<group>"; };
+		05C9DA1117D43FB90089603A /* RATLoginWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RATLoginWindowController.m; sourceTree = "<group>"; };
+		05C9DA1217D43FB90089603A /* RATLoginWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = RATLoginWindowController.xib; sourceTree = "<group>"; };
+		05C9DA1517D4432B0089603A /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +67,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05C9DA1617D4432B0089603A /* WebKit.framework in Frameworks */,
 				05C9D9D317D43DF90089603A /* Cocoa.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -79,6 +91,7 @@
 				05C9D9F517D43DF90089603A /* AntennaTests */,
 				05C9D9D117D43DF90089603A /* Frameworks */,
 				05C9D9D017D43DF90089603A /* Products */,
+				05C9DA0617D43E1C0089603A /* README.md */,
 			);
 			sourceTree = "<group>";
 		};
@@ -95,6 +108,7 @@
 			isa = PBXGroup;
 			children = (
 				05C9D9D217D43DF90089603A /* Cocoa.framework */,
+				05C9DA1517D4432B0089603A /* WebKit.framework */,
 				05C9D9F017D43DF90089603A /* SenTestingKit.framework */,
 				05C9D9D417D43DF90089603A /* Other Frameworks */,
 			);
@@ -114,8 +128,9 @@
 		05C9D9D817D43DF90089603A /* Antenna */ = {
 			isa = PBXGroup;
 			children = (
-				05C9D9E417D43DF90089603A /* PLAppDelegate.h */,
-				05C9D9E517D43DF90089603A /* PLAppDelegate.m */,
+				05C9D9E417D43DF90089603A /* AntennaAppDelegate.h */,
+				05C9D9E517D43DF90089603A /* AntennaAppDelegate.m */,
+				05C9DA0A17D43EF00089603A /* Network Client */,
 				05C9D9E717D43DF90089603A /* MainMenu.xib */,
 				05C9D9D917D43DF90089603A /* Supporting Files */,
 			);
@@ -151,6 +166,18 @@
 				05C9D9F817D43DF90089603A /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		05C9DA0A17D43EF00089603A /* Network Client */ = {
+			isa = PBXGroup;
+			children = (
+				05C9DA0717D43EB00089603A /* RATNetworkClient.h */,
+				05C9DA0817D43EB00089603A /* RATNetworkClient.m */,
+				05C9DA1017D43FB90089603A /* RATLoginWindowController.h */,
+				05C9DA1117D43FB90089603A /* RATLoginWindowController.m */,
+				05C9DA1217D43FB90089603A /* RATLoginWindowController.xib */,
+			);
+			name = "Network Client";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -228,6 +255,7 @@
 				05C9D9DD17D43DF90089603A /* InfoPlist.strings in Resources */,
 				05C9D9E317D43DF90089603A /* Credits.rtf in Resources */,
 				05C9D9E917D43DF90089603A /* MainMenu.xib in Resources */,
+				05C9DA1417D43FB90089603A /* RATLoginWindowController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -263,7 +291,9 @@
 			buildActionMask = 2147483647;
 			files = (
 				05C9D9DF17D43DF90089603A /* main.m in Sources */,
-				05C9D9E617D43DF90089603A /* PLAppDelegate.m in Sources */,
+				05C9D9E617D43DF90089603A /* AntennaAppDelegate.m in Sources */,
+				05C9DA0917D43EB00089603A /* RATNetworkClient.m in Sources */,
+				05C9DA1317D43FB90089603A /* RATLoginWindowController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
