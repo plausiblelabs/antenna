@@ -21,6 +21,14 @@
 		05C9DA1317D43FB90089603A /* ANTLoginWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1117D43FB90089603A /* ANTLoginWindowController.m */; };
 		05C9DA1417D43FB90089603A /* ANTLoginWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 05C9DA1217D43FB90089603A /* ANTLoginWindowController.xib */; };
 		05C9DA1617D4432B0089603A /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9DA1517D4432B0089603A /* WebKit.framework */; };
+		05C9DA3317D45F830089603A /* MAErrorReportingArray.h in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1B17D45F430089603A /* MAErrorReportingArray.h */; };
+		05C9DA3417D45F830089603A /* MAErrorReportingArray.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1C17D45F430089603A /* MAErrorReportingArray.m */; };
+		05C9DA3517D45F830089603A /* MAErrorReportingDictionary.h in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1D17D45F430089603A /* MAErrorReportingDictionary.h */; };
+		05C9DA3617D45F830089603A /* MAErrorReportingDictionary.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1E17D45F430089603A /* MAErrorReportingDictionary.m */; };
+		05C9DA3717D45F830089603A /* MAErrorReportingObject.h in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA1F17D45F430089603A /* MAErrorReportingObject.h */; };
+		05C9DA3817D45F830089603A /* MAErrorReportingObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2017D45F430089603A /* MAErrorReportingObject.m */; };
+		05C9DA3917D45F830089603A /* NSObject+MAErrorReporting.h in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2217D45F430089603A /* NSObject+MAErrorReporting.h */; };
+		05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2317D45F430089603A /* NSObject+MAErrorReporting.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -60,6 +68,20 @@
 		05C9DA1117D43FB90089603A /* ANTLoginWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTLoginWindowController.m; sourceTree = "<group>"; };
 		05C9DA1217D43FB90089603A /* ANTLoginWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ANTLoginWindowController.xib; sourceTree = "<group>"; };
 		05C9DA1517D4432B0089603A /* WebKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WebKit.framework; path = System/Library/Frameworks/WebKit.framework; sourceTree = SDKROOT; };
+		05C9DA1917D45F430089603A /* .gitignore */ = {isa = PBXFileReference; lastKnownFileType = text; path = .gitignore; sourceTree = "<group>"; };
+		05C9DA1B17D45F430089603A /* MAErrorReportingArray.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MAErrorReportingArray.h; sourceTree = "<group>"; };
+		05C9DA1C17D45F430089603A /* MAErrorReportingArray.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MAErrorReportingArray.m; sourceTree = "<group>"; };
+		05C9DA1D17D45F430089603A /* MAErrorReportingDictionary.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MAErrorReportingDictionary.h; sourceTree = "<group>"; };
+		05C9DA1E17D45F430089603A /* MAErrorReportingDictionary.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MAErrorReportingDictionary.m; sourceTree = "<group>"; };
+		05C9DA1F17D45F430089603A /* MAErrorReportingObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = MAErrorReportingObject.h; sourceTree = "<group>"; };
+		05C9DA2017D45F430089603A /* MAErrorReportingObject.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MAErrorReportingObject.m; sourceTree = "<group>"; };
+		05C9DA2117D45F430089603A /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		05C9DA2217D45F430089603A /* NSObject+MAErrorReporting.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "NSObject+MAErrorReporting.h"; sourceTree = "<group>"; };
+		05C9DA2317D45F430089603A /* NSObject+MAErrorReporting.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = "NSObject+MAErrorReporting.m"; sourceTree = "<group>"; };
+		05C9DA2917D45F430089603A /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		05C9DA2A17D45F430089603A /* MAPlistTypeCheckingTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "MAPlistTypeCheckingTests-Info.plist"; sourceTree = "<group>"; };
+		05C9DA2B17D45F430089603A /* MAPlistTypeCheckingTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = MAPlistTypeCheckingTests.m; sourceTree = "<group>"; };
+		05C9DA2C17D45F430089603A /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -89,6 +111,7 @@
 			children = (
 				05C9D9D817D43DF90089603A /* Antenna */,
 				05C9D9F517D43DF90089603A /* AntennaTests */,
+				05C9DA1717D45F430089603A /* Dependencies */,
 				05C9D9D117D43DF90089603A /* Frameworks */,
 				05C9D9D017D43DF90089603A /* Products */,
 				05C9DA0617D43E1C0089603A /* README.md */,
@@ -178,6 +201,51 @@
 				05C9DA1217D43FB90089603A /* ANTLoginWindowController.xib */,
 			);
 			name = "Network Client";
+			sourceTree = "<group>";
+		};
+		05C9DA1717D45F430089603A /* Dependencies */ = {
+			isa = PBXGroup;
+			children = (
+				05C9DA1817D45F430089603A /* MAPlistTypeChecking */,
+				05C9DA2C17D45F430089603A /* README.txt */,
+			);
+			path = Dependencies;
+			sourceTree = "<group>";
+		};
+		05C9DA1817D45F430089603A /* MAPlistTypeChecking */ = {
+			isa = PBXGroup;
+			children = (
+				05C9DA1917D45F430089603A /* .gitignore */,
+				05C9DA1A17D45F430089603A /* MAPlistTypeChecking */,
+				05C9DA2717D45F430089603A /* MAPlistTypeCheckingTests */,
+			);
+			path = MAPlistTypeChecking;
+			sourceTree = "<group>";
+		};
+		05C9DA1A17D45F430089603A /* MAPlistTypeChecking */ = {
+			isa = PBXGroup;
+			children = (
+				05C9DA1B17D45F430089603A /* MAErrorReportingArray.h */,
+				05C9DA1C17D45F430089603A /* MAErrorReportingArray.m */,
+				05C9DA1D17D45F430089603A /* MAErrorReportingDictionary.h */,
+				05C9DA1E17D45F430089603A /* MAErrorReportingDictionary.m */,
+				05C9DA1F17D45F430089603A /* MAErrorReportingObject.h */,
+				05C9DA2017D45F430089603A /* MAErrorReportingObject.m */,
+				05C9DA2117D45F430089603A /* main.m */,
+				05C9DA2217D45F430089603A /* NSObject+MAErrorReporting.h */,
+				05C9DA2317D45F430089603A /* NSObject+MAErrorReporting.m */,
+			);
+			path = MAPlistTypeChecking;
+			sourceTree = "<group>";
+		};
+		05C9DA2717D45F430089603A /* MAPlistTypeCheckingTests */ = {
+			isa = PBXGroup;
+			children = (
+				05C9DA2817D45F430089603A /* InfoPlist.strings */,
+				05C9DA2A17D45F430089603A /* MAPlistTypeCheckingTests-Info.plist */,
+				05C9DA2B17D45F430089603A /* MAPlistTypeCheckingTests.m */,
+			);
+			path = MAPlistTypeCheckingTests;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -294,6 +362,14 @@
 				05C9D9E617D43DF90089603A /* AntennaAppDelegate.m in Sources */,
 				05C9DA0917D43EB00089603A /* ANTNetworkClient.m in Sources */,
 				05C9DA1317D43FB90089603A /* ANTLoginWindowController.m in Sources */,
+				05C9DA3317D45F830089603A /* MAErrorReportingArray.h in Sources */,
+				05C9DA3417D45F830089603A /* MAErrorReportingArray.m in Sources */,
+				05C9DA3517D45F830089603A /* MAErrorReportingDictionary.h in Sources */,
+				05C9DA3617D45F830089603A /* MAErrorReportingDictionary.m in Sources */,
+				05C9DA3717D45F830089603A /* MAErrorReportingObject.h in Sources */,
+				05C9DA3817D45F830089603A /* MAErrorReportingObject.m in Sources */,
+				05C9DA3917D45F830089603A /* NSObject+MAErrorReporting.h in Sources */,
+				05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -344,6 +420,14 @@
 			isa = PBXVariantGroup;
 			children = (
 				05C9D9F917D43DF90089603A /* en */,
+			);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+		05C9DA2817D45F430089603A /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (
+				05C9DA2917D45F430089603A /* en */,
 			);
 			name = InfoPlist.strings;
 			sourceTree = "<group>";
