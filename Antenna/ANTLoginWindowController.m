@@ -60,10 +60,53 @@
     [[_webView mainFrame] loadRequest: req];
 }
 
-- (void) webView: (WebView *) sender didFinishLoadForFrame: (WebFrame *) frame {
-    if (!_loginDone)
-        return;
+/* Try to auto-fill the login form; we perform sanity checks here to ensure we're not just POST'ing the
+ * password anywhere willy-nilly */
+- (void) tryAutofillingLoginForm {
+    NSURL *frameURL = [NSURL URLWithString: [_webView mainFrameURL]];
     
+    /* The mechanism must be SSL */
+    if (![[frameURL scheme] isEqual: @"https"]) {
+        NSLog(@"Skipping auto-auth for non-SSL URL: %@", frameURL);
+        return;
+    }
+
+    /* The address must be .apple.com */
+    NSRange appleDomainRange = [[frameURL host] rangeOfString: @"apple.com"];
+    if (appleDomainRange.location == NSNotFound || NSMaxRange(appleDomainRange) != [[frameURL host] length]) {
+        NSLog(@"Skipping auto-auth for non-apple URL: %@", frameURL);
+        return;
+    }
+    
+    // TODO - This is incompletely stubbed out using the active element focus; it might be better to query for
+    // actual field identifiers.
+
+    /* Determine whether the active element is the username or password field */
+    WebScriptObject *activeElement = [[_webView windowScriptObject] evaluateWebScript: @"document.activeElement"];
+    if (activeElement == nil || [activeElement isKindOfClass: [WebUndefined class]]) {
+        NSLog(@"Skipping auto-auth for invalid element: %@", activeElement);
+        return;
+    }
+    
+    NSString *elemType = [activeElement valueForKey: @"type"];
+    
+    /* Determine whether the active element is a password form field. */
+    if ([elemType caseInsensitiveCompare: @"password"] == NSOrderedSame) {
+        NSLog(@"Password input");
+    } else if ([elemType caseInsensitiveCompare: @"text"] == NSOrderedSame) {
+        NSLog(@"Text input");
+    } else {
+        NSLog(@"Skipping auto-auth for unknown field type: %@", elemType);
+    }
+}
+
+- (void) webView: (WebView *) sender didFinishLoadForFrame: (WebFrame *) frame {
+    /* Check for a login form. */
+    if (!_loginDone) {
+        [self tryAutofillingLoginForm];
+        return;
+    }
+
     if (_loginNotifyDone)
         return;
     
