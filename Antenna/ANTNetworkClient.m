@@ -67,6 +67,7 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
     
     _dateFormatter = [[NSDateFormatter alloc] init];
     [_dateFormatter setDateFormat:@"dd-MMM-yyyy HH:mm"];
+    [_dateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"]];
 
     return self;
 }
