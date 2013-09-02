@@ -30,6 +30,7 @@
 #import <WebKit/WebKit.h>
 
 #import "ANTNetworkClient.h"
+#import "NSObject+MAErrorReporting.h"
 
 @interface ANTLoginWindowController ()
 
@@ -78,25 +79,66 @@
         return;
     }
     
-    // TODO - This is incompletely stubbed out using the active element focus; it might be better to query for
-    // actual field identifiers.
-
-    /* Determine whether the active element is the username or password field */
-    WebScriptObject *activeElement = [[_webView windowScriptObject] evaluateWebScript: @"document.activeElement"];
-    if (activeElement == nil || [activeElement isKindOfClass: [WebUndefined class]]) {
-        NSLog(@"Skipping auto-auth for invalid element: %@", activeElement);
-        return;
+    /* Find the account name field */
+    DOMDocument *doc = [[_webView mainFrame] DOMDocument];
+    {
+        DOMElement *elem = [doc getElementById: @"accountname"];
+        if (elem == nil) {
+            NSLog(@"Skipping auto-auth; could not find 'accountname' element");
+            return;
+        }
+            
+        /* Verify the type */
+        if (![elem isKindOfClass: [DOMHTMLInputElement class]]) {
+            NSLog(@"Skipping auto-auth; 'accountname' is not of expected type (%@)", elem);
+            return;
+        }
+        
+        DOMHTMLInputElement *accountElement = (DOMHTMLInputElement *) elem;
+        if ([[accountElement getAttribute: @"type"] caseInsensitiveCompare: @"text"] != NSOrderedSame) {
+            NSLog(@"Skipping auto-auth; 'accountname' input field is not of expected type (type=%@)", [accountElement getAttribute: @"type"]);
+        }
+        
+        /* Verify the name */
+        if (![[accountElement getAttribute: @"name"] isEqual: @"appleId"]) {
+            NSLog(@"Skipping auto-auth; 'accountname' element does not have expected name: %@", [accountElement getAttribute: @"name"]);
+            return;
+        }
+        
+        /* Set the value */
+        [accountElement setAttribute: @"value" value: @"anaccount@example.org"];        
     }
     
-    NSString *elemType = [activeElement valueForKey: @"type"];
-    
-    /* Determine whether the active element is a password form field. */
-    if ([elemType caseInsensitiveCompare: @"password"] == NSOrderedSame) {
-        NSLog(@"Password input");
-    } else if ([elemType caseInsensitiveCompare: @"text"] == NSOrderedSame) {
-        NSLog(@"Text input");
-    } else {
-        NSLog(@"Skipping auto-auth for unknown field type: %@", elemType);
+    /* Find the password field */
+    {
+        DOMElement *elem = [doc getElementById: @"accountpassword"];
+        if (elem == nil) {
+            NSLog(@"Skipping auto-auth; could not find 'accountpassword' element");
+            return;
+        }
+        
+        /* Verify the type */
+        if (![elem isKindOfClass: [DOMHTMLInputElement class]]) {
+            NSLog(@"Skipping auto-auth; 'accountpassword' is not of expected type (%@)", elem);
+            return;
+        }
+        
+        DOMHTMLInputElement *passwordElement = (DOMHTMLInputElement *) elem;
+        if ([[passwordElement getAttribute: @"type"] caseInsensitiveCompare: @"password"] != NSOrderedSame) {
+            NSLog(@"Skipping auto-auth; 'accountpassword' input field is not of expected type (type=%@)", [passwordElement getAttribute: @"type"]);
+        }
+        
+        /* Verify the name */
+        if (![[passwordElement getAttribute: @"name"] isEqual: @"accountPassword"]) {
+            NSLog(@"Skipping auto-auth; 'accountpassword' element does not have expected name: %@", [passwordElement getAttribute: @"name"]);
+            return;
+        }
+        
+        /* Set the value */
+        [passwordElement setAttribute: @"value" value: @"password"];
+        
+        /* Submit! */
+        // [[accountElement form] submit];
     }
 }
 
@@ -107,6 +149,7 @@
         return;
     }
 
+    /* If login notification is complete, there's nothing to check here */
     if (_loginNotifyDone)
         return;
     
