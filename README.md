@@ -9,3 +9,6 @@ Wishlist items:
 * Drill down on categories and specific issues.
 * Full support for submission, commenting, attachments.
 * Automatic submission to OpenRadar.
+
+# Screen Shots
+![Radar List](Documentation/radar_summary_screenshot.png)
