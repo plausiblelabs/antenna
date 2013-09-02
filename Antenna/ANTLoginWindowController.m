@@ -27,10 +27,12 @@
  */
 
 #import "ANTLoginWindowController.h"
-#import <WebKit/WebKit.h>
 
 #import "ANTNetworkClient.h"
 #import "NSObject+MAErrorReporting.h"
+
+#import <Security/Security.h>
+#import <WebKit/WebKit.h>
 
 @interface ANTLoginWindowController ()
 
@@ -44,6 +46,10 @@
     /** Login panel */
     __weak IBOutlet NSPanel *_loginPanel;
     
+    /** The URL of the page on which we last attempted authentication. This will be nil
+     * if authentication has never been attempted. */
+    NSURL *_lastAuthURL;
+    
     /** Login panel username field. */
     __weak IBOutlet NSTextField *_loginUsernameField;
 
@@ -52,6 +58,9 @@
     
     /** Login explanatory message label */
     __weak IBOutlet NSTextField *_loginMessageLabel;
+    
+    /** Login 'Save password' checkbox */
+    __weak IBOutlet NSButton *_loginSavePasswordCheckbox;
 
     /** Login completed successfully. */
     BOOL _loginDone;
@@ -112,16 +121,19 @@
 // Login button pressed
 - (IBAction) didSubmitLoginDialog: (id) sender {
     /* Fetch the form elements */
+    NSURL *loginURL;
     DOMHTMLInputElement *accountElement;
     DOMHTMLInputElement *passwordElement;
     
-    if (![self findAccountElement: &accountElement passwordElement: &passwordElement]) {
+    if (![self findAccountElement: &accountElement passwordElement: &passwordElement loginURL: &loginURL]) {
         NSLog(@"Could not find required elements, giving up on auto-auth");
         return;
     }
-    
+
     /* Configure and submit the form */
     _didAttemptAutoLogin = YES;
+    _lastAuthURL = loginURL;
+
     [accountElement setAttribute: @"value" value: [_loginUsernameField stringValue]];
     [passwordElement setAttribute: @"value" value: [_loginPasswordField stringValue]];
     [[passwordElement form] submit];
@@ -147,10 +159,11 @@
  *
  * @param accountElement The account DOM element.
  * @param passwordElement The password DOM element.
+ * @param loginURL The current page's URL.
  *
  * @return Returns YES on success, or NO if the page can not be validated, or the required elements can not be found.
  */
-- (BOOL) findAccountElement: (DOMHTMLInputElement **) accountElement passwordElement: (DOMHTMLInputElement **) passwordElement {
+- (BOOL) findAccountElement: (DOMHTMLInputElement **) accountElement passwordElement: (DOMHTMLInputElement **) passwordElement loginURL: (NSURL **) loginURL {
     NSURL *frameURL = [NSURL URLWithString: [_webView mainFrameURL]];
     
     /* The mechanism must be SSL */
@@ -220,7 +233,8 @@
             return NO;
         }
     }
-    
+
+    *loginURL = frameURL;
     return YES;
 }
 
@@ -234,18 +248,64 @@
     /* Verify that this is the correct page, and fetch the account/password elements */
     DOMHTMLInputElement *accountElement;
     DOMHTMLInputElement *passwordElement;
+    NSURL *loginURL;
     
-    if (![self findAccountElement: &accountElement passwordElement: &passwordElement]) {
+    if (![self findAccountElement: &accountElement passwordElement: &passwordElement loginURL: &loginURL]) {
         NSLog(@"Could not find required elements, giving up on auto-auth");
         return;
     }
+
+    /* Try fetching the password from the keychain */
+    // TODO - Lift out into a generic preferences API
+    NSString *accountName = [[NSUserDefaults standardUserDefaults] stringForKey: @"ANTLoginUserName"];
+    if (accountName == nil)
+        accountName = [accountElement getAttribute: @"value"];
+
+    /* Fetch the target URL */
+    NSURL *url = [NSURL URLWithString: [_webView mainFrameURL]];
     
-    // TODO - fetch details from keychain
+    /* The scheme is validated in -findAccountElement:passwordElement:, but we double-check here */
+    NSAssert([[url scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
+
+    NSString *password = nil;
+    if (accountName != nil) {
+        UInt32 passwordLength;
+        void *passwordData;
+        OSStatus status;
+        status = SecKeychainFindInternetPassword(NULL,
+                                                 (UInt32) strlen([[url host] UTF8String]),
+                                                 [[url host] UTF8String],
+                                                 0,
+                                                 NULL,
+                                                 (UInt32) strlen([accountName UTF8String]),
+                                                 [accountName UTF8String],
+                                                 (UInt32) strlen([[url path] UTF8String]),
+                                                 [[url path] UTF8String],
+                                                 [[url port] integerValue],
+                                                 kSecProtocolTypeHTTPS,
+                                                 kSecAuthenticationTypeAny,
+                                                 &passwordLength,
+                                                 &passwordData,
+                                                 NULL);
+        if (status == noErr) {
+            password = [[NSString alloc] initWithBytes: passwordData length: passwordLength encoding: NSUTF8StringEncoding];
+            SecKeychainItemFreeContent(NULL, passwordData);
+        } else {
+            NSLog(@"SecKeychainFindInternetPassword() failed with status=%d", status);
+        }
+    }
     
     /* Display login dialog */
     NSString *message = [NSString stringWithFormat: NSLocalizedString(@"Your password will be submitted securely via %@.", @"Login message"), [_webView mainFrameURL]];
     [_loginMessageLabel setStringValue: message];
-    [_loginUsernameField setStringValue: [accountElement getAttribute: @"value"]];
+
+    /* Set up defaults */
+    if (accountName != nil)
+        [_loginUsernameField setStringValue: accountName];
+
+    if (password != nil)
+        [_loginPasswordField setStringValue: password];
+
     [NSApp beginSheet: _loginPanel modalForWindow: self.window modalDelegate: self didEndSelector:@selector(didEndLoginSheet:returnCode:contextInfo:) contextInfo: nil];
 }
 
@@ -264,6 +324,38 @@
     
     /* Try to fetch the CSRF token */
     NSString *csrfToken = [[_webView windowScriptObject] evaluateWebScript: @"$(\"#csrftokenPage\").val()"];
+    
+    /* If requested, save the password */
+    if ([_loginSavePasswordCheckbox state] == NSOnState &&
+        [_loginUsernameField stringValue] != nil &&
+        [_loginPasswordField stringValue] != nil &&
+        _lastAuthURL != nil)
+    {
+        OSStatus status;
+        
+        NSString *accountName = [_loginUsernameField stringValue];
+        NSString *password = [_loginPasswordField stringValue];
+        const char *passwordData = [password UTF8String];
+        UInt32 passwordLength = (UInt32) strlen(passwordData);
+    
+        status = SecKeychainAddInternetPassword(NULL,
+                                                (UInt32) strlen([[_lastAuthURL host] UTF8String]),
+                                                [[_lastAuthURL host] UTF8String],
+                                                0,
+                                                NULL,
+                                                (UInt32) strlen([accountName UTF8String]),
+                                                [accountName UTF8String],
+                                                (UInt32) strlen([[_lastAuthURL path] UTF8String]),
+                                                [[_lastAuthURL path] UTF8String],
+                                                [[_lastAuthURL port] integerValue],
+                                                kSecProtocolTypeHTTPS,
+                                                kSecAuthenticationTypeAny,
+                                                passwordLength,
+                                                passwordData,
+                                                NULL);
+        if (status != noErr)
+            NSLog(@"SecKeychainAddInternetPassword() failed with status=%d", status);
+    }
     
     /* Success! */
     [_delegate loginWindowController: self didFinishWithToken: csrfToken];

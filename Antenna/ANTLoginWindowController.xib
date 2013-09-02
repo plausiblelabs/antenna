@@ -331,7 +331,6 @@
 							<string key="NSFrame">{{331, 13}, {75, 32}}</string>
 							<reference key="NSSuperview" ref="248785108"/>
 							<reference key="NSWindow"/>
-							<reference key="NSNextKeyView"/>
 							<string key="NSReuseIdentifierKey">_NS:9</string>
 							<bool key="NSEnabled">YES</bool>
 							<object class="NSButtonCell" key="NSCell" id="465080968">
@@ -452,6 +451,14 @@
 						<reference key="destination" ref="739132590"/>
 					</object>
 					<int key="connectionID">190</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBOutletConnection" key="connection">
+						<string key="label">_loginSavePasswordCheckbox</string>
+						<reference key="source" ref="1001"/>
+						<reference key="destination" ref="1045492237"/>
+					</object>
+					<int key="connectionID">195</int>
 				</object>
 				<object class="IBConnectionRecord">
 					<object class="IBOutletConnection" key="connection">
@@ -788,7 +795,7 @@
 								<float key="scoringTypeFloat">40</float>
 								<int key="contentType">3</int>
 							</object>
-							<object class="IBNSLayoutConstraint" id="98358612">
+							<object class="IBNSLayoutConstraint" id="517001924">
 								<reference key="firstItem" ref="911500563"/>
 								<int key="firstAttribute">3</int>
 								<int key="relation">0</int>
@@ -884,7 +891,7 @@
 								<float key="scoringTypeFloat">24</float>
 								<int key="contentType">2</int>
 							</object>
-							<object class="IBNSLayoutConstraint" id="970029979">
+							<object class="IBNSLayoutConstraint" id="826307155">
 								<reference key="firstItem" ref="248785108"/>
 								<int key="firstAttribute">6</int>
 								<int key="relation">0</int>
@@ -1180,7 +1187,7 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">184</int>
-						<reference key="object" ref="970029979"/>
+						<reference key="object" ref="826307155"/>
 						<reference key="parent" ref="248785108"/>
 					</object>
 					<object class="IBObjectRecord">
@@ -1200,7 +1207,7 @@
 					</object>
 					<object class="IBObjectRecord">
 						<int key="objectID">188</int>
-						<reference key="object" ref="98358612"/>
+						<reference key="object" ref="517001924"/>
 						<reference key="parent" ref="248785108"/>
 					</object>
 					<object class="IBObjectRecord">
@@ -1261,13 +1268,13 @@
 					<reference ref="672873843"/>
 					<reference ref="211880583"/>
 					<reference ref="6198048"/>
-					<reference ref="970029979"/>
+					<reference ref="826307155"/>
 					<reference ref="368362889"/>
 					<reference ref="921655953"/>
 					<reference ref="18094194"/>
 					<reference ref="435766568"/>
 					<reference ref="493107270"/>
-					<reference ref="98358612"/>
+					<reference ref="517001924"/>
 					<reference ref="598009828"/>
 					<reference ref="893406365"/>
 					<reference ref="832738845"/>
@@ -1316,7 +1323,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">194</int>
+			<int key="maxID">195</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes">
 			<array class="NSMutableArray" key="referencedPartialClassDescriptions">

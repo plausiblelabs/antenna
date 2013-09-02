@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		05C84A3017D54D1B006EFB7D /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C84A2F17D54D1B006EFB7D /* Security.framework */; };
 		05C9D9D317D43DF90089603A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D9D217D43DF90089603A /* Cocoa.framework */; };
 		05C9D9DD17D43DF90089603A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 05C9D9DB17D43DF90089603A /* InfoPlist.strings */; };
 		05C9D9DF17D43DF90089603A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D9DE17D43DF90089603A /* main.m */; };
@@ -40,6 +41,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		05C84A2F17D54D1B006EFB7D /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		05C9D9CF17D43DF90089603A /* Antenna.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Antenna.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05C9D9D217D43DF90089603A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		05C9D9D517D43DF90089603A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -91,6 +93,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05C84A3017D54D1B006EFB7D /* Security.framework in Frameworks */,
 				05C9DA1617D4432B0089603A /* WebKit.framework in Frameworks */,
 				05C9D9D317D43DF90089603A /* Cocoa.framework in Frameworks */,
 			);
@@ -135,6 +138,7 @@
 				05C9D9D217D43DF90089603A /* Cocoa.framework */,
 				05C9DA1517D4432B0089603A /* WebKit.framework */,
 				05C9D9F017D43DF90089603A /* SenTestingKit.framework */,
+				05C84A2F17D54D1B006EFB7D /* Security.framework */,
 				05C9D9D417D43DF90089603A /* Other Frameworks */,
 			);
 			name = Frameworks;
@@ -591,6 +595,7 @@
 				05C9DA0217D43DF90089603A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		05C9DA0317D43DF90089603A /* Build configuration list for PBXNativeTarget "AntennaTests" */ = {
 			isa = XCConfigurationList;
@@ -599,6 +604,7 @@
 				05C9DA0517D43DF90089603A /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
