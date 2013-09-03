@@ -44,6 +44,9 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
 
 @implementation ANTNetworkClient {
 @private
+    /** User preferences */
+    ANTPreferences *_preferences;
+
     /** The login window controller (nil if login is not pending). */
     ANTLoginWindowController *_loginWindowController;
     
@@ -61,9 +64,11 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
 /**
  * Initialize a new instance.
  */
-- (id) init {
+- (id) initWithPreferences: (ANTPreferences *) preferences {
     if ((self = [super init]) == nil)
         return nil;
+    
+    _preferences = preferences;
     
     _dateFormatter = [[NSDateFormatter alloc] init];
     [_dateFormatter setDateFormat:@"dd-MMM-yyyy HH:mm"];
@@ -173,7 +178,7 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
  */
 - (void) login {
     if (_loginWindowController == nil) {
-        _loginWindowController = [[ANTLoginWindowController alloc] init];
+        _loginWindowController = [[ANTLoginWindowController alloc] initWithPreferences: _preferences];
         _loginWindowController.delegate = self;
         [_loginWindowController showWindow: nil];
     }

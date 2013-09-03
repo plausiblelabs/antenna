@@ -28,12 +28,15 @@
 
 #import <Foundation/Foundation.h>
 #import "ANTRadarSummaryResponse.h"
+#import "ANTPreferences.h"
 
 extern NSString *RATNetworkClientDidLoginNotification;
 
 @interface ANTNetworkClient : NSObject
 
 + (NSURL *) bugreporterURL;
+
+- (id) initWithPreferences: (ANTPreferences *) preferences;
 
 - (void) login;
 - (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;

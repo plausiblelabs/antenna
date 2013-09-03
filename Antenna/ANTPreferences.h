@@ -26,25 +26,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Cocoa/Cocoa.h>
-#import "ANTPreferences.h"
+#import <Foundation/Foundation.h>
 
-@class ANTLoginWindowController;
+@interface ANTPreferences : NSObject
 
-@protocol RATLoginWindowControllerDelegate <NSObject>
-
-/**
- * Delegate message sent when login has completed successfully.
- */
-- (void) loginWindowController: (ANTLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken;
-
-@end
-
-@interface ANTLoginWindowController : NSWindowController
-
-- (id) initWithPreferences: (ANTPreferences *) preferences;
-
-/** Login window controller delegate */
-@property(weak, nonatomic) id<RATLoginWindowControllerDelegate> delegate;
+- (void) setAppleID: (NSString *) appleID;
+- (NSString *) appleID;
 
 @end

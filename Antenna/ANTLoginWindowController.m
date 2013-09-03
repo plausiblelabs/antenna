@@ -42,6 +42,9 @@
 
 @implementation ANTLoginWindowController {
 @private
+    /** User preferences. */
+    ANTPreferences *_preferences;
+
     /** Backing web view */
     __weak IBOutlet WebView *_webView;
     
@@ -77,9 +80,11 @@
 /**
  * Initialize a new window controller instance.
  */
-- (id) init {
+- (id) initWithPreferences: (ANTPreferences *) preferences {
     if ((self = [super initWithWindowNibName: [self className] owner: self]) == nil)
         return nil;
+    
+    _preferences = preferences;
     
     return self;
 }
@@ -259,7 +264,7 @@
 
     /* Try fetching the password from the keychain */
     // TODO - Lift out into a generic preferences API
-    NSString *accountName = [[NSUserDefaults standardUserDefaults] stringForKey: @"ANTLoginUserName"];
+    NSString *accountName = [_preferences appleID];
     if (accountName == nil)
         accountName = [accountElement getAttribute: @"value"];
 
@@ -338,6 +343,9 @@
                                                              port: [[_lastAuthURL port] integerValue]
                                                          protocol: kSecProtocolTypeHTTPS];
         }
+        
+        /* Update the preferred Apple ID */
+        [_preferences setAppleID: accountName];
     }
     
     /* Success! */

@@ -28,16 +28,23 @@
 
 #import "AntennaAppDelegate.h"
 #import "ANTSummaryWindowController.h"
+#import "ANTPreferences.h"
 
 @implementation AntennaAppDelegate {
 @private
+    /** Application preferences */
+    ANTPreferences *_preferences;
+
     /** Summary window controller */
     IBOutlet ANTSummaryWindowController *_summaryWindowController;
 }
 
 - (void) applicationDidFinishLaunching: (NSNotification *) aNotification {
+    /* Fetch preferences */
+    _preferences = [[ANTPreferences alloc] init];
+
     /* Set up client and start login */
-    _networkClient = [[ANTNetworkClient alloc] init];
+    _networkClient = [[ANTNetworkClient alloc] initWithPreferences: _preferences];
     [_networkClient login];
 
     /* Wait for completion, and then fire up our summary window */

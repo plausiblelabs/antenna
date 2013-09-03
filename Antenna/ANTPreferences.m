@@ -26,25 +26,39 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Cocoa/Cocoa.h>
 #import "ANTPreferences.h"
 
-@class ANTLoginWindowController;
+/**
+ * Manages the ANT application preferences.
+ */
+@implementation ANTPreferences {
+@private
+    NSUserDefaults *_defaults;
+}
 
-@protocol RATLoginWindowControllerDelegate <NSObject>
+- (id) init {
+    if ((self = [super init]) == nil)
+        return nil;
+
+    _defaults = [NSUserDefaults standardUserDefaults];
+    
+    return self;
+}
 
 /**
- * Delegate message sent when login has completed successfully.
+ * Set the user's default Apple ID.
+ *
+ * @param appleID New Apple ID.
  */
-- (void) loginWindowController: (ANTLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken;
+- (void) setAppleID: (NSString *) appleID {
+    [_defaults setObject: appleID forKey: @"ANTAppleID"];
+}
 
-@end
-
-@interface ANTLoginWindowController : NSWindowController
-
-- (id) initWithPreferences: (ANTPreferences *) preferences;
-
-/** Login window controller delegate */
-@property(weak, nonatomic) id<RATLoginWindowControllerDelegate> delegate;
+/**
+ * Return the user's default Apple ID, or nil if none.
+ */
+- (NSString *) appleID {
+    return [_defaults stringForKey: @"ANTAppleID"];
+}
 
 @end
