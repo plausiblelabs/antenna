@@ -8,6 +8,8 @@
 
 /* Begin PBXBuildFile section */
 		05C84A3017D54D1B006EFB7D /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C84A2F17D54D1B006EFB7D /* Security.framework */; };
+		05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C84A3317D55861006EFB7D /* EMKeychainItem.m */; settings = {COMPILER_FLAGS = "-Wno-shorten-64-to-32 -fno-objc-arc"; }; };
+		05C84A3617D55861006EFB7D /* ReadMe.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 05C84A3417D55861006EFB7D /* ReadMe.rtf */; };
 		05C9D9D317D43DF90089603A /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D9D217D43DF90089603A /* Cocoa.framework */; };
 		05C9D9DD17D43DF90089603A /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 05C9D9DB17D43DF90089603A /* InfoPlist.strings */; };
 		05C9D9DF17D43DF90089603A /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D9DE17D43DF90089603A /* main.m */; };
@@ -42,6 +44,9 @@
 
 /* Begin PBXFileReference section */
 		05C84A2F17D54D1B006EFB7D /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		05C84A3217D55861006EFB7D /* EMKeychainItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EMKeychainItem.h; sourceTree = "<group>"; };
+		05C84A3317D55861006EFB7D /* EMKeychainItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMKeychainItem.m; sourceTree = "<group>"; };
+		05C84A3417D55861006EFB7D /* ReadMe.rtf */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.rtf; path = ReadMe.rtf; sourceTree = "<group>"; };
 		05C9D9CF17D43DF90089603A /* Antenna.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Antenna.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		05C9D9D217D43DF90089603A /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		05C9D9D517D43DF90089603A /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -111,6 +116,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		05C84A3117D55861006EFB7D /* EMKeychain */ = {
+			isa = PBXGroup;
+			children = (
+				05C84A3217D55861006EFB7D /* EMKeychainItem.h */,
+				05C84A3317D55861006EFB7D /* EMKeychainItem.m */,
+				05C84A3417D55861006EFB7D /* ReadMe.rtf */,
+			);
+			path = EMKeychain;
+			sourceTree = "<group>";
+		};
 		05C9D9C617D43DF90089603A = {
 			isa = PBXGroup;
 			children = (
@@ -215,6 +230,7 @@
 		05C9DA1717D45F430089603A /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
+				05C84A3117D55861006EFB7D /* EMKeychain */,
 				05C9DA1817D45F430089603A /* MAPlistTypeChecking */,
 				05C9DA2C17D45F430089603A /* README.txt */,
 			);
@@ -342,6 +358,7 @@
 				05C9D9E317D43DF90089603A /* Credits.rtf in Resources */,
 				05C9D9E917D43DF90089603A /* MainMenu.xib in Resources */,
 				05C9DA1417D43FB90089603A /* ANTLoginWindowController.xib in Resources */,
+				05C84A3617D55861006EFB7D /* ReadMe.rtf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -386,6 +403,7 @@
 				05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */,
 				05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */,
 				05C9DA4217D4F15D0089603A /* ANTSummaryWindowController.m in Sources */,
+				05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

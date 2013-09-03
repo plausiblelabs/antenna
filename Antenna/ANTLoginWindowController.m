@@ -29,6 +29,8 @@
 #import "ANTLoginWindowController.h"
 
 #import "ANTNetworkClient.h"
+
+#import "EMKeychainItem.h"
 #import "NSObject+MAErrorReporting.h"
 
 #import <Security/Security.h>
@@ -267,32 +269,13 @@
     /* The scheme is validated in -findAccountElement:passwordElement:, but we double-check here */
     NSAssert([[url scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
 
-    NSString *password = nil;
+    EMInternetKeychainItem *keychainItem = nil;
     if (accountName != nil) {
-        UInt32 passwordLength;
-        void *passwordData;
-        OSStatus status;
-        status = SecKeychainFindInternetPassword(NULL,
-                                                 (UInt32) strlen([[url host] UTF8String]),
-                                                 [[url host] UTF8String],
-                                                 0,
-                                                 NULL,
-                                                 (UInt32) strlen([accountName UTF8String]),
-                                                 [accountName UTF8String],
-                                                 (UInt32) strlen([[url path] UTF8String]),
-                                                 [[url path] UTF8String],
-                                                 [[url port] integerValue],
-                                                 kSecProtocolTypeHTTPS,
-                                                 kSecAuthenticationTypeAny,
-                                                 &passwordLength,
-                                                 &passwordData,
-                                                 NULL);
-        if (status == noErr) {
-            password = [[NSString alloc] initWithBytes: passwordData length: passwordLength encoding: NSUTF8StringEncoding];
-            SecKeychainItemFreeContent(NULL, passwordData);
-        } else {
-            NSLog(@"SecKeychainFindInternetPassword() failed with status=%d", status);
-        }
+        keychainItem = [EMInternetKeychainItem internetKeychainItemForServer: [url host]
+                                                                withUsername: accountName
+                                                                        path: [url path]
+                                                                        port: [[url port] integerValue]
+                                                                    protocol: kSecProtocolTypeHTTPS];
     }
     
     /* Display login dialog */
@@ -303,8 +286,8 @@
     if (accountName != nil)
         [_loginUsernameField setStringValue: accountName];
 
-    if (password != nil)
-        [_loginPasswordField setStringValue: password];
+    if (keychainItem != nil)
+        [_loginPasswordField setStringValue: keychainItem.password];
 
     [NSApp beginSheet: _loginPanel modalForWindow: self.window modalDelegate: self didEndSelector:@selector(didEndLoginSheet:returnCode:contextInfo:) contextInfo: nil];
 }
@@ -331,30 +314,30 @@
         [_loginPasswordField stringValue] != nil &&
         _lastAuthURL != nil)
     {
-        OSStatus status;
+        /* The scheme was validated in -findAccountElement:passwordElement:, but we double-check here */
+        NSAssert([[_lastAuthURL scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
         
+        /* Try to find an existing matching item, and update it if necessary. */
         NSString *accountName = [_loginUsernameField stringValue];
         NSString *password = [_loginPasswordField stringValue];
-        const char *passwordData = [password UTF8String];
-        UInt32 passwordLength = (UInt32) strlen(passwordData);
-    
-        status = SecKeychainAddInternetPassword(NULL,
-                                                (UInt32) strlen([[_lastAuthURL host] UTF8String]),
-                                                [[_lastAuthURL host] UTF8String],
-                                                0,
-                                                NULL,
-                                                (UInt32) strlen([accountName UTF8String]),
-                                                [accountName UTF8String],
-                                                (UInt32) strlen([[_lastAuthURL path] UTF8String]),
-                                                [[_lastAuthURL path] UTF8String],
-                                                [[_lastAuthURL port] integerValue],
-                                                kSecProtocolTypeHTTPS,
-                                                kSecAuthenticationTypeAny,
-                                                passwordLength,
-                                                passwordData,
-                                                NULL);
-        if (status != noErr)
-            NSLog(@"SecKeychainAddInternetPassword() failed with status=%d", status);
+        EMInternetKeychainItem *keychainItem = [EMInternetKeychainItem internetKeychainItemForServer: [_lastAuthURL host]
+                                                                                        withUsername: accountName
+                                                                                                path: [_lastAuthURL path]
+                                                                                                port: [[_lastAuthURL port] integerValue]
+                                                                                            protocol: kSecProtocolTypeHTTPS];
+        
+        if (keychainItem != nil) {
+            if (![keychainItem.password isEqual: password]) {
+                keychainItem.password = password;
+            }
+        } else {
+            /* No item matched -- create a new item */
+            [EMInternetKeychainItem internetKeychainItemForServer: [_lastAuthURL host]
+                                                     withUsername: accountName
+                                                             path: [_lastAuthURL path]
+                                                             port: [[_lastAuthURL port] integerValue]
+                                                         protocol: kSecProtocolTypeHTTPS];
+        }
     }
     
     /* Success! */
