@@ -31,6 +31,8 @@
 		05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2317D45F430089603A /* NSObject+MAErrorReporting.m */; };
 		05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */; };
 		05C9DA4217D4F15D0089603A /* ANTSummaryWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */; };
+		05E8332B17D93B0900DF3F9D /* PLFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
+		05E8332D17D93B2100DF3F9D /* PLFoundation.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -42,6 +44,20 @@
 			remoteInfo = Antenna;
 		};
 /* End PBXContainerItemProxy section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		05E8332C17D93B1800DF3F9D /* Copy Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				05E8332D17D93B2100DF3F9D /* PLFoundation.framework in Copy Frameworks */,
+			);
+			name = "Copy Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		05C84A2F17D54D1B006EFB7D /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
@@ -94,6 +110,7 @@
 		05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarSummaryResponse.m; sourceTree = "<group>"; };
 		05C9DA4017D4F15D0089603A /* ANTSummaryWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTSummaryWindowController.h; sourceTree = "<group>"; };
 		05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTSummaryWindowController.m; sourceTree = "<group>"; };
+		05E8332A17D93B0900DF3F9D /* PLFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PLFoundation.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -104,6 +121,7 @@
 				05C84A3017D54D1B006EFB7D /* Security.framework in Frameworks */,
 				05C9DA1617D4432B0089603A /* WebKit.framework in Frameworks */,
 				05C9D9D317D43DF90089603A /* Cocoa.framework in Frameworks */,
+				05E8332B17D93B0900DF3F9D /* PLFoundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -237,6 +255,7 @@
 			children = (
 				05C84A3117D55861006EFB7D /* EMKeychain */,
 				05C9DA1817D45F430089603A /* MAPlistTypeChecking */,
+				05E8332A17D93B0900DF3F9D /* PLFoundation.framework */,
 				05C9DA2C17D45F430089603A /* README.txt */,
 			);
 			path = Dependencies;
@@ -297,6 +316,7 @@
 				05C9D9CB17D43DF90089603A /* Sources */,
 				05C9D9CC17D43DF90089603A /* Frameworks */,
 				05C9D9CD17D43DF90089603A /* Resources */,
+				05E8332C17D93B1800DF3F9D /* Copy Frameworks */,
 			);
 			buildRules = (
 			);
@@ -550,9 +570,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Dependencies\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Antenna/Antenna-Prefix.pch";
 				INFOPLIST_FILE = "Antenna/Antenna-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
@@ -562,9 +587,14 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				COMBINE_HIDPI_IMAGES = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)/Dependencies\"",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Antenna/Antenna-Prefix.pch";
 				INFOPLIST_FILE = "Antenna/Antenna-Info.plist";
+				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = app;
 			};
