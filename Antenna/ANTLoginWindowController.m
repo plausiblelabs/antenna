@@ -90,6 +90,12 @@
     return self;
 }
 
+- (void) dealloc {
+    [[_webView mainFrame] stopLoading];
+    _webView.frameLoadDelegate = nil;
+    _webView.resourceLoadDelegate = nil;
+}
+
 /**
  * Start authentication; this will display UI as necessary.
  */
