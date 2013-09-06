@@ -86,7 +86,7 @@
     if (_loginWindowController == nil) {
         _loginWindowController = [[ANTLoginWindowController alloc] initWithPreferences: _preferences];
         _loginWindowController.delegate = self;
-        [_loginWindowController showWindow: nil];
+        [_loginWindowController start];
     }
 
     /* Register the callback block and the cancellation handler */

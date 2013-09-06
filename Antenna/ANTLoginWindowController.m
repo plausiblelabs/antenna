@@ -85,18 +85,28 @@
         return nil;
     
     _preferences = preferences;
-    
+
+
     return self;
+}
+
+/**
+ * Start authentication; this will display UI as necessary.
+ */
+- (void) start {
+    /* Force a window load; we keep the WebKit window hidden by default */
+    [self window];
 }
 
 - (void) windowDidLoad {
     [super windowDidLoad];
 
-    NSURLRequest *req = [NSURLRequest requestWithURL: [NSURL URLWithString: @"https://bugreport.apple.com"]];
+    NSURLRequest *req = [NSURLRequest requestWithURL: [ANTNetworkClient bugReporterURL]];
     [[_webView mainFrame] loadRequest: req];
 }
 
 
+// from WebResourceLoadDelegate protocol
 - (void) webView: (WebView *) sender resource: (id) identifier didReceiveResponse: (NSURLResponse *) response fromDataSource: (WebDataSource *) dataSource {
     if (_loginDone)
         return;
@@ -118,11 +128,6 @@
     /* Mark login as complete */
     _loginDone = YES;
 
-}
-
-// Login sheet delegate
-- (void) didEndLoginSheet: (NSWindow *) sheet returnCode: (NSInteger) returnCode contextInfo: (void *) contextInfo {
-    [sheet orderOut: self];
 }
 
 // Login button pressed
@@ -147,11 +152,16 @@
 
     /* Dismiss the sheet */
     [NSApp endSheet: _loginPanel];
+    [_loginPanel orderOut: self];
 }
 
 // Login cancel button pressed.
 - (IBAction) didCancelLoginDialog: (id) sender {
     [NSApp endSheet: _loginPanel];
+    [_loginPanel orderOut: self];
+
+    /* Login failed; pop up the web browser window */
+    [self showWindow: nil];
 }
 
 /**
@@ -263,7 +273,6 @@
     }
 
     /* Try fetching the password from the keychain */
-    // TODO - Lift out into a generic preferences API
     NSString *accountName = [_preferences appleID];
     if (accountName == nil)
         accountName = [accountElement getAttribute: @"value"];
@@ -294,7 +303,10 @@
     if (keychainItem != nil)
         [_loginPasswordField setStringValue: keychainItem.password];
 
-    [NSApp beginSheet: _loginPanel modalForWindow: self.window modalDelegate: self didEndSelector:@selector(didEndLoginSheet:returnCode:contextInfo:) contextInfo: nil];
+    if (keychainItem == nil || keychainItem.password == nil)
+        [NSApp runModalForWindow: _loginPanel];
+    else
+        [self didSubmitLoginDialog: self];
 }
 
 - (void) webView: (WebView *) sender didFinishLoadForFrame: (WebFrame *) frame {

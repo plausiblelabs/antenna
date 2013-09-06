@@ -44,6 +44,8 @@
 
 - (id) initWithPreferences: (ANTPreferences *) preferences;
 
+- (void) start;
+
 /** Login window controller delegate */
 @property(weak, nonatomic) id<RATLoginWindowControllerDelegate> delegate;
 
