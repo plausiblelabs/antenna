@@ -26,26 +26,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
-#import "ANTRadarSummaryResponse.h"
-#import "ANTPreferences.h"
-
 #import "ANTNetworkClientAuthResult.h"
-#import "ANTNetworkClientAuthDelegate.h"
 
-extern NSString *RATNetworkClientDidLoginNotification;
+#import <PLFoundation/PLFoundation.h>
 
-@interface ANTNetworkClient : NSObject
+/**
+ * ANT client authentication result.
+ */
+@implementation ANTNetworkClientAuthResult
 
-+ (NSURL *) bugReporterURL;
-
-- (instancetype) initWithAuthDelegate: (id<ANTNetworkClientAuthDelegate>) authDelegate;
-
-- (void) login;
-- (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
-
-
-/** YES if the client has successfully authenticated, NO otherwise. */
-@property(nonatomic, readonly, getter=isAuthenticated) BOOL authenticated;
+/**
+ * Initialize a new instance with the given CSRF token.
+ *
+ * @param csrfToken The CSRF token provided by the server.
+ */
+- (instancetype) initWithCSRFToken: (NSString *) csrfToken {
+    PLSuperInit();
+    
+    _csrfToken = csrfToken;
+    
+    return self;
+}
 
 @end

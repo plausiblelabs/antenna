@@ -111,7 +111,7 @@
         return;
     
     /* Response must be on the bugreport site */
-    NSString *expectedHost = [[ANTNetworkClient bugreporterURL] host];
+    NSString *expectedHost = [[ANTNetworkClient bugReporterURL] host];
     if (![[[httpResponse URL] host] isEqual: expectedHost])
         return;
 

@@ -39,50 +39,54 @@
 NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotification";
 
 
-@interface ANTNetworkClient () <RATLoginWindowControllerDelegate>
+@interface ANTNetworkClient ()
 - (void) postJSON: (id) json toPath: (NSString *) resourcePath completionHandler: (void (^)(id jsonData, NSError *error)) handler;
 @end
 
 @implementation ANTNetworkClient {
 @private
-    /** User preferences */
-    ANTPreferences *_preferences;
+    /** Base URL for all requests. */
+    NSURL *_bugReporterURL;
 
-    /** The login window controller (nil if login is not pending). */
-    ANTLoginWindowController *_loginWindowController;
-    
     /** YES if authenticated, NO otherwise */
     BOOL _isAuthenticated;
 
-    /** CSRF token extracted from the webview */
-    NSString *_csrfToken;
-    
+    /** The backing authentication delegate */
+    __weak id<ANTNetworkClientAuthDelegate> _authDelegate;
+
+    /** The authentication result, if available. Nil if authentication has not completed or has been invalidated. */
+    ANTNetworkClientAuthResult *_authResult;
 
     /** Date formatter to use for report dates (DD-MON-YYYY HH:MM) */
     NSDateFormatter *_dateFormatter;
 }
 
 /**
- * Initialize a new instance.
+ * Return the default bug reporter URL.
  */
-- (instancetype) initWithPreferences: (ANTPreferences *) preferences {
++ (NSURL *) bugReporterURL {
+    return [NSURL URLWithString: @"https://bugreport.apple.com"];
+}
+
+/**
+ * Initialize a new instance.
+ *
+ * @param authDelegate The authentication delegate for this client instance. The reference will be held weakly.
+ */
+- (instancetype) initWithAuthDelegate: (id<ANTNetworkClientAuthDelegate>) authDelegate {
     if ((self = [super init]) == nil)
         return nil;
     
-    _preferences = preferences;
+    _authDelegate = authDelegate;
     
+    /* Use the default remote URL */
+    _bugReporterURL = [ANTNetworkClient bugReporterURL];
+
     _dateFormatter = [[NSDateFormatter alloc] init];
     [_dateFormatter setDateFormat:@"dd-MMM-yyyy HH:mm"];
     [_dateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"]];
 
     return self;
-}
-
-/**
- * Return the default bug reporter URL.
- */
-+ (NSURL *) bugreporterURL {
-    return [NSURL URLWithString: @"https://bugreport.apple.com"];
 }
 
 /**
@@ -178,26 +182,22 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
  * Issue a login request. This will display an embedded WebKit window.
  */
 - (void) login {
-    if (_loginWindowController == nil) {
-        _loginWindowController = [[ANTLoginWindowController alloc] initWithPreferences: _preferences];
-        _loginWindowController.delegate = self;
-        [_loginWindowController showWindow: nil];
-    }
+    if (self.isAuthenticated)
+        return;
+    
+    NSAssert(_authDelegate != nil, @"Missing authentication delegate; was it deallocated?");
+
+    // TODO - utilize cancellation?
+    [_authDelegate networkClient: self authRequiredWithCancelTicket: [PLCancelTicketSource new].ticket andCall:^(ANTNetworkClientAuthResult *result, NSError *error) {
+        _isAuthenticated = YES;
+        _authResult = result;
+        [[NSNotificationCenter defaultCenter] postNotificationName: RATNetworkClientDidLoginNotification object: self];
+    }];
 }
 
 // property getter
 - (BOOL) isAuthenticated {
     return _isAuthenticated;
-}
-
-// from ANTLoginWindowControllerDelegate protocol
-- (void) loginWindowController: (ANTLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken {
-    [_loginWindowController close];
-    _loginWindowController = nil;
-    _csrfToken = csrfToken;
-    _isAuthenticated = YES;
-
-    [[NSNotificationCenter defaultCenter] postNotificationName: RATNetworkClientDidLoginNotification object: self];
 }
 
 /**
@@ -217,7 +217,7 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
         handler(nil, error);
 
     /* Formulate the POST */
-    NSURL *url = [NSURL URLWithString: resourcePath relativeToURL: [ANTNetworkClient bugreporterURL]];
+    NSURL *url = [NSURL URLWithString: resourcePath relativeToURL: [ANTNetworkClient bugReporterURL]];
     
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL: url];
     [req setHTTPMethod: @"POST"];
@@ -225,10 +225,10 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
     [req setValue: @"application/json; charset=UTF-8" forHTTPHeaderField: @"Content-Type"];
 
     /* CSRF handling */
-    [req addValue: _csrfToken forHTTPHeaderField:@"csrftokencheck"];
+    [req addValue: _authResult.csrfToken forHTTPHeaderField:@"csrftokencheck"];
 
     /* Try to make the headers look more like the browser */
-    [req setValue: [[ANTNetworkClient bugreporterURL] absoluteString] forHTTPHeaderField: @"Origin"];
+    [req setValue: [[ANTNetworkClient bugReporterURL] absoluteString] forHTTPHeaderField: @"Origin"];
     [req setValue: @"XMLHTTPRequest" forHTTPHeaderField: @"X-Requested-With"];
     
     /* Disable caching */
@@ -255,26 +255,6 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
     
          handler(jsonResult, nil);
     }];
-}
-
-@end
-
-/**
- * ANT client authentication result.
- */
-@implementation ANTNetworkClientAuthResult
-
-/**
- * Initialize a new instance with the given CSRF token.
- *
- * @param csrfToken The CSRF token provided by the server.
- */
-- (instancetype) initWithCSRFToken: (NSString *) csrfToken {
-    PLSuperInit();
-    
-    _csrfToken = csrfToken;
-    
-    return self;
 }
 
 @end

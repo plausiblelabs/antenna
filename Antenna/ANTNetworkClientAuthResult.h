@@ -27,25 +27,13 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "ANTRadarSummaryResponse.h"
-#import "ANTPreferences.h"
 
-#import "ANTNetworkClientAuthResult.h"
-#import "ANTNetworkClientAuthDelegate.h"
+@interface ANTNetworkClientAuthResult : NSObject
 
-extern NSString *RATNetworkClientDidLoginNotification;
+- (instancetype) initWithCSRFToken: (NSString *) csrfToken;
 
-@interface ANTNetworkClient : NSObject
-
-+ (NSURL *) bugReporterURL;
-
-- (instancetype) initWithAuthDelegate: (id<ANTNetworkClientAuthDelegate>) authDelegate;
-
-- (void) login;
-- (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
-
-
-/** YES if the client has successfully authenticated, NO otherwise. */
-@property(nonatomic, readonly, getter=isAuthenticated) BOOL authenticated;
+/** The CSRF token provided by the server. */
+@property(nonatomic, readonly) NSString *csrfToken;
 
 @end
+

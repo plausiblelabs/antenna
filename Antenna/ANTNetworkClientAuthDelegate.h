@@ -29,8 +29,9 @@
 #import <Foundation/Foundation.h>
 #import <PLFoundation/PLFoundation.h>
 
+#import "ANTNetworkClientAuthResult.h"
+
 @class ANTNetworkClient;
-@class ANTNetworkClientAuthResult;
 
 /**
  * Authentication callback.

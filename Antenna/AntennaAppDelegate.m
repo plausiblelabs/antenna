@@ -61,7 +61,7 @@
     _preferences = [[ANTPreferences alloc] init];
 
     /* Set up client and start login */
-    _networkClient = [[ANTNetworkClient alloc] initWithPreferences: _preferences];
+    _networkClient = [[ANTNetworkClient alloc] initWithAuthDelegate: self];
     [_networkClient login];
 
     /* Wait for completion, and then fire up our summary window */
@@ -72,6 +72,9 @@
 
 // from ANTLoginWindowControllerDelegate protocol
 - (void) loginWindowController: (ANTLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken {
+    [_loginWindowController close];
+    _loginWindowController = nil;
+
     ANTNetworkClientAuthResult *result = [[ANTNetworkClientAuthResult alloc] initWithCSRFToken: csrfToken];
     for (ANTNetworkClientAuthDelegateCallback cb in _authCallbacks) {
         cb(result, nil);
@@ -94,7 +97,9 @@
         
         /* If no more callbacks remain, cancel the login process */
         if ([_authCallbacks count] == 0) {
-            // TODO - dismiss the auth window
+            _loginWindowController.delegate = nil;
+            [_loginWindowController close];
+            _loginWindowController = nil;
         }
     } dispatchContext: [PLGCDDispatchContext mainQueueContext]];
 }
