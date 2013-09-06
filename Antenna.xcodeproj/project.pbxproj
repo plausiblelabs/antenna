@@ -33,6 +33,7 @@
 		05C9DA4217D4F15D0089603A /* ANTSummaryWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */; };
 		05E8332B17D93B0900DF3F9D /* PLFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
 		05E8332D17D93B2100DF3F9D /* PLFoundation.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
+		05E8333417D96EDB00DF3F9D /* ANTErrorDomain.m in Sources */ = {isa = PBXBuildFile; fileRef = 05E8333317D96EDA00DF3F9D /* ANTErrorDomain.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -111,6 +112,9 @@
 		05C9DA4017D4F15D0089603A /* ANTSummaryWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTSummaryWindowController.h; sourceTree = "<group>"; };
 		05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTSummaryWindowController.m; sourceTree = "<group>"; };
 		05E8332A17D93B0900DF3F9D /* PLFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PLFoundation.framework; sourceTree = "<group>"; };
+		05E8332E17D93C4100DF3F9D /* ANTNetworkClientAuthDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTNetworkClientAuthDelegate.h; sourceTree = "<group>"; };
+		05E8333217D96EDA00DF3F9D /* ANTErrorDomain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTErrorDomain.h; sourceTree = "<group>"; };
+		05E8333317D96EDA00DF3F9D /* ANTErrorDomain.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTErrorDomain.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -196,10 +200,8 @@
 				05C9D9E417D43DF90089603A /* AntennaAppDelegate.h */,
 				05C9D9E517D43DF90089603A /* AntennaAppDelegate.m */,
 				05C9D9E717D43DF90089603A /* MainMenu.xib */,
-				05C84A3717D55ECF006EFB7D /* ANTPreferences.h */,
-				05C84A3817D55ECF006EFB7D /* ANTPreferences.m */,
-				05C9DA3F17D4F1380089603A /* Summary Window */,
-				05C9DA0A17D43EF00089603A /* Network Client */,
+				05E8333617D96EF500DF3F9D /* Cocoa UI */,
+				05E8333717D96F0400DF3F9D /* Application Backend */,
 				05C9D9D917D43DF90089603A /* Supporting Files */,
 			);
 			path = Antenna;
@@ -241,9 +243,7 @@
 			children = (
 				05C9DA0717D43EB00089603A /* ANTNetworkClient.h */,
 				05C9DA0817D43EB00089603A /* ANTNetworkClient.m */,
-				05C9DA1017D43FB90089603A /* ANTLoginWindowController.h */,
-				05C9DA1117D43FB90089603A /* ANTLoginWindowController.m */,
-				05C9DA1217D43FB90089603A /* ANTLoginWindowController.xib */,
+				05E8332E17D93C4100DF3F9D /* ANTNetworkClientAuthDelegate.h */,
 				05C9DA3B17D462EE0089603A /* ANTRadarSummaryResponse.h */,
 				05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */,
 			);
@@ -304,6 +304,53 @@
 				05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */,
 			);
 			name = "Summary Window";
+			sourceTree = "<group>";
+		};
+		05E8333017D95D4300DF3F9D /* Login UI */ = {
+			isa = PBXGroup;
+			children = (
+				05C9DA1017D43FB90089603A /* ANTLoginWindowController.h */,
+				05C9DA1117D43FB90089603A /* ANTLoginWindowController.m */,
+				05C9DA1217D43FB90089603A /* ANTLoginWindowController.xib */,
+			);
+			name = "Login UI";
+			sourceTree = "<group>";
+		};
+		05E8333117D95D5200DF3F9D /* Preferences */ = {
+			isa = PBXGroup;
+			children = (
+				05C84A3717D55ECF006EFB7D /* ANTPreferences.h */,
+				05C84A3817D55ECF006EFB7D /* ANTPreferences.m */,
+			);
+			name = Preferences;
+			sourceTree = "<group>";
+		};
+		05E8333517D96EE100DF3F9D /* Error Codes */ = {
+			isa = PBXGroup;
+			children = (
+				05E8333217D96EDA00DF3F9D /* ANTErrorDomain.h */,
+				05E8333317D96EDA00DF3F9D /* ANTErrorDomain.m */,
+			);
+			name = "Error Codes";
+			sourceTree = "<group>";
+		};
+		05E8333617D96EF500DF3F9D /* Cocoa UI */ = {
+			isa = PBXGroup;
+			children = (
+				05E8333017D95D4300DF3F9D /* Login UI */,
+				05C9DA3F17D4F1380089603A /* Summary Window */,
+			);
+			name = "Cocoa UI";
+			sourceTree = "<group>";
+		};
+		05E8333717D96F0400DF3F9D /* Application Backend */ = {
+			isa = PBXGroup;
+			children = (
+				05E8333517D96EE100DF3F9D /* Error Codes */,
+				05E8333117D95D5200DF3F9D /* Preferences */,
+				05C9DA0A17D43EF00089603A /* Network Client */,
+			);
+			name = "Application Backend";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -430,6 +477,7 @@
 				05C9DA4217D4F15D0089603A /* ANTSummaryWindowController.m in Sources */,
 				05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */,
 				05C84A3917D55ECF006EFB7D /* ANTPreferences.m in Sources */,
+				05E8333417D96EDB00DF3F9D /* ANTErrorDomain.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

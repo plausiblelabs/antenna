@@ -26,34 +26,9 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
-#import "ANTRadarSummaryResponse.h"
-#import "ANTPreferences.h"
-
-#import "ANTNetworkClientAuthDelegate.h"
-
-extern NSString *RATNetworkClientDidLoginNotification;
-
-@interface ANTNetworkClientAuthResult : NSObject
-
-- (instancetype) initWithCSRFToken: (NSString *) csrfToken;
-
-/** The CSRF token provided by the server. */
-@property(nonatomic, readonly) NSString *csrfToken;
-
-@end
-
-@interface ANTNetworkClient : NSObject
-
-+ (NSURL *) bugreporterURL;
-
-- (instancetype) initWithPreferences: (ANTPreferences *) preferences;
-
-- (void) login;
-- (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
-
-
-/** YES if the client has successfully authenticated, NO otherwise. */
-@property(nonatomic, readonly, getter=isAuthenticated) BOOL authenticated;
-
-@end
+/**
+ * @ingroup globals
+ *
+ * Antenna NSError Domain.
+ */
+NSString *ANTErrorDomain = @"ANTErrorDomain";

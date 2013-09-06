@@ -30,6 +30,11 @@
 #import "ANTSummaryWindowController.h"
 #import "ANTPreferences.h"
 
+#import "ANTLoginWindowController.h"
+
+@interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, RATLoginWindowControllerDelegate>
+@end
+
 @implementation AntennaAppDelegate {
 @private
     /** Application preferences */
@@ -37,9 +42,21 @@
 
     /** Summary window controller */
     IBOutlet ANTSummaryWindowController *_summaryWindowController;
+
+    /** The login window controller (nil if login is not pending). */
+    ANTLoginWindowController *_loginWindowController;
+    
+    /**
+     * All pending authentication blocks; these should be dispatched when the login
+     * window controller succeeds/fails.
+     */
+    NSMutableArray *_authCallbacks;
 }
 
 - (void) applicationDidFinishLaunching: (NSNotification *) aNotification {
+    /* Configure authentication state */
+    _authCallbacks = [NSMutableArray array];
+
     /* Fetch preferences */
     _preferences = [[ANTPreferences alloc] init];
 
@@ -51,6 +68,35 @@
     [[NSNotificationCenter defaultCenter] addObserverForName:  RATNetworkClientDidLoginNotification object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         [_summaryWindowController showWindow: nil];
     }];
+}
+
+// from ANTLoginWindowControllerDelegate protocol
+- (void) loginWindowController: (ANTLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken {
+    ANTNetworkClientAuthResult *result = [[ANTNetworkClientAuthResult alloc] initWithCSRFToken: csrfToken];
+    for (ANTNetworkClientAuthDelegateCallback cb in _authCallbacks) {
+        cb(result, nil);
+    }
+}
+
+// from ANTNetworkClientAuthDelegate protocol
+- (void) networkClient: (ANTNetworkClient *) sender authRequiredWithCancelTicket: (PLCancelTicket *) ticket andCall: (ANTNetworkClientAuthDelegateCallback) callback {
+    if (_loginWindowController == nil) {
+        _loginWindowController = [[ANTLoginWindowController alloc] initWithPreferences: _preferences];
+        _loginWindowController.delegate = self;
+        [_loginWindowController showWindow: nil];
+    }
+
+    /* Register the callback block and the cancellation handler */
+    void (^copied)(NSError *error) = [callback copy];
+    [_authCallbacks addObject: copied];
+    [ticket addCancelHandler: ^(PLCancelTicketReason reason) {
+        [_authCallbacks removeObject: copied];
+        
+        /* If no more callbacks remain, cancel the login process */
+        if ([_authCallbacks count] == 0) {
+            // TODO - dismiss the auth window
+        }
+    } dispatchContext: [PLGCDDispatchContext mainQueueContext]];
 }
 
 @end

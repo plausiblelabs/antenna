@@ -38,6 +38,7 @@
  */
 NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotification";
 
+
 @interface ANTNetworkClient () <RATLoginWindowControllerDelegate>
 - (void) postJSON: (id) json toPath: (NSString *) resourcePath completionHandler: (void (^)(id jsonData, NSError *error)) handler;
 @end
@@ -64,7 +65,7 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
 /**
  * Initialize a new instance.
  */
-- (id) initWithPreferences: (ANTPreferences *) preferences {
+- (instancetype) initWithPreferences: (ANTPreferences *) preferences {
     if ((self = [super init]) == nil)
         return nil;
     
@@ -254,6 +255,26 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
     
          handler(jsonResult, nil);
     }];
+}
+
+@end
+
+/**
+ * ANT client authentication result.
+ */
+@implementation ANTNetworkClientAuthResult
+
+/**
+ * Initialize a new instance with the given CSRF token.
+ *
+ * @param csrfToken The CSRF token provided by the server.
+ */
+- (instancetype) initWithCSRFToken: (NSString *) csrfToken {
+    PLSuperInit();
+    
+    _csrfToken = csrfToken;
+    
+    return self;
 }
 
 @end
