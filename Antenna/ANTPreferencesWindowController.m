@@ -33,12 +33,12 @@
 #import "ANTPreferencesORAccountViewController.h"
 
 /* Hard-coded table view rows for the 'Accounts' preferences tab */
-enum ACCOUNT_ROW {
+typedef NS_ENUM(NSInteger, ANTPreferencesWindowAccountRow) {
     /** Apple ID account row. */
-    ACCOUNT_ROW_APPLE_ID = 0,
+    ANTPreferencesWindowAccountRowAppleId = 0,
     
     /** Open Radar account row. */
-    ACCOUNT_ROW_OPEN_RADAR = 1
+    ANTPreferencesWindowAccountRowOpenRadar = 1
 };
 
 @interface ANTPreferencesWindowController () <NSTableViewDataSource, NSTableViewDelegate>
@@ -120,19 +120,20 @@ enum ACCOUNT_ROW {
 - (void) configureAccountBox {
     NSInteger row = [_accountsTableView selectedRow];
     
-    if (row == ACCOUNT_ROW_APPLE_ID) {
-        if (_appleAccountViewController == nil) {
-            _appleAccountViewController = [[ANTPreferencesAppleAccountViewController alloc] initWithPreferences: _prefs];
-        }
-        [_accountBox setContentView: [_appleAccountViewController view]];
-    } else if (row == ACCOUNT_ROW_OPEN_RADAR) {
-        if (_openRadarAccountViewController == nil) {
-            _openRadarAccountViewController = [[ANTPreferencesORAccountViewController alloc] initWithPreferences: _prefs];
-        }
-        [_accountBox setContentView: [_openRadarAccountViewController view]];
-    } else {
-        // What *are* you?
-        abort();
+    switch ((ANTPreferencesWindowAccountRow)row) {
+        case ANTPreferencesWindowAccountRowAppleId:
+            if (_appleAccountViewController == nil) {
+                _appleAccountViewController = [[ANTPreferencesAppleAccountViewController alloc] initWithPreferences: _prefs];
+            }
+            [_accountBox setContentView: [_appleAccountViewController view]];
+            break;
+            
+        case ANTPreferencesWindowAccountRowOpenRadar:
+            if (_openRadarAccountViewController == nil) {
+                _openRadarAccountViewController = [[ANTPreferencesORAccountViewController alloc] initWithPreferences: _prefs];
+            }
+            [_accountBox setContentView: [_openRadarAccountViewController view]];
+            break;
     }
 }
 
@@ -145,22 +146,22 @@ enum ACCOUNT_ROW {
     /* Fetch (or create) a re-usable view */
     ANTPreferencesAccountCellView *result = [tableView makeViewWithIdentifier: @"AccountCell" owner:self];
     
-    if (row == ACCOUNT_ROW_APPLE_ID) {
-        if ([_prefs appleID] != nil) {
-            [result.textField setStringValue: [_prefs appleID]];
-            [result.detailTextField setStringValue: NSLocalizedString(@"Apple ID", nil)];
-            [result.imageView setImage: [NSImage imageNamed: NSImageNameMobileMe]];
-        } else {
-            [result.textField setStringValue: NSLocalizedString(@"(Inactive)", nil)];
-        }
-        
-    } else if (row == ACCOUNT_ROW_OPEN_RADAR) {
-        [result.textField setStringValue: NSLocalizedString(@"Open Radar", nil)];
-        [result.detailTextField setStringValue: NSLocalizedString(@"(Inactive)", nil)];
-        [result.imageView setImage: [NSImage imageNamed: @"openradar_icon.pdf"]];
-    } else {
-        // What *are* you?
-        abort();
+    switch ((ANTPreferencesWindowAccountRow)row) {
+        case ANTPreferencesWindowAccountRowAppleId:
+            if ([_prefs appleID] != nil) {
+                [result.textField setStringValue: [_prefs appleID]];
+                [result.detailTextField setStringValue: NSLocalizedString(@"Apple ID", nil)];
+                [result.imageView setImage: [NSImage imageNamed: NSImageNameMobileMe]];
+            } else {
+                [result.textField setStringValue: NSLocalizedString(@"(Inactive)", nil)];
+            }
+            break;
+            
+        case ANTPreferencesWindowAccountRowOpenRadar:
+            [result.textField setStringValue: NSLocalizedString(@"Open Radar", nil)];
+            [result.detailTextField setStringValue: NSLocalizedString(@"(Inactive)", nil)];
+            [result.imageView setImage: [NSImage imageNamed: @"openradar_icon.pdf"]];
+            break;
     }
     
     /* Configure and return the cell */
