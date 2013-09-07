@@ -9,6 +9,9 @@
 /* Begin PBXBuildFile section */
 		0562055817D9A453009795FD /* ANTPreferencesWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0562055717D9A453009795FD /* ANTPreferencesWindowController.xib */; };
 		0562055B17DAAC9C009795FD /* ANTPreferencesAccountCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0562055A17DAAC9C009795FD /* ANTPreferencesAccountCellView.m */; };
+		0562055F17DAD909009795FD /* openradar_icon.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 0562055E17DAD909009795FD /* openradar_icon.pdf */; };
+		0562056317DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0562056117DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.m */; };
+		0562056417DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0562056217DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.xib */; };
 		05C84A3017D54D1B006EFB7D /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C84A2F17D54D1B006EFB7D /* Security.framework */; };
 		05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C84A3317D55861006EFB7D /* EMKeychainItem.m */; settings = {COMPILER_FLAGS = "-Wno-shorten-64-to-32 -fno-objc-arc"; }; };
 		05C84A3617D55861006EFB7D /* ReadMe.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 05C84A3417D55861006EFB7D /* ReadMe.rtf */; };
@@ -68,6 +71,10 @@
 		0562055717D9A453009795FD /* ANTPreferencesWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ANTPreferencesWindowController.xib; sourceTree = "<group>"; };
 		0562055917DAAC9C009795FD /* ANTPreferencesAccountCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTPreferencesAccountCellView.h; sourceTree = "<group>"; };
 		0562055A17DAAC9C009795FD /* ANTPreferencesAccountCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTPreferencesAccountCellView.m; sourceTree = "<group>"; };
+		0562055E17DAD909009795FD /* openradar_icon.pdf */ = {isa = PBXFileReference; lastKnownFileType = image.pdf; path = openradar_icon.pdf; sourceTree = "<group>"; };
+		0562056017DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTPreferencesAppleAccountViewController.h; sourceTree = "<group>"; };
+		0562056117DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTPreferencesAppleAccountViewController.m; sourceTree = "<group>"; };
+		0562056217DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ANTPreferencesAppleAccountViewController.xib; sourceTree = "<group>"; };
 		05C84A2F17D54D1B006EFB7D /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		05C84A3217D55861006EFB7D /* EMKeychainItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EMKeychainItem.h; sourceTree = "<group>"; };
 		05C84A3317D55861006EFB7D /* EMKeychainItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMKeychainItem.m; sourceTree = "<group>"; };
@@ -376,6 +383,9 @@
 				0562055717D9A453009795FD /* ANTPreferencesWindowController.xib */,
 				0562055917DAAC9C009795FD /* ANTPreferencesAccountCellView.h */,
 				0562055A17DAAC9C009795FD /* ANTPreferencesAccountCellView.m */,
+				0562056017DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.h */,
+				0562056117DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.m */,
+				0562056217DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.xib */,
 			);
 			name = Preferences;
 			sourceTree = "<group>";
@@ -383,6 +393,7 @@
 		05E8334117D9840F00DF3F9D /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				0562055E17DAD909009795FD /* openradar_icon.pdf */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -466,6 +477,8 @@
 				05C9DA1417D43FB90089603A /* ANTLoginWindowController.xib in Resources */,
 				05C84A3617D55861006EFB7D /* ReadMe.rtf in Resources */,
 				0562055817D9A453009795FD /* ANTPreferencesWindowController.xib in Resources */,
+				0562055F17DAD909009795FD /* openradar_icon.pdf in Resources */,
+				0562056417DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -516,6 +529,7 @@
 				05E8333A17D976A100DF3F9D /* ANTNetworkClientAuthResult.m in Sources */,
 				05E8333F17D97D3E00DF3F9D /* ANTPreferencesWindowController.m in Sources */,
 				0562055B17DAAC9C009795FD /* ANTPreferencesAccountCellView.m in Sources */,
+				0562056317DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

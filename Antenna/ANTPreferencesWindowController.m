@@ -27,6 +27,17 @@
  */
 
 #import "ANTPreferencesWindowController.h"
+#import "ANTPreferencesAccountCellView.h"
+#import "ANTPreferencesAppleAccountViewController.h"
+
+/* Hard-coded table view rows for the 'Accounts' preferences tab */
+enum ACCOUNT_ROW {
+    /** Apple ID account row. */
+    ACCOUNT_ROW_APPLE_ID = 0,
+    
+    /** Open Radar account row. */
+    ACCOUNT_ROW_OPEN_RADAR = 1
+};
 
 @interface ANTPreferencesWindowController () <NSTableViewDataSource, NSTableViewDelegate>
 
@@ -48,6 +59,15 @@
     
     /** Account preferences tab item */
     __weak IBOutlet NSTabViewItem *_accountTabItem;
+    
+    /** Account table view; used to select settings for a specific account type in the Accounts tab. */
+    __weak IBOutlet NSTableView *_accountsTableView;
+    
+    /** Account box; used to display the per Account configuration int he Accounts tab. */
+    __weak IBOutlet NSBox *_accountBox;
+
+    /** Apple login view controller; used in the Accounts tab; lazy-loaded, may be nil. */
+    ANTPreferencesAppleAccountViewController *_appleAccountViewController;
 }
 
 /**
@@ -64,7 +84,7 @@
     return self;
 }
 
-- (void)windowDidLoad {
+- (void) windowDidLoad {
     [super windowDidLoad];
 
     // TODO: This should default to whatever was last selected
@@ -72,23 +92,69 @@
     [_tabView selectTabViewItem: _generalTabItem];
 }
 
+// General toolbar item selected
 - (IBAction) didSelectGeneralToolBarItem: (id) sender {
     [_tabView selectTabViewItem: _generalTabItem];
 }
 
+// Account toolbar item selected
 - (IBAction) didSelectAccountsToolBarItem: (id) sender {
     [_tabView selectTabViewItem: _accountTabItem];
+    [self configureAccountBox];
+}
+
+// Account tableview row selected
+- (void) tableViewSelectionDidChange: (NSNotification *) aNotification {
+    [self configureAccountBox];
+}
+
+/**
+ * Configure the internal account view according to the current
+ * table selection in the accounts tab.
+ */
+- (void) configureAccountBox {
+    NSInteger row = [_accountsTableView selectedRow];
+    
+    if (row == ACCOUNT_ROW_APPLE_ID) {
+        if (_appleAccountViewController == nil) {
+            _appleAccountViewController = [[ANTPreferencesAppleAccountViewController alloc] initWithPreferences: _prefs];
+        }
+        [_accountBox setContentView: [_appleAccountViewController view]];
+    } else if (row == ACCOUNT_ROW_OPEN_RADAR) {
+        // TODO
+        [_accountBox setContentView: nil];
+    } else {
+        // What *are* you?
+        abort();
+    }
 }
 
 // from NSTableViewDataSource protocol
 - (NSInteger) numberOfRowsInTableView: (NSTableView *) tableView {
-    return 2; // TODO
+    return 2;
 }
 
 - (NSView *)tableView:(NSTableView *)tableView viewForTableColumn:(NSTableColumn *)tableColumn row:(NSInteger)row {
     /* Fetch (or create) a re-usable view */
-    NSTableCellView *result = [tableView makeViewWithIdentifier: @"AccountCell" owner:self];
+    ANTPreferencesAccountCellView *result = [tableView makeViewWithIdentifier: @"AccountCell" owner:self];
     
+    if (row == ACCOUNT_ROW_APPLE_ID) {
+        if ([_prefs appleID] != nil) {
+            [result.textField setStringValue: [_prefs appleID]];
+            [result.detailTextField setStringValue: NSLocalizedString(@"Apple ID", nil)];
+            [result.imageView setImage: [NSImage imageNamed: NSImageNameMobileMe]];
+        } else {
+            [result.textField setStringValue: NSLocalizedString(@"(Inactive)", nil)];
+        }
+        
+    } else if (row == ACCOUNT_ROW_OPEN_RADAR) {
+        [result.textField setStringValue: NSLocalizedString(@"Open Radar", nil)];
+        [result.detailTextField setStringValue: NSLocalizedString(@"(Inactive)", nil)];
+        [result.imageView setImage: [NSImage imageNamed: @"openradar_icon.pdf"]];
+    } else {
+        // What *are* you?
+        abort();
+    }
     
     /* Configure and return the cell */
     return result;
