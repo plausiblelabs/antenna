@@ -28,7 +28,9 @@
 
 #import "ANTPreferencesWindowController.h"
 #import "ANTPreferencesAccountCellView.h"
+
 #import "ANTPreferencesAppleAccountViewController.h"
+#import "ANTPreferencesORAccountViewController.h"
 
 /* Hard-coded table view rows for the 'Accounts' preferences tab */
 enum ACCOUNT_ROW {
@@ -68,6 +70,9 @@ enum ACCOUNT_ROW {
 
     /** Apple login view controller; used in the Accounts tab; lazy-loaded, may be nil. */
     ANTPreferencesAppleAccountViewController *_appleAccountViewController;
+    
+    /** Open Radar view controller; used in the Accounts tab; lazy-loaded, may be nil. */
+    ANTPreferencesORAccountViewController *_openRadarAccountViewController;
 }
 
 /**
@@ -121,8 +126,10 @@ enum ACCOUNT_ROW {
         }
         [_accountBox setContentView: [_appleAccountViewController view]];
     } else if (row == ACCOUNT_ROW_OPEN_RADAR) {
-        // TODO
-        [_accountBox setContentView: nil];
+        if (_openRadarAccountViewController == nil) {
+            _openRadarAccountViewController = [[ANTPreferencesORAccountViewController alloc] initWithPreferences: _prefs];
+        }
+        [_accountBox setContentView: [_openRadarAccountViewController view]];
     } else {
         // What *are* you?
         abort();
