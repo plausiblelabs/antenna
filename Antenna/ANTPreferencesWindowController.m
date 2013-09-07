@@ -36,6 +36,18 @@
 @private
     /** Backing application preferences. */
     ANTPreferences *_prefs;
+    
+    /** Preferences toolbar.*/
+    __weak IBOutlet NSToolbar *_toolbar;
+
+    /** Preferences content view */
+    __weak IBOutlet NSTabView *_tabView;
+    
+    /** General preferences tab item */
+    __weak IBOutlet NSTabViewItem *_generalTabItem;
+    
+    /** Account preferences tab item */
+    __weak IBOutlet NSTabViewItem *_accountTabItem;
 }
 
 /**
@@ -54,6 +66,18 @@
 
 - (void)windowDidLoad {
     [super windowDidLoad];
+
+    // TODO: This should default to whatever was last selected
+    [_toolbar setSelectedItemIdentifier: @"general"];
+    [_tabView selectTabViewItem: _generalTabItem];
+}
+
+- (IBAction) didSelectGeneralToolBarItem: (id) sender {
+    [_tabView selectTabViewItem: _generalTabItem];
+}
+
+- (IBAction) didSelectAccountsToolBarItem: (id) sender {
+    [_tabView selectTabViewItem: _accountTabItem];
 }
 
 // from NSTableViewDataSource protocol
