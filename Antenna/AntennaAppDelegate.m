@@ -27,10 +27,12 @@
  */
 
 #import "AntennaAppDelegate.h"
-#import "ANTSummaryWindowController.h"
-#import "ANTPreferences.h"
 
 #import "ANTLoginWindowController.h"
+#import "ANTPreferencesWindowController.h"
+#import "ANTSummaryWindowController.h"
+
+#import "ANTPreferences.h"
 
 @interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, RATLoginWindowControllerDelegate>
 @end
@@ -39,9 +41,12 @@
 @private
     /** Application preferences */
     ANTPreferences *_preferences;
-
+    
     /** Summary window controller */
     IBOutlet ANTSummaryWindowController *_summaryWindowController;
+    
+    /** Preferences window controller (lazy loaded; nil if not yet instantiated). */
+    ANTPreferencesWindowController *_prefsWindowController;
 
     /** The login window controller (nil if login is not pending). */
     ANTLoginWindowController *_loginWindowController;
@@ -68,6 +73,14 @@
     [[NSNotificationCenter defaultCenter] addObserverForName:  RATNetworkClientDidLoginNotification object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         [_summaryWindowController showWindow: nil];
     }];
+}
+
+// Preferences menu item action
+- (IBAction) openPreferences: (id) sender {
+    if (_prefsWindowController == nil)
+        _prefsWindowController = [[ANTPreferencesWindowController alloc] initWithPreferences: _preferences];
+    
+    [_prefsWindowController showWindow: nil];
 }
 
 // from ANTLoginWindowControllerDelegate protocol
