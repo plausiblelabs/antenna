@@ -59,4 +59,8 @@
     
 }
 
+- (IBAction) didPressRequestKeyButton: (id) sender {
+    [[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"http://openradar.appspot.com/apikey"]];
+}
+
 @end

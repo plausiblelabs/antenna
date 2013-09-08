@@ -87,7 +87,7 @@
 }
 
 - (IBAction) didPressForgotPasswordButton: (id) sender {
-    // TODO
+    [[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"https://iforgot.apple.com/password/verify/appleid"]];
 }
 
 - (IBAction) didPressSignInButton: (id) sender {
