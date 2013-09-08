@@ -32,7 +32,8 @@
 #import "ANTPreferencesAppleAccountViewController.h"
 #import "ANTPreferencesORAccountViewController.h"
 
-/* Hard-coded table view rows for the 'Accounts' preferences tab */
+/* Hard-coded table view rows for the 'Accounts' preferences tab. These values are encoded
+ * in the saved window state, and as such, must not be modified. */
 typedef NS_ENUM(NSInteger, ANTPreferencesWindowAccountRow) {
     /** Apple ID account row. */
     ANTPreferencesWindowAccountRowAppleId = 0,
@@ -42,6 +43,7 @@ typedef NS_ENUM(NSInteger, ANTPreferencesWindowAccountRow) {
 };
 
 static NSString *ANTPreferencesWindowControllerSelectedToolBarItem = @"ANTPreferencesWindowControllerSelectedToolBarItem";
+static NSString *ANTPreferencesWindowControllerSelectedAccountItem = @"ANTPreferencesWindowControllerSelectedAccountItem";
 
 @interface ANTPreferencesWindowController () <NSTableViewDataSource, NSTableViewDelegate>
 
@@ -108,10 +110,28 @@ static NSString *ANTPreferencesWindowControllerSelectedToolBarItem = @"ANTPrefer
  */
 - (void) restoreWindowState: (NSCoder *) state completionHandler: (void (^)(NSWindow *window, NSError *error)) completionHandler {
     NSWindow *window = self.window;
+    
     NSString *identifier = [state decodeObjectForKey: ANTPreferencesWindowControllerSelectedToolBarItem];
     if (identifier != nil)
         [self selectTabItemWithIdentifier: identifier];
-    
+
+    /* Restore the account row value; this currently assumes a 1:1 rowId and row number mapping, and will need to be
+     * modified if that changes. */
+    NSNumber *accountRow = [state decodeObjectForKey: ANTPreferencesWindowControllerSelectedAccountItem];
+    if (accountRow != nil && [accountRow integerValue] < [_accountsTableView numberOfRows]) {
+        switch ((ANTPreferencesWindowAccountRow)[accountRow integerValue]) {
+            case ANTPreferencesWindowAccountRowAppleId:
+                [_accountsTableView selectRowIndexes: [NSIndexSet indexSetWithIndex: ANTPreferencesWindowAccountRowAppleId]
+                                byExtendingSelection: NO];
+                break;
+                
+            case ANTPreferencesWindowAccountRowOpenRadar:
+                [_accountsTableView selectRowIndexes: [NSIndexSet indexSetWithIndex: ANTPreferencesWindowAccountRowOpenRadar]
+                                byExtendingSelection: NO];
+                break;
+        }
+    }
+
     completionHandler(window, nil);
 }
 
@@ -126,6 +146,7 @@ static NSString *ANTPreferencesWindowControllerSelectedToolBarItem = @"ANTPrefer
 - (void) window: (NSWindow *) window willEncodeRestorableState: (NSCoder *) state {
     /* Save the currently selected toolbar item */
     [state encodeObject: [_toolbar selectedItemIdentifier] forKey: ANTPreferencesWindowControllerSelectedToolBarItem];
+    [state encodeObject: [NSNumber numberWithInteger: [_accountsTableView selectedRow]] forKey: ANTPreferencesWindowControllerSelectedAccountItem];
 }
 
 /**
@@ -136,7 +157,7 @@ static NSString *ANTPreferencesWindowControllerSelectedToolBarItem = @"ANTPrefer
 - (void) selectTabItemWithIdentifier: (NSString *) identifier {
     [_toolbar setSelectedItemIdentifier: identifier];
     [_tabView selectTabViewItemWithIdentifier: identifier];
-    [self invalidateRestorableState];
+    [self.window invalidateRestorableState];
 
     // TODO - This should be handled by a subsidary 'Accounts' view controller.
     if ([identifier isEqual: @"accounts"]) {
@@ -153,6 +174,7 @@ static NSString *ANTPreferencesWindowControllerSelectedToolBarItem = @"ANTPrefer
 // Account tableview row selected
 - (void) tableViewSelectionDidChange: (NSNotification *) aNotification {
     [self configureAccountBox];
+    [self.window invalidateRestorableState];
 }
 
 /**
