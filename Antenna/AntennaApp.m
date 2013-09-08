@@ -26,16 +26,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Cocoa/Cocoa.h>
+#import "AntennaApp.h"
 
-#import "ANTPreferences.h"
+/**
+ * Custom Antenna Application instance.
+ */
+@implementation AntennaApp
 
-@interface ANTPreferencesWindowController : NSWindowController
-
-+ (NSString *) restorationIdentifier;
-
-- (instancetype) initWithPreferences: (ANTPreferences *) preferences;
-
-- (void) restoreWindowState: (NSCoder *) state completionHandler: (void (^)(NSWindow *window, NSError *error)) completionHandler;
+// from NSApplication
+- (BOOL) restoreWindowWithIdentifier: (NSString *) identifier state: (NSCoder *) state completionHandler: (void (^)(NSWindow *, NSError *)) completionHandler {
+    /* Hand restoration off to the application delegate. */
+    id<AntennaAppDelegate> delegate = (id<AntennaAppDelegate>) self.delegate;
+    if ([delegate respondsToSelector: @selector(restoreWindowWithIdentifier:state:completionHandler:)]) {
+        if ([delegate restoreWindowWithIdentifier: identifier state: state completionHandler: completionHandler])
+            return YES;
+    }
+    
+    return [super restoreWindowWithIdentifier: identifier state: state completionHandler: completionHandler];
+}
 
 @end

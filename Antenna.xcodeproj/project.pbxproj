@@ -14,6 +14,7 @@
 		0562056417DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0562056217DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.xib */; };
 		0562056817DAECE8009795FD /* ANTPreferencesORAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0562056617DAECE8009795FD /* ANTPreferencesORAccountViewController.m */; };
 		0562056917DAECE8009795FD /* ANTPreferencesORAccountViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0562056717DAECE8009795FD /* ANTPreferencesORAccountViewController.xib */; };
+		0562057117DCF3F8009795FD /* AntennaApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 0562057017DCF3F8009795FD /* AntennaApp.m */; };
 		05C84A3017D54D1B006EFB7D /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C84A2F17D54D1B006EFB7D /* Security.framework */; };
 		05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C84A3317D55861006EFB7D /* EMKeychainItem.m */; settings = {COMPILER_FLAGS = "-Wno-shorten-64-to-32 -fno-objc-arc"; }; };
 		05C84A3617D55861006EFB7D /* ReadMe.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 05C84A3417D55861006EFB7D /* ReadMe.rtf */; };
@@ -80,6 +81,8 @@
 		0562056517DAECE8009795FD /* ANTPreferencesORAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTPreferencesORAccountViewController.h; sourceTree = "<group>"; };
 		0562056617DAECE8009795FD /* ANTPreferencesORAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTPreferencesORAccountViewController.m; sourceTree = "<group>"; };
 		0562056717DAECE8009795FD /* ANTPreferencesORAccountViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ANTPreferencesORAccountViewController.xib; sourceTree = "<group>"; };
+		0562056F17DCF3F8009795FD /* AntennaApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AntennaApp.h; sourceTree = "<group>"; };
+		0562057017DCF3F8009795FD /* AntennaApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AntennaApp.m; sourceTree = "<group>"; };
 		05C84A2F17D54D1B006EFB7D /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		05C84A3217D55861006EFB7D /* EMKeychainItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EMKeychainItem.h; sourceTree = "<group>"; };
 		05C84A3317D55861006EFB7D /* EMKeychainItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMKeychainItem.m; sourceTree = "<group>"; };
@@ -220,6 +223,8 @@
 		05C9D9D817D43DF90089603A /* Antenna */ = {
 			isa = PBXGroup;
 			children = (
+				0562056F17DCF3F8009795FD /* AntennaApp.h */,
+				0562057017DCF3F8009795FD /* AntennaApp.m */,
 				05C9D9E417D43DF90089603A /* AntennaAppDelegate.h */,
 				05C9D9E517D43DF90089603A /* AntennaAppDelegate.m */,
 				05C9D9E717D43DF90089603A /* MainMenu.xib */,
@@ -540,6 +545,7 @@
 				0562055B17DAAC9C009795FD /* ANTPreferencesAccountCellView.m in Sources */,
 				0562056317DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.m in Sources */,
 				0562056817DAECE8009795FD /* ANTPreferencesORAccountViewController.m in Sources */,
+				0562057117DCF3F8009795FD /* AntennaApp.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

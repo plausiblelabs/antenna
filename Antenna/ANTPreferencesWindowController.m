@@ -41,6 +41,8 @@ typedef NS_ENUM(NSInteger, ANTPreferencesWindowAccountRow) {
     ANTPreferencesWindowAccountRowOpenRadar = 1
 };
 
+static NSString *ANTPreferencesWindowControllerSelectedToolBarItem = @"ANTPreferencesWindowControllerSelectedToolBarItem";
+
 @interface ANTPreferencesWindowController () <NSTableViewDataSource, NSTableViewDelegate>
 
 @end
@@ -76,6 +78,13 @@ typedef NS_ENUM(NSInteger, ANTPreferencesWindowAccountRow) {
 }
 
 /**
+ * The restoration identifier used for this controller's window.
+ */
++ (NSString *) restorationIdentifier {
+    return @"AppPrefs";
+}
+
+/**
  * Initialize a new instance with @a preferences.
  *
  * @param preferences Application preferences.
@@ -89,23 +98,56 @@ typedef NS_ENUM(NSInteger, ANTPreferencesWindowAccountRow) {
     return self;
 }
 
+/**
+ * Configure the receiver with the restored state from @a state.
+ *
+ * @param state A coder object containing the window's previously saved state information.
+ * @param completionHandler A Block object to execute with the results of creating the window. This block takes the following parameters:
+ *  - The window that was created or nil if the window could not be created.
+ *  - An error object if the window was not recognized or could not be created for whatever reason; otherwise, specify nil.
+ */
+- (void) restoreWindowState: (NSCoder *) state completionHandler: (void (^)(NSWindow *window, NSError *error)) completionHandler {
+    NSWindow *window = self.window;
+    NSString *identifier = [state decodeObjectForKey: ANTPreferencesWindowControllerSelectedToolBarItem];
+    if (identifier != nil)
+        [self selectTabItemWithIdentifier: identifier];
+    
+    completionHandler(window, nil);
+}
+
 - (void) windowDidLoad {
     [super windowDidLoad];
 
-    // TODO: This should default to whatever was last selected
-    [_toolbar setSelectedItemIdentifier: @"general"];
-    [_tabView selectTabViewItem: _generalTabItem];
+    /* Default to 'General' tab */
+    [self selectTabItemWithIdentifier: @"general"];
 }
 
-// General toolbar item selected
-- (IBAction) didSelectGeneralToolBarItem: (id) sender {
-    [_tabView selectTabViewItem: _generalTabItem];
+// from NSWindowDelegate protocol
+- (void) window: (NSWindow *) window willEncodeRestorableState: (NSCoder *) state {
+    /* Save the currently selected toolbar item */
+    [state encodeObject: [_toolbar selectedItemIdentifier] forKey: ANTPreferencesWindowControllerSelectedToolBarItem];
 }
 
-// Account toolbar item selected
-- (IBAction) didSelectAccountsToolBarItem: (id) sender {
-    [_tabView selectTabViewItem: _accountTabItem];
-    [self configureAccountBox];
+/**
+ * Select the tab (and toolbar) item with @a identifier.
+ *
+ * @param identifier The shared tab/toolbar item identifier.
+ */
+- (void) selectTabItemWithIdentifier: (NSString *) identifier {
+    [_toolbar setSelectedItemIdentifier: identifier];
+    [_tabView selectTabViewItemWithIdentifier: identifier];
+    [self invalidateRestorableState];
+
+    // TODO - This should be handled by a subsidary 'Accounts' view controller.
+    if ([identifier isEqual: @"accounts"]) {
+        [self configureAccountBox];
+    }
+}
+
+
+// Toolbar item selected
+- (IBAction) didSelectToolBarItem: (id) sender {
+    [self selectTabItemWithIdentifier: [sender itemIdentifier]];
 }
 
 // Account tableview row selected

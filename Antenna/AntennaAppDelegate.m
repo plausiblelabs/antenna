@@ -31,10 +31,14 @@
 #import "ANTLoginWindowController.h"
 #import "ANTPreferencesWindowController.h"
 #import "ANTSummaryWindowController.h"
+#import "AntennaApp.h"
 
 #import "ANTPreferences.h"
 
-@interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, LoginWindowControllerDelegate>
+@interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, LoginWindowControllerDelegate, AntennaAppDelegate>
+
+@property(nonatomic, readonly) ANTPreferencesWindowController *preferencesWindowController;
+
 @end
 
 @implementation AntennaAppDelegate {
@@ -44,12 +48,12 @@
     
     /** Summary window controller */
     IBOutlet ANTSummaryWindowController *_summaryWindowController;
-    
-    /** Preferences window controller (lazy loaded; nil if not yet instantiated). */
-    ANTPreferencesWindowController *_prefsWindowController;
 
     /** The login window controller (nil if login is not pending). */
     ANTLoginWindowController *_loginWindowController;
+
+    /** Preferences window controller (lazy loaded; nil if not yet instantiated). */
+    ANTPreferencesWindowController *_prefsWindowController;
     
     /**
      * All pending authentication blocks; these should be dispatched when the login
@@ -58,29 +62,38 @@
     NSMutableArray *_authCallbacks;
 }
 
-- (void) applicationDidFinishLaunching: (NSNotification *) aNotification {
-    /* Configure authentication state */
-    _authCallbacks = [NSMutableArray array];
-
+// from NSApplicationDelegate protocol; sent prior to window restoration.
+- (void) applicationWillFinishLaunching: (NSNotification *) notification {
     /* Fetch preferences */
     _preferences = [[ANTPreferences alloc] init];
-
-    /* Set up client and start login */
+    
+    /* Set up client */
     _networkClient = [[ANTNetworkClient alloc] initWithAuthDelegate: self];
-    // [_networkClient login];
+    
+    /* Configure authentication state */
+    _authCallbacks = [NSMutableArray array];
+}
 
-    /* Wait for completion, and then fire up our summary window */
+// from NSApplicationDelegate protocol; sent after window restoration.
+- (void) applicationDidFinishLaunching: (NSNotification *) aNotification {
+    /* Wait for login, and then fire up our summary window */
     [[NSNotificationCenter defaultCenter] addObserverForName:  NetworkClientDidLoginNotification object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         [_summaryWindowController showWindow: nil];
     }];
 }
 
+// from AntennaAppDelegate protocol
+- (BOOL) restoreWindowWithIdentifier: (NSString *) identifier state: (NSCoder *) state completionHandler: (void (^)(NSWindow *, NSError *)) completionHandler {
+    if ([identifier isEqual: [ANTPreferencesWindowController restorationIdentifier]]) {
+        [self.preferencesWindowController restoreWindowState: state completionHandler: completionHandler];
+        return YES;
+    }
+    return NO;
+}
+
 // Preferences menu item action
 - (IBAction) openPreferences: (id) sender {
-    if (_prefsWindowController == nil)
-        _prefsWindowController = [[ANTPreferencesWindowController alloc] initWithPreferences: _preferences];
-    
-    [_prefsWindowController showWindow: nil];
+    [self.preferencesWindowController showWindow: nil];
 }
 
 // from ANTLoginWindowControllerDelegate protocol
@@ -115,6 +128,16 @@
             _loginWindowController = nil;
         }
     } dispatchContext: [PLGCDDispatchContext mainQueueContext]];
+}
+
+#pragma mark Properties
+
+// property getter
+- (ANTPreferencesWindowController *) preferencesWindowController {
+    if (_prefsWindowController == nil)
+        _prefsWindowController = [[ANTPreferencesWindowController alloc] initWithPreferences: _preferences];
+        
+        return _prefsWindowController;
 }
 
 @end

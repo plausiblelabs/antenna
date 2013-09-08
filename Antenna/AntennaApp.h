@@ -28,14 +28,21 @@
 
 #import <Cocoa/Cocoa.h>
 
-#import "ANTPreferences.h"
+/**
+ * The AntennaAppDelegate protocol defines the optional methods implemented by delegates of AntennaApp objects.
+ */
+@protocol AntennaAppDelegate <NSApplicationDelegate>
+@optional
 
-@interface ANTPreferencesWindowController : NSWindowController
+/**
+ * Invoked to request that a window be restored.
+ * 
+ * This method conforms to the same API as defined in -[NSApplication restoreWindowWithIdentifier:state:completionHandler:].
+ */
+- (BOOL) restoreWindowWithIdentifier: (NSString *) identifier state: (NSCoder *) state completionHandler: (void (^)(NSWindow *, NSError *)) completionHandler;
 
-+ (NSString *) restorationIdentifier;
+@end
 
-- (instancetype) initWithPreferences: (ANTPreferences *) preferences;
-
-- (void) restoreWindowState: (NSCoder *) state completionHandler: (void (^)(NSWindow *window, NSError *error)) completionHandler;
+@interface AntennaApp : NSApplication
 
 @end
