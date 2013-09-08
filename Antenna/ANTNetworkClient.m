@@ -36,7 +36,7 @@
  * Notification dispatched on successful login. The notification object will
  * be the authenticated network client instance.
  */
-NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotification";
+NSString *NetworkClientDidLoginNotification = @"NetworkClientDidLoginNotification";
 
 
 @interface ANTNetworkClient ()
@@ -191,7 +191,7 @@ NSString *RATNetworkClientDidLoginNotification = @"RATNetworkClientDidLoginNotif
     [_authDelegate networkClient: self authRequiredWithCancelTicket: [PLCancelTicketSource new].ticket andCall:^(ANTNetworkClientAuthResult *result, NSError *error) {
         _isAuthenticated = YES;
         _authResult = result;
-        [[NSNotificationCenter defaultCenter] postNotificationName: RATNetworkClientDidLoginNotification object: self];
+        [[NSNotificationCenter defaultCenter] postNotificationName: NetworkClientDidLoginNotification object: self];
     }];
 }
 

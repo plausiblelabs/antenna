@@ -31,7 +31,7 @@
 
 @class ANTLoginWindowController;
 
-@protocol RATLoginWindowControllerDelegate <NSObject>
+@protocol LoginWindowControllerDelegate <NSObject>
 
 /**
  * Delegate message sent when login has completed successfully.
@@ -47,6 +47,6 @@
 - (void) start;
 
 /** Login window controller delegate */
-@property(weak, nonatomic) id<RATLoginWindowControllerDelegate> delegate;
+@property(weak, nonatomic) id<LoginWindowControllerDelegate> delegate;
 
 @end

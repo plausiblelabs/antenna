@@ -33,7 +33,7 @@
 #import "ANTNetworkClientAuthResult.h"
 #import "ANTNetworkClientAuthDelegate.h"
 
-extern NSString *RATNetworkClientDidLoginNotification;
+extern NSString *NetworkClientDidLoginNotification;
 
 @interface ANTNetworkClient : NSObject
 

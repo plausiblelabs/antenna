@@ -34,7 +34,7 @@
 
 #import "ANTPreferences.h"
 
-@interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, RATLoginWindowControllerDelegate>
+@interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, LoginWindowControllerDelegate>
 @end
 
 @implementation AntennaAppDelegate {
@@ -70,7 +70,7 @@
     [_networkClient login];
 
     /* Wait for completion, and then fire up our summary window */
-    [[NSNotificationCenter defaultCenter] addObserverForName:  RATNetworkClientDidLoginNotification object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+    [[NSNotificationCenter defaultCenter] addObserverForName:  NetworkClientDidLoginNotification object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         [_summaryWindowController showWindow: nil];
     }];
 }
