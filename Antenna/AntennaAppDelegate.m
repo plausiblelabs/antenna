@@ -67,7 +67,7 @@
 
     /* Set up client and start login */
     _networkClient = [[ANTNetworkClient alloc] initWithAuthDelegate: self];
-    [_networkClient login];
+    // [_networkClient login];
 
     /* Wait for completion, and then fire up our summary window */
     [[NSNotificationCenter defaultCenter] addObserverForName:  NetworkClientDidLoginNotification object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
