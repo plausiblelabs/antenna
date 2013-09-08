@@ -65,10 +65,13 @@
 
 - (void) loadView {
     [super loadView];
-
-    /* Configure the field defaults */
-    [_loginField setStringValue: [_prefs appleID]];
     
+    /* Configure the field defaults */
+    if ([_prefs appleID] != nil)
+        [_loginField setStringValue: [_prefs appleID]];
+    else
+        [_loginField setStringValue: @""];
+
     // TODO password lookup - we need a fixed URL we can use for password
     // retrieval from the keychain, rather than relying on the dynamically
     // redirected target of the web login.
