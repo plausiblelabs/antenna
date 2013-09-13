@@ -105,6 +105,11 @@ static OSStatus ANTPreferencesKeychainCallback (SecKeychainEvent keychainEvent, 
 - (void) setAppleID: (NSString *) appleID {
     if ([appleID isEqual: self.appleID])
         return;
+    
+    if (appleID == nil) {
+        [_defaults removeObjectForKey: @"ANTAppleID"];
+        return;
+    }
 
     [_defaults setObject: appleID forKey: @"ANTAppleID"];
 

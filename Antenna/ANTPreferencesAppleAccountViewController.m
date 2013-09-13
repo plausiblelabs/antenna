@@ -86,34 +86,30 @@
 - (void) loadView {
     [super loadView];
     
-    /* Configure the field defaults */
-    if ([_prefs appleID] != nil) {
-        EMInternetKeychainItem *item = [_prefs appleKeychainItem];
-        if (item != nil && item.username != nil)
-            [_loginField setStringValue: item.username];
-        
-        if (item != nil && item.password != nil)
-            [_passwordField setStringValue: item.password];
-        
-    } else {
-        [_loginField setStringValue: @""];
-    }
-    
     [self updateAuthState: nil];
+}
+
+- (void) tryEnableSignOnButton {
+    if ([[_loginField stringValue] length] > 0 && [[_passwordField stringValue] length] > 0) {
+        [_signInButton setEnabled: YES];
+    } else {
+        [_signInButton setEnabled: NO];
+    }
 }
 
 - (void) updateAuthState: (NSNotification *) notification {
     /* Configure the UI state */
     switch (_client.authState) {
         case ANTNetworkClientAuthStateLoggedOut:
+            /* Only reset the fields if they're just now being set as enabled. */
+            if (![_loginField isEnabled]) {
+                [_loginField setStringValue: @""];
+                [_passwordField setStringValue: @""];
+            }
+
             [_loginField setEnabled: YES];
             [_passwordField setEnabled: YES];
-            
-            if ([[_loginField stringValue] length] > 0 && [[_passwordField stringValue] length] > 0) {
-                [_signInButton setEnabled: YES];
-            } else {
-                [_signInButton setEnabled: NO];
-            }
+            [self tryEnableSignOnButton];
 
             [_signInButton setTitle: NSLocalizedString(@"Sign In", nil)];
             [_forgotPasswordButton setHidden: NO];
@@ -140,7 +136,14 @@
             [_spinner startAnimation: self];
             break;
             
-        case ANTNetworkClientAuthStateAuthenticated:
+        case ANTNetworkClientAuthStateAuthenticated: {
+            EMInternetKeychainItem *item = [_prefs appleKeychainItem];
+            if (item != nil && item.username != nil)
+                [_loginField setStringValue: item.username];
+            
+            if (item != nil && item.password != nil)
+                [_passwordField setStringValue: item.password];
+            
             [_loginField setEnabled: NO];
             [_passwordField setEnabled: NO];
 
@@ -149,12 +152,13 @@
             [_forgotPasswordButton setHidden: YES];
             [_spinner stopAnimation: self];
             break;
+        }
     }
 }
 
 // from NSControl informal protocol
 - (void) controlTextDidChange: (NSNotification *) aNotification {
-    [self updateAuthState: nil];
+    [self tryEnableSignOnButton];
 }
 
 // from NSControl informal protocol
@@ -170,7 +174,7 @@
         EMInternetKeychainItem *item = [_prefs appleKeychainItem];
         if (item != nil && item.password != nil) {
             [_passwordField setStringValue: item.password];
-            [self updateAuthState: nil];
+            [self tryEnableSignOnButton];
         }
     }
 }
