@@ -58,6 +58,9 @@
     
     /** Log in spinner */
     __weak IBOutlet NSProgressIndicator *_spinner;
+
+    /** True if currently logging out */
+    BOOL _loggingOut;
 }
 
 /**
@@ -102,9 +105,10 @@
     switch (_client.authState) {
         case ANTNetworkClientAuthStateLoggedOut:
             /* Only reset the fields if they're just now being set as enabled. */
-            if (![_loginField isEnabled]) {
+            if (_loggingOut) {
                 [_loginField setStringValue: @""];
                 [_passwordField setStringValue: @""];
+                _loggingOut = NO;
             }
 
             [_loginField setEnabled: YES];
@@ -127,6 +131,7 @@
             break;
             
         case ANTNetworkClientAuthStateLoggingOut:
+            _loggingOut = YES;
             [_loginField setEnabled: NO];
             [_passwordField setEnabled: NO];
             
@@ -183,6 +188,16 @@
     [[NSWorkspace sharedWorkspace] openURL: [NSURL URLWithString: @"https://iforgot.apple.com/password/verify/appleid"]];
 }
 
+// Delegate method for a failed login.
+- (void) loginFailedAlertDidEnd: (NSAlert *) alert returnCode: (NSInteger) returnCode contextInfo: (void *) contextInfo {
+    /* After displaying the error, refocus on the password field. */
+    [_passwordField becomeFirstResponder];
+}
+
+// Delegate method for a failed log out.
+- (void) logoutFailedAlertDidEnd: (NSAlert *) alert returnCode: (NSInteger) returnCode contextInfo: (void *) contextInfo {
+}
+
 - (IBAction) didPressSignInButton: (id) sender {
     PLCancelTicketSource *ticketSource = [PLCancelTicketSource new];
     
@@ -194,8 +209,7 @@
                               andCall: ^(NSError *error)
             {
                 if (error != nil) {
-                    // TODO - Display error?
-                    NSLog(@"AUTH FAILED: %@", error);
+                    [[NSAlert alertWithError: error] beginSheetModalForWindow: self.view.window modalDelegate: self didEndSelector: @selector(loginFailedAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
                     return;
                 }
 
@@ -218,9 +232,9 @@
             
         case ANTNetworkClientAuthStateAuthenticated:
             [_client logoutWithCancelTicket: ticketSource.ticket andCall:^(NSError *error) {
-                // TODO: Present error?
                 if (error != nil) {
-                    NSLog(@"Error: %@", error);
+                    [[NSAlert alertWithError: error] beginSheetModalForWindow: self.view.window modalDelegate: self didEndSelector: @selector(logoutFailedAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
+                    return;
                 } else {
                     [_prefs setAppleID: nil];
                 }
