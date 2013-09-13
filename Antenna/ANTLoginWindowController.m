@@ -63,10 +63,7 @@
 
     /** Login panel password field. */
     __weak IBOutlet NSSecureTextField *_loginPasswordField;
-    
-    /** Login explanatory message label */
-    __weak IBOutlet NSTextField *_loginMessageLabel;
-    
+        
     /** Login 'Save password' checkbox */
     __weak IBOutlet NSButton *_loginSavePasswordCheckbox;
 
@@ -118,6 +115,22 @@
     [[_webView mainFrame] loadRequest: req];
 }
 
+// from NSControl informal protocol
+- (void) controlTextDidEndEditing: (NSNotification *) aNotification {
+    if ([aNotification object] == _loginUsernameField) {
+        [_preferences setAppleID: [_loginUsernameField stringValue]];
+    }
+}
+
+// from NSControl informal protocol
+- (void) controlDidBecomeFirstResponder:(NSNotification *)aNotification {
+    if ([aNotification object] == _loginPasswordField && [[_loginPasswordField stringValue] length] == 0) {
+        EMInternetKeychainItem *item = [_preferences appleKeychainItem];
+        if (item != nil && item.password != nil) {
+            [_loginPasswordField setStringValue: item.password];
+        }
+    }
+}
 
 // from WebResourceLoadDelegate protocol
 - (void) webView: (WebView *) sender resource: (id) identifier didReceiveResponse: (NSURLResponse *) response fromDataSource: (WebDataSource *) dataSource {
@@ -322,10 +335,6 @@
         NSAssert([[url scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
         
         /* Display login dialog */
-        NSString *message = [NSString stringWithFormat: NSLocalizedString(@"Your password will be submitted securely via %@.", @"Login message"), [_webView mainFrameURL]];
-        [_loginMessageLabel setStringValue: message];
-
-        /* Set up defaults */
         if (accountName != nil)
             [_loginUsernameField setStringValue: accountName];
 
