@@ -162,7 +162,7 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
                 description = [description substringFromIndex: NSMaxRange(descriptionStart)];
 
             ANTRadarSummaryResponse *summaryEntry;
-            summaryEntry = [[ANTRadarSummaryResponse alloc] initWithRadarId: [radarId stringValue]
+            summaryEntry = [[ANTRadarSummaryResponse alloc] initWithRadarId: radarId
                                                                   stateName: stateName
                                                                       title: title
                                                               componentName: componentName

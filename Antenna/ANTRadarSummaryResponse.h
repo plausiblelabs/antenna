@@ -33,7 +33,7 @@
  */
 @interface ANTRadarSummaryResponse : NSObject
 
-- (id) initWithRadarId: (NSString *) radarId
+- (id) initWithRadarId: (NSNumber *) radarId
              stateName: (NSString *) stateName
                  title: (NSString *) summary
          componentName: (NSString *) componentName
@@ -42,7 +42,7 @@
         originatedDate: (NSDate *) originatedDate;
 
 /** The Radar issue number for this bug. */
-@property(nonatomic, readonly) NSString *radarId;
+@property(nonatomic, readonly) NSNumber *radarId;
 
 /** The issue state (eg, Open, Closed) */
 @property(nonatomic, readonly) NSString *stateName;

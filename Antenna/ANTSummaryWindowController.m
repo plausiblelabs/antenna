@@ -44,11 +44,17 @@
     __weak IBOutlet NSTableView *_tableView;
     
     /** Backing ANTRadarSummaryResponse values, if any. Nil if none have been loaded. */
-    NSArray *_summaries;
+    NSMutableArray *_summaries;
 }
 
 - (void) windowDidLoad {
     [super windowDidLoad];
+    
+    [_tableView setAllowsColumnSelection: NO];
+}
+
+- (void) awakeFromNib {
+    [_tableView setAllowsColumnSelection: NO];
 }
 
 // Delegate method for a failed summary network fetch.
@@ -65,7 +71,7 @@
             return;
         }
 
-        _summaries = summaries;
+        _summaries = [summaries mutableCopy];
         [_tableView reloadData];
     }];
 }
@@ -82,12 +88,17 @@
     RetVal(@"id", summary.radarId);
     RetVal(@"state", summary.stateName);
     RetVal(@"title", summary.title);
-    RetVal(@"description", [summary.description stringByReplacingOccurrencesOfString: @"\n" withString: @" "]);
     RetVal(@"date", summary.originatedDate);
     RetVal(@"component", summary.componentName);
 #undef RetVal
     
     return nil;
+}
+
+// from NSTableViewDataSource protocol
+- (void) tableView: (NSTableView *) tableView sortDescriptorsDidChange: (NSArray *) oldDescriptors {
+    [_summaries sortUsingDescriptors: [tableView sortDescriptors]];
+    [tableView reloadData];
 }
 
 // from NSTableViewDataSource protocol

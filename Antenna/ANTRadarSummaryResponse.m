@@ -36,7 +36,7 @@
 /**
  * Initialize a new instance.
  */
-- (id) initWithRadarId: (NSString *) radarId
+- (id) initWithRadarId: (NSNumber *) radarId
              stateName: (NSString *) stateName
                  title: (NSString *) title
          componentName: (NSString *) componentName
