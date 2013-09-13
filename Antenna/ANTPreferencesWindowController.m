@@ -100,8 +100,19 @@ static NSString *ANTPreferencesWindowControllerSelectedAccountItem = @"ANTPrefer
 
     _client = client;
     _prefs = preferences;
+    
+    [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(didUpdatePrefs:) name: ANTPreferencesDidChangeNotification object: _prefs];
 
     return self;
+}
+
+// ANTPreferencesDidChangeNotification
+- (void) didUpdatePrefs: (NSNotification *) notification {
+    [_accountsTableView reloadData];
+}
+
+- (void) dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver: self];
 }
 
 /**
@@ -216,12 +227,14 @@ static NSString *ANTPreferencesWindowControllerSelectedAccountItem = @"ANTPrefer
     
     switch ((ANTPreferencesWindowAccountRow)row) {
         case ANTPreferencesWindowAccountRowAppleId:
+            [result.imageView setImage: [NSImage imageNamed: NSImageNameMobileMe]];
+
             if ([_prefs appleID] != nil) {
                 [result.textField setStringValue: [_prefs appleID]];
                 [result.detailTextField setStringValue: NSLocalizedString(@"Apple ID", nil)];
-                [result.imageView setImage: [NSImage imageNamed: NSImageNameMobileMe]];
             } else {
-                [result.textField setStringValue: NSLocalizedString(@"(Inactive)", nil)];
+                [result.textField setStringValue: NSLocalizedString(@"Apple ID", nil)];
+                [result.detailTextField setStringValue: NSLocalizedString(@"(Inactive)", nil)];
             }
             break;
             
