@@ -30,7 +30,6 @@
 
 #import "ANTNetworkClient.h"
 
-#import "EMKeychainItem.h"
 #import "NSObject+MAErrorReporting.h"
 
 #import <Security/Security.h>
@@ -51,10 +50,10 @@
     /** Login panel */
     __weak IBOutlet NSPanel *_loginPanel;
     
-    /** The URL of the page on which we last attempted authentication. This will be nil
-     * if authentication has never been attempted. */
-    NSURL *_lastAuthURL;
-    
+    /** The account info to use for login, or nil if the info
+     * should be fetched automatically (eg, by displaying UI). */
+    ANTNetworkClientAccount *_account;
+
     /** The keychain item used for the last authentication attempt, if any. This will be nil
      * if authentication has never been attempted, or if no keychain item was used */
     EMKeychainItem *_lastAuthKeychainItem;
@@ -83,13 +82,17 @@
 
 /**
  * Initialize a new window controller instance.
+ *
+ * @param account The account to use for authentication, or nil if account details should be automatically fetched (either from the
+ * current preferences, or by displaying a user dialog).
+ * @param preferences The application preferences.
  */
-- (id) initWithPreferences: (ANTPreferences *) preferences {
+- (id) initWithAccount: (ANTNetworkClientAccount *) account preferences: (ANTPreferences *) preferences {
     if ((self = [super initWithWindowNibName: [self className] owner: self]) == nil)
         return nil;
     
+    _account = account;
     _preferences = preferences;
-
 
     return self;
 }
@@ -120,6 +123,9 @@
 - (void) webView: (WebView *) sender resource: (id) identifier didReceiveResponse: (NSURLResponse *) response fromDataSource: (WebDataSource *) dataSource {
     if (_loginDone)
         return;
+    
+    if (!_didAttemptAutoLogin)
+        return;
 
     if (![response isKindOfClass: [NSHTTPURLResponse class]])
         return;
@@ -132,12 +138,28 @@
     
     /* Response must be on the bugreport site */
     NSString *expectedHost = [[ANTNetworkClient bugReporterURL] host];
-    if (![[[httpResponse URL] host] isEqual: expectedHost])
+    if (![[[httpResponse URL] host] isEqual: expectedHost]) {
+        [self failWithInvalidPageError];
+        _didAttemptAutoLogin = NO;
         return;
+    }
 
     /* Mark login as complete */
     _loginDone = YES;
 
+}
+
+/**
+ * Inform the delegate of failure.
+ */
+- (void) failWithInvalidPageError {
+    NSError *error = [NSError pl_errorWithDomain: ANTErrorDomain
+                                            code: ANTErrorAuthenticationFailed
+                            localizedDescription: NSLocalizedString(@"Web-based authentication failed", nil)
+                          localizedFailureReason: NSLocalizedString(@"The web interface returned an unexpected page", nil)
+                                 underlyingError: nil
+                                        userInfo: nil];
+    [_delegate loginWindowController: self didFailWithError: error];
 }
 
 // Login button pressed
@@ -149,12 +171,12 @@
     
     if (![self findAccountElement: &accountElement passwordElement: &passwordElement loginURL: &loginURL]) {
         NSLog(@"Could not find required elements, giving up on auto-auth");
+        [self failWithInvalidPageError];
         return;
     }
 
     /* Configure and submit the form */
     _didAttemptAutoLogin = YES;
-    _lastAuthURL = loginURL;
 
     [accountElement setAttribute: @"value" value: [_loginUsernameField stringValue]];
     [passwordElement setAttribute: @"value" value: [_loginPasswordField stringValue]];
@@ -281,43 +303,44 @@
         NSLog(@"Could not find required elements, giving up on auto-auth");
         return;
     }
-
-    /* Try fetching the password from the keychain */
-    NSString *accountName = [_preferences appleID];
-    if (accountName == nil)
-        accountName = [accountElement getAttribute: @"value"];
-
-    /* Fetch the target URL */
-    NSURL *url = [NSURL URLWithString: [_webView mainFrameURL]];
     
-    /* The scheme is validated in -findAccountElement:passwordElement:, but we double-check here */
-    NSAssert([[url scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
+    /* If an account isn't specified, first try to fetch the default authentication details from the keychain.
+     * If that fails, fall back on displaying an authentication dialog. */
+    if (_account == nil) {
+        _lastAuthKeychainItem = [_preferences appleKeychainItem];
+        NSString *accountName;
+        if (_lastAuthKeychainItem != nil) {
+            accountName = [accountElement getAttribute: @"value"];
+        } else {
+            accountName = _lastAuthKeychainItem.username;
+        }
 
-    if (accountName != nil) {
-        _lastAuthKeychainItem = [EMInternetKeychainItem internetKeychainItemForServer: [[ANTNetworkClient bugReporterURL] host]
-                                                                         withUsername: accountName
-                                                                                 path: [[ANTNetworkClient bugReporterURL] path]
-                                                                                 port: [[[ANTNetworkClient bugReporterURL] port] integerValue]
-                                                                             protocol: kSecProtocolTypeHTTPS];
+        /* Fetch the target URL */
+        NSURL *url = [NSURL URLWithString: [_webView mainFrameURL]];
+        
+        /* The scheme is validated in -findAccountElement:passwordElement:, but we double-check here */
+        NSAssert([[url scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
+        
+        /* Display login dialog */
+        NSString *message = [NSString stringWithFormat: NSLocalizedString(@"Your password will be submitted securely via %@.", @"Login message"), [_webView mainFrameURL]];
+        [_loginMessageLabel setStringValue: message];
+
+        /* Set up defaults */
+        if (accountName != nil)
+            [_loginUsernameField setStringValue: accountName];
+
+        if (_lastAuthKeychainItem != nil)
+            [_loginPasswordField setStringValue: _lastAuthKeychainItem.password];
+
+        if (_lastAuthKeychainItem == nil || _lastAuthKeychainItem.password == nil)
+            [NSApp runModalForWindow: _loginPanel];
+        else
+            [self didSubmitLoginDialog: self];
     } else {
-        _lastAuthKeychainItem = nil;
-    }
-    
-    /* Display login dialog */
-    NSString *message = [NSString stringWithFormat: NSLocalizedString(@"Your password will be submitted securely via %@.", @"Login message"), [_webView mainFrameURL]];
-    [_loginMessageLabel setStringValue: message];
-
-    /* Set up defaults */
-    if (accountName != nil)
-        [_loginUsernameField setStringValue: accountName];
-
-    if (_lastAuthKeychainItem != nil)
-        [_loginPasswordField setStringValue: _lastAuthKeychainItem.password];
-
-    if (_lastAuthKeychainItem == nil || _lastAuthKeychainItem.password == nil)
-        [NSApp runModalForWindow: _loginPanel];
-    else
+        [_loginUsernameField setStringValue: _account.username];
+        [_loginPasswordField setStringValue: _account.password];
         [self didSubmitLoginDialog: self];
+    }
 }
 
 - (void) webView: (WebView *) sender didFinishLoadForFrame: (WebFrame *) frame {
@@ -336,15 +359,16 @@
     /* Try to fetch the CSRF token */
     NSString *csrfToken = [[_webView windowScriptObject] evaluateWebScript: @"$(\"#csrftokenPage\").val()"];
     
-    /* If requested, save the password */
-    if ([_loginSavePasswordCheckbox state] == NSOnState &&
+    /*
+     * If requested in the login dialog, save the password. This isn't done if
+     * a username/password was supplied via _account, as it's assumed that
+     * the requisite handling is done externally.
+     */
+    if (_account == nil &&
+        [_loginSavePasswordCheckbox state] == NSOnState &&
         [_loginUsernameField stringValue] != nil &&
-        [_loginPasswordField stringValue] != nil &&
-        _lastAuthURL != nil)
+        [_loginPasswordField stringValue] != nil)
     {
-        /* The scheme was validated in -findAccountElement:passwordElement:, but we double-check here */
-        NSAssert([[_lastAuthURL scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
-        
         /* Try to update the existing keychain item,if necessary. */
         NSString *accountName = [_loginUsernameField stringValue];
         NSString *password = [_loginPasswordField stringValue];
@@ -355,11 +379,7 @@
             }
         } else {
             /* No item matched -- create a new item */
-            [EMInternetKeychainItem internetKeychainItemForServer: [[ANTNetworkClient bugReporterURL] host]
-                                                     withUsername: accountName
-                                                             path: [[ANTNetworkClient bugReporterURL] path]
-                                                             port: [[[ANTNetworkClient bugReporterURL] port] integerValue]
-                                                         protocol: kSecProtocolTypeHTTPS];
+            [_preferences addAppleKeychainItemWithUsername:accountName password:password];
         }
         
         /* Update the preferred Apple ID */

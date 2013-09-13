@@ -29,12 +29,13 @@
 #import <Cocoa/Cocoa.h>
 
 #import "ANTPreferences.h"
+#import "ANTNetworkClient.h"
 
 @interface ANTPreferencesWindowController : NSWindowController
 
 + (NSString *) restorationIdentifier;
 
-- (instancetype) initWithPreferences: (ANTPreferences *) preferences;
+- (instancetype) initWithClient: (ANTNetworkClient *) client preferences: (ANTPreferences *) preferences;
 
 - (void) restoreWindowState: (NSCoder *) state completionHandler: (void (^)(NSWindow *window, NSError *error)) completionHandler;
 

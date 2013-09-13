@@ -1,6 +1,4 @@
 /*
- * Author: Landon Fuller <landonf@plausible.coop>
- *
  * Copyright (c) 2013 Plausible Labs Cooperative, Inc.
  * All rights reserved.
  *
@@ -26,17 +24,23 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
-#import "EMKeychainItem.h"
+/* Based on the implementation provided by Bill Garrison.
+ * http://lists.apple.com/archives/cocoa-dev/2008/Feb/msg00569.html */
 
-extern NSString *ANTPreferencesDidChangeNotification;
+#import <Cocoa/Cocoa.h>
 
-@interface ANTPreferences : NSObject
+extern NSString * const ANTControlDidBecomeFirstResponderNotification;
 
-- (void) setAppleID: (NSString *) appleID;
-- (NSString *) appleID;
+@interface NSControl (ANTFirstResponderNotification)
 
-- (EMInternetKeychainItem *) appleKeychainItem;
-- (EMInternetKeychainItem *) addAppleKeychainItemWithUsername: (NSString *) username password: (NSString *) password;
+/**
+ * An informal protocol method to be invoked by NSControl delegates when
+ * the receiver becomes first responder.
+ *
+ * @param notification A ANTControlDidBecomeFirstResponderNotification.
+ * The notification object is the control that became first responder.
+ * There is no userInfo.
+ */
+- (void) controlDidBecomeFirstResponder:(NSNotification *)aNotification;
 
 @end

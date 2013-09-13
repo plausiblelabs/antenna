@@ -51,6 +51,9 @@ static NSString *ANTPreferencesWindowControllerSelectedAccountItem = @"ANTPrefer
 
 @implementation ANTPreferencesWindowController {
 @private
+    /** Backing network client. */
+    ANTNetworkClient *_client;
+
     /** Backing application preferences. */
     ANTPreferences *_prefs;
     
@@ -91,10 +94,11 @@ static NSString *ANTPreferencesWindowControllerSelectedAccountItem = @"ANTPrefer
  *
  * @param preferences Application preferences.
  */
-- (instancetype) initWithPreferences: (ANTPreferences *) preferences {
+- (instancetype) initWithClient: (ANTNetworkClient *) client preferences: (ANTPreferences *) preferences {
     if ((self = [super initWithWindowNibName: [self className] owner: self]) == nil)
         return nil;
 
+    _client = client;
     _prefs = preferences;
 
     return self;
@@ -187,7 +191,7 @@ static NSString *ANTPreferencesWindowControllerSelectedAccountItem = @"ANTPrefer
     switch ((ANTPreferencesWindowAccountRow)row) {
         case ANTPreferencesWindowAccountRowAppleId:
             if (_appleAccountViewController == nil) {
-                _appleAccountViewController = [[ANTPreferencesAppleAccountViewController alloc] initWithPreferences: _prefs];
+                _appleAccountViewController = [[ANTPreferencesAppleAccountViewController alloc] initWithClient: _client preferences: _prefs];
             }
             [_accountBox setContentView: [_appleAccountViewController view]];
             break;

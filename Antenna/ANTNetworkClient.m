@@ -177,9 +177,18 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
 }
 
 /**
- * Issue a login request. This will display an embedded WebKit window.
+ * Issue a login request.
+ *
+ * @param account The account details, or nil to request that account details be supplied by the authentication
+ * delegate.
+ * @param password The password to use for login.
+ * @param ticket A request cancellation ticket.
+ * @param callback The callback to be called upon completion.
  */
-- (void) login {
+- (void) loginWithAccount: (ANTNetworkClientAccount *) account
+             cancelTicket: (PLCancelTicket *) ticket
+                  andCall: (void (^)(NSError *error)) callback
+{
     if (_authState != ANTNetworkClientAuthStateLoggedOut)
         return;
     
@@ -190,7 +199,7 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
     [[NSNotificationCenter defaultCenter] postNotificationName: ANTNetworkClientDidChangeAuthState object: self];
 
     /* Issue the request */
-    [_authDelegate networkClient: self authRequiredWithCancelTicket: [PLCancelTicketSource new].ticket andCall:^(ANTNetworkClientAuthResult *result, NSError *error) {
+    [_authDelegate networkClient: self authRequiredWithAccount: account cancelTicket: ticket andCall: ^(ANTNetworkClientAuthResult *result, NSError *error) {
         if (error == nil) {
             _authState = ANTNetworkClientAuthStateAuthenticated;
         } else {
@@ -198,6 +207,7 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
         }
 
         _authResult = result;
+        callback(error);
         [[NSNotificationCenter defaultCenter] postNotificationName: ANTNetworkClientDidChangeAuthState object: self];
     }];
 }

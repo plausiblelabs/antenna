@@ -76,6 +76,11 @@
 
 // from NSApplicationDelegate protocol; sent after window restoration.
 - (void) applicationDidFinishLaunching: (NSNotification *) aNotification {
+    /* Try to login by default */
+    [_networkClient loginWithAccount: nil cancelTicket: [PLCancelTicketSource new].ticket andCall: ^(NSError *error) {
+        // TODO - Do we need to display an error here?
+    }];
+    
     /* Wait for login, and then fire up our summary window */
     [[NSNotificationCenter defaultCenter] addObserverForName:  ANTNetworkClientDidChangeAuthState object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
         // XXX hack
@@ -109,13 +114,33 @@
     }
 }
 
-// from ANTNetworkClientAuthDelegate protocol
-- (void) networkClient: (ANTNetworkClient *) sender authRequiredWithCancelTicket: (PLCancelTicket *) ticket andCall: (ANTNetworkClientAuthDelegateCallback) callback {
-    if (_loginWindowController == nil) {
-        _loginWindowController = [[ANTLoginWindowController alloc] initWithPreferences: _preferences];
-        _loginWindowController.delegate = self;
-        [_loginWindowController start];
+// from ANTLoginWindowControllerDelegate protocol
+- (void) loginWindowController: (ANTLoginWindowController *) sender didFailWithError: (NSError *) error {
+    [_loginWindowController close];
+    _loginWindowController = nil;
+
+    for (ANTNetworkClientAuthDelegateCallback cb in _authCallbacks) {
+        cb(nil, error);
     }
+}
+
+// from ANTNetworkClientAuthDelegate protocol
+- (void) networkClient: (ANTNetworkClient *) sender authRequiredWithAccount: (ANTNetworkClientAccount *) account cancelTicket: (PLCancelTicket *) ticket andCall: (ANTNetworkClientAuthDelegateCallback) callback {
+    if (_loginWindowController != nil) {
+        if (!ticket.isCancelled)
+            callback(nil, [NSError pl_errorWithDomain: ANTErrorDomain
+                                                 code: ANTErrorRequestConflict
+                                 localizedDescription: NSLocalizedString(@"An sign in request is already in progress", nil)
+                               localizedFailureReason: nil
+                                      underlyingError: nil
+                                             userInfo: nil]);
+        return;
+    }
+
+    /* Set up the new controller */
+    _loginWindowController = [[ANTLoginWindowController alloc] initWithAccount: account preferences: _preferences];
+    _loginWindowController.delegate = self;
+    [_loginWindowController start];
 
     /* Register the callback block and the cancellation handler */
     void (^copied)(NSError *error) = [callback copy];
@@ -137,7 +162,7 @@
 // property getter
 - (ANTPreferencesWindowController *) preferencesWindowController {
     if (_prefsWindowController == nil)
-        _prefsWindowController = [[ANTPreferencesWindowController alloc] initWithPreferences: _preferences];
+        _prefsWindowController = [[ANTPreferencesWindowController alloc] initWithClient: _networkClient preferences: _preferences];
         
         return _prefsWindowController;
 }

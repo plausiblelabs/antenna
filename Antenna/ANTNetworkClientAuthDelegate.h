@@ -30,6 +30,7 @@
 #import <PLFoundation/PLFoundation.h>
 
 #import "ANTNetworkClientAuthResult.h"
+#import "ANTNetworkClientAccount.h"
 
 @class ANTNetworkClient;
 
@@ -58,6 +59,9 @@ typedef void (^ANTNetworkClientAuthDelegateCallback)(ANTNetworkClientAuthResult 
  * Authenticate the user and call @a callback.
  *
  * @param sender The requesting network client.
+ * @param account The account to use for authentication, or nil if the authentiation delegate is expected
+ * to provide the account info.
+ *
  * @param ticket The cancellation ticket for the request.
  * @param callback The block to be called upon request completion.  
  *
@@ -66,7 +70,9 @@ typedef void (^ANTNetworkClientAuthDelegateCallback)(ANTNetworkClientAuthResult 
  * class; there exists no mechanism by which we can designate a different NSHTTPCookieStorage instance
  * for use by an NSURLConnection request. This requirement may be modified in the future.
  */
-- (void) networkClient: (ANTNetworkClient *) sender authRequiredWithCancelTicket: (PLCancelTicket *) ticket andCall: (ANTNetworkClientAuthDelegateCallback) callback;
+- (void) networkClient: (ANTNetworkClient *) sender authRequiredWithAccount: (ANTNetworkClientAccount *) account cancelTicket: (PLCancelTicket *) ticket andCall: (ANTNetworkClientAuthDelegateCallback) callback;
+
+
 
 
 @end

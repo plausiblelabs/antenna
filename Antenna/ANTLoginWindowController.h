@@ -27,7 +27,9 @@
  */
 
 #import <Cocoa/Cocoa.h>
+
 #import "ANTPreferences.h"
+#import "ANTNetworkClientAccount.h"
 
 @class ANTLoginWindowController;
 
@@ -38,11 +40,16 @@
  */
 - (void) loginWindowController: (ANTLoginWindowController *) sender didFinishWithToken: (NSString *) csrfToken;
 
+/**
+ * Delegate message sent when login has failed.
+ */
+- (void) loginWindowController: (ANTLoginWindowController *) sender didFailWithError: (NSError *) error;
+
 @end
 
 @interface ANTLoginWindowController : NSWindowController
 
-- (id) initWithPreferences: (ANTPreferences *) preferences;
+- (id) initWithAccount: (ANTNetworkClientAccount *) account preferences: (ANTPreferences *) preferences;
 
 - (void) start;
 

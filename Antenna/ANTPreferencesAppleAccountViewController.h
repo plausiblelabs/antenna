@@ -28,10 +28,11 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "ANTNetworkClient.h"
 #import "ANTPreferences.h"
 
 @interface ANTPreferencesAppleAccountViewController : NSViewController
 
-- (instancetype) initWithPreferences: (ANTPreferences *) preferences;
+- (instancetype) initWithClient: (ANTNetworkClient *) client preferences: (ANTPreferences *) preferences;
 
 @end

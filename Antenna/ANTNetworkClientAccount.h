@@ -27,16 +27,15 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "EMKeychainItem.h"
 
-extern NSString *ANTPreferencesDidChangeNotification;
+@interface ANTNetworkClientAccount : NSObject
 
-@interface ANTPreferences : NSObject
+- (id) initWithUsername: (NSString *) username password: (NSString *) password;
 
-- (void) setAppleID: (NSString *) appleID;
-- (NSString *) appleID;
+/** The username. */
+@property(nonatomic, readonly) NSString *username;
 
-- (EMInternetKeychainItem *) appleKeychainItem;
-- (EMInternetKeychainItem *) addAppleKeychainItemWithUsername: (NSString *) username password: (NSString *) password;
+/** The password. */
+@property(nonatomic, readonly) NSString *password;
 
 @end

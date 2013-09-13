@@ -26,17 +26,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
-#import "EMKeychainItem.h"
+#import "ANTNetworkClientAccount.h"
+#import <PLFoundation/PLFoundation.h>
 
-extern NSString *ANTPreferencesDidChangeNotification;
+/**
+ * ANT network authentication details
+ */
+@implementation ANTNetworkClientAccount
 
-@interface ANTPreferences : NSObject
-
-- (void) setAppleID: (NSString *) appleID;
-- (NSString *) appleID;
-
-- (EMInternetKeychainItem *) appleKeychainItem;
-- (EMInternetKeychainItem *) addAppleKeychainItemWithUsername: (NSString *) username password: (NSString *) password;
+/**
+ * Initialize a new instance with the given @a username and @a password.
+ *
+ * @param username The account name.
+ * @param password The account password.
+ */
+- (id) initWithUsername: (NSString *) username password: (NSString *) password {
+    PLSuperInit();
+    
+    _username = username;
+    _password = password;
+    
+    return self;
+}
 
 @end

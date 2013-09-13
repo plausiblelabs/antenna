@@ -32,6 +32,7 @@
 
 #import "ANTNetworkClientAuthResult.h"
 #import "ANTNetworkClientAuthDelegate.h"
+#import "ANTNetworkClientAccount.h"
 
 #import "ANTErrorDomain.h"
 
@@ -60,7 +61,10 @@ typedef NS_ENUM(NSUInteger, ANTNetworkClientAuthState) {
 
 - (instancetype) initWithAuthDelegate: (id<ANTNetworkClientAuthDelegate>) authDelegate;
 
-- (void) login;
+- (void) loginWithAccount: (ANTNetworkClientAccount *) account
+             cancelTicket: (PLCancelTicket *) ticket
+                  andCall: (void (^)(NSError *error)) callback;
+
 - (void) logoutWithCancelTicket: (PLCancelTicket *) ticket andCall: (void (^)(NSError *error)) callback;
 
 - (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
