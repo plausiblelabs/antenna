@@ -31,7 +31,7 @@ extern NSString *ANTErrorDomain;
 /**
  * NSError codes in the ANTErrorDomain.
  */
-typedef NS_ENUM(NSInteger, PLSocketError) {
+typedef NS_ENUM(NSInteger, ANTError) {
     /** An unknown error occured. */
     ANTErrorUnknown = 0,
     
@@ -39,7 +39,7 @@ typedef NS_ENUM(NSInteger, PLSocketError) {
     ANTErrorConnectionLost = 1,
     
     /** The server's response data was invalid. */
-    ANTErrorResponseInvalid = 2,
+    ANTErrorInvalidResponse = 2,
     
     /** The request to the server timed out. */
     ANTErrorTimedOut = 3,

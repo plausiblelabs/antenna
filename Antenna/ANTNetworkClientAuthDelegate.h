@@ -68,4 +68,5 @@ typedef void (^ANTNetworkClientAuthDelegateCallback)(ANTNetworkClientAuthResult 
  */
 - (void) networkClient: (ANTNetworkClient *) sender authRequiredWithCancelTicket: (PLCancelTicket *) ticket andCall: (ANTNetworkClientAuthDelegateCallback) callback;
 
+
 @end

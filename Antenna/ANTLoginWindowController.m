@@ -55,6 +55,10 @@
      * if authentication has never been attempted. */
     NSURL *_lastAuthURL;
     
+    /** The keychain item used for the last authentication attempt, if any. This will be nil
+     * if authentication has never been attempted, or if no keychain item was used */
+    EMKeychainItem *_lastAuthKeychainItem;
+    
     /** Login panel username field. */
     __weak IBOutlet NSTextField *_loginUsernameField;
 
@@ -289,13 +293,14 @@
     /* The scheme is validated in -findAccountElement:passwordElement:, but we double-check here */
     NSAssert([[url scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
 
-    EMInternetKeychainItem *keychainItem = nil;
     if (accountName != nil) {
-        keychainItem = [EMInternetKeychainItem internetKeychainItemForServer: [url host]
-                                                                withUsername: accountName
-                                                                        path: [url path]
-                                                                        port: [[url port] integerValue]
-                                                                    protocol: kSecProtocolTypeHTTPS];
+        _lastAuthKeychainItem = [EMInternetKeychainItem internetKeychainItemForServer: [[ANTNetworkClient bugReporterURL] host]
+                                                                         withUsername: accountName
+                                                                                 path: [[ANTNetworkClient bugReporterURL] path]
+                                                                                 port: [[[ANTNetworkClient bugReporterURL] port] integerValue]
+                                                                             protocol: kSecProtocolTypeHTTPS];
+    } else {
+        _lastAuthKeychainItem = nil;
     }
     
     /* Display login dialog */
@@ -306,10 +311,10 @@
     if (accountName != nil)
         [_loginUsernameField setStringValue: accountName];
 
-    if (keychainItem != nil)
-        [_loginPasswordField setStringValue: keychainItem.password];
+    if (_lastAuthKeychainItem != nil)
+        [_loginPasswordField setStringValue: _lastAuthKeychainItem.password];
 
-    if (keychainItem == nil || keychainItem.password == nil)
+    if (_lastAuthKeychainItem == nil || _lastAuthKeychainItem.password == nil)
         [NSApp runModalForWindow: _loginPanel];
     else
         [self didSubmitLoginDialog: self];
@@ -340,25 +345,20 @@
         /* The scheme was validated in -findAccountElement:passwordElement:, but we double-check here */
         NSAssert([[_lastAuthURL scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
         
-        /* Try to find an existing matching item, and update it if necessary. */
+        /* Try to update the existing keychain item,if necessary. */
         NSString *accountName = [_loginUsernameField stringValue];
         NSString *password = [_loginPasswordField stringValue];
-        EMInternetKeychainItem *keychainItem = [EMInternetKeychainItem internetKeychainItemForServer: [_lastAuthURL host]
-                                                                                        withUsername: accountName
-                                                                                                path: [_lastAuthURL path]
-                                                                                                port: [[_lastAuthURL port] integerValue]
-                                                                                            protocol: kSecProtocolTypeHTTPS];
         
-        if (keychainItem != nil) {
-            if (![keychainItem.password isEqual: password]) {
-                keychainItem.password = password;
+        if (_lastAuthKeychainItem != nil && [_lastAuthKeychainItem.username isEqual: accountName]) {
+            if (![_lastAuthKeychainItem.password isEqual: password]) {
+                _lastAuthKeychainItem.password = password;
             }
         } else {
             /* No item matched -- create a new item */
-            [EMInternetKeychainItem internetKeychainItemForServer: [_lastAuthURL host]
+            [EMInternetKeychainItem internetKeychainItemForServer: [[ANTNetworkClient bugReporterURL] host]
                                                      withUsername: accountName
-                                                             path: [_lastAuthURL path]
-                                                             port: [[_lastAuthURL port] integerValue]
+                                                             path: [[ANTNetworkClient bugReporterURL] path]
+                                                             port: [[[ANTNetworkClient bugReporterURL] port] integerValue]
                                                          protocol: kSecProtocolTypeHTTPS];
         }
         

@@ -33,7 +33,26 @@
 #import "ANTNetworkClientAuthResult.h"
 #import "ANTNetworkClientAuthDelegate.h"
 
-extern NSString *NetworkClientDidLoginNotification;
+#import "ANTErrorDomain.h"
+
+extern NSString *ANTNetworkClientDidChangeAuthState;
+
+/**
+ * Client authentication states.
+ */
+typedef NS_ENUM(NSUInteger, ANTNetworkClientAuthState) {
+    /** Client is authenticated. */
+    ANTNetworkClientAuthStateAuthenticated = 0,
+    
+    /** Client is authenticating. */
+    ANTNetworkClientAuthStateAuthenticating = 1,
+    
+    /** Client is logging out. */
+    ANTNetworkClientAuthStateLoggingOut = 2,
+    
+    /** Client is logged out. */
+    ANTNetworkClientAuthStateLoggedOut = 3
+};
 
 @interface ANTNetworkClient : NSObject
 
@@ -42,10 +61,12 @@ extern NSString *NetworkClientDidLoginNotification;
 - (instancetype) initWithAuthDelegate: (id<ANTNetworkClientAuthDelegate>) authDelegate;
 
 - (void) login;
+- (void) logoutWithCancelTicket: (PLCancelTicket *) ticket andCall: (void (^)(NSError *error)) callback;
+
 - (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
 
 
-/** YES if the client has successfully authenticated, NO otherwise. */
-@property(nonatomic, readonly, getter=isAuthenticated) BOOL authenticated;
+/** Current client authentication state. */
+@property(nonatomic, readonly) ANTNetworkClientAuthState authState;
 
 @end

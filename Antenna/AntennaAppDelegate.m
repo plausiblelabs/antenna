@@ -77,8 +77,10 @@
 // from NSApplicationDelegate protocol; sent after window restoration.
 - (void) applicationDidFinishLaunching: (NSNotification *) aNotification {
     /* Wait for login, and then fire up our summary window */
-    [[NSNotificationCenter defaultCenter] addObserverForName:  NetworkClientDidLoginNotification object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-        [_summaryWindowController showWindow: nil];
+    [[NSNotificationCenter defaultCenter] addObserverForName:  ANTNetworkClientDidChangeAuthState object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
+        // XXX hack
+        if (_networkClient.authState == ANTNetworkClientAuthStateAuthenticated)
+            [_summaryWindowController showWindow: nil];
     }];
 }
 

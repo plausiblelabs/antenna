@@ -77,6 +77,10 @@
     // redirected target of the web login.
 }
 
+- (void) updateAuthState: (NSNotification *) notification {
+    // TODO
+}
+
 // from NSControl informal protocol
 - (void) controlTextDidChange: (NSNotification *) aNotification {
     if ([[_loginField stringValue] length] > 0 && [[_passwordField stringValue] length] > 0) {

@@ -36,7 +36,7 @@
  * Notification dispatched on successful login. The notification object will
  * be the authenticated network client instance.
  */
-NSString *NetworkClientDidLoginNotification = @"NetworkClientDidLoginNotification";
+NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthState";
 
 
 @interface ANTNetworkClient ()
@@ -47,9 +47,6 @@ NSString *NetworkClientDidLoginNotification = @"NetworkClientDidLoginNotificatio
 @private
     /** Base URL for all requests. */
     NSURL *_bugReporterURL;
-
-    /** YES if authenticated, NO otherwise */
-    BOOL _isAuthenticated;
 
     /** The backing authentication delegate */
     __weak id<ANTNetworkClientAuthDelegate> _authDelegate;
@@ -78,7 +75,8 @@ NSString *NetworkClientDidLoginNotification = @"NetworkClientDidLoginNotificatio
         return nil;
     
     _authDelegate = authDelegate;
-    
+    _authState = ANTNetworkClientAuthStateLoggedOut;
+
     /* Use the default remote URL */
     _bugReporterURL = [ANTNetworkClient bugReporterURL];
 
@@ -182,22 +180,110 @@ NSString *NetworkClientDidLoginNotification = @"NetworkClientDidLoginNotificatio
  * Issue a login request. This will display an embedded WebKit window.
  */
 - (void) login {
-    if (self.isAuthenticated)
+    if (_authState != ANTNetworkClientAuthStateLoggedOut)
         return;
     
     NSAssert(_authDelegate != nil, @"Missing authentication delegate; was it deallocated?");
 
-    // TODO - utilize cancellation?
+    /* Note the state change */
+    _authState = ANTNetworkClientAuthStateAuthenticating;
+    [[NSNotificationCenter defaultCenter] postNotificationName: ANTNetworkClientDidChangeAuthState object: self];
+
+    /* Issue the request */
     [_authDelegate networkClient: self authRequiredWithCancelTicket: [PLCancelTicketSource new].ticket andCall:^(ANTNetworkClientAuthResult *result, NSError *error) {
-        _isAuthenticated = YES;
+        if (error == nil) {
+            _authState = ANTNetworkClientAuthStateAuthenticated;
+        } else {
+            _authState = ANTNetworkClientAuthStateLoggedOut;
+        }
+
         _authResult = result;
-        [[NSNotificationCenter defaultCenter] postNotificationName: NetworkClientDidLoginNotification object: self];
+        [[NSNotificationCenter defaultCenter] postNotificationName: ANTNetworkClientDidChangeAuthState object: self];
     }];
 }
 
-// property getter
-- (BOOL) isAuthenticated {
-    return _isAuthenticated;
+/**
+ * Issue a logout request.
+ */
+- (void) logoutWithCancelTicket: (PLCancelTicket *) ticket andCall: (void (^)(NSError *error)) callback {
+    if (_authState != ANTNetworkClientAuthStateAuthenticated) {
+        if (!ticket.isCancelled) {
+            NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                  code: ANTErrorRequestConflict
+                                  localizedDescription: @"Attempted to log out while not logged in"
+                                localizedFailureReason: nil
+                                       underlyingError: nil
+                                              userInfo: nil];
+            callback(err);
+        }
+            
+        return;
+    }
+    
+    NSAssert(_authDelegate != nil, @"Missing authentication delegate; was it deallocated?");
+    
+    NSURL *url = [NSURL URLWithString: @"/logout" relativeToURL: [ANTNetworkClient bugReporterURL]];
+    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL: url];
+
+    /* CSRF handling */
+    [req addValue: _authResult.csrfToken forHTTPHeaderField:@"csrftokencheck"];
+    
+    /* Try to make the headers look more like the browser */
+    [req setValue: [[ANTNetworkClient bugReporterURL] absoluteString] forHTTPHeaderField: @"Origin"];
+    
+    /* Disable caching */
+    [req setCachePolicy: NSURLCacheStorageNotAllowed];
+    [req addValue: @"no-cache" forHTTPHeaderField: @"Cache-Control"];
+    
+    /* We need cookies for session and authentication verification done by the server */
+    [req setHTTPShouldHandleCookies: YES];
+    
+    /* Note the state change */
+    _authState = ANTNetworkClientAuthStateLoggingOut;
+    [[NSNotificationCenter defaultCenter] postNotificationName: ANTNetworkClientDidChangeAuthState object: self];
+    
+    [NSURLConnection pl_sendAsynchronousRequest: req queue: [NSOperationQueue mainQueue] cancelTicket: ticket completionHandler:^(NSURLResponse *resp, NSData *data, NSError *error) {
+        if (error != nil) {
+            NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                  code: ANTErrorConnectionLost
+                                  localizedDescription: [error localizedDescription]
+                                localizedFailureReason: [error localizedFailureReason]
+                                       underlyingError: error
+                                              userInfo: nil];
+            
+            if (!ticket.isCancelled)
+                callback(err);
+
+            return;
+        }
+        
+        NSHTTPURLResponse *httpResp = (NSHTTPURLResponse *) resp;
+        if ([httpResp statusCode] != 200) {
+            NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                  code: ANTErrorInvalidResponse
+                                  localizedDescription: @"The server returned a non-200 response value"
+                                localizedFailureReason: nil
+                                       underlyingError: nil
+                                              userInfo: nil];
+            if (!ticket.isCancelled)
+                callback(err);
+            return;
+        }
+        
+        /* Otherwise, success! */
+        _authResult = nil;
+        _authState = ANTNetworkClientAuthStateLoggedOut;
+        [[NSNotificationCenter defaultCenter] postNotificationName: ANTNetworkClientDidChangeAuthState object: self];
+        callback(nil);
+    }];
+    
+    /* On cancellation, reset the auth state. Any potential A->B->A condition is prevented
+     * by the state preconditions require to change _authState; eg, it shouldn't be possible to trigger
+     * a login event before logout has completed. */
+    [ticket addCancelHandler:^(PLCancelTicketReason reason) {
+        if (_authState == ANTNetworkClientAuthStateLoggingOut)
+            _authState = ANTNetworkClientAuthStateLoggedOut;
+    } dispatchContext: [PLGCDDispatchContext mainQueueContext]];
 }
 
 /**
