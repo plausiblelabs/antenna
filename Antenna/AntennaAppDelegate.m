@@ -30,6 +30,8 @@
 
 #import "ANTLoginWindowController.h"
 #import "ANTPreferencesWindowController.h"
+
+#import "ANTRadarsWindowController.h"
 #import "ANTSummaryWindowController.h"
 #import "AntennaApp.h"
 
@@ -37,6 +39,10 @@
 
 @interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, LoginWindowControllerDelegate, AntennaAppDelegate>
 
+/** The primary viewer window. */
+@property(nonatomic, readonly) ANTRadarsWindowController *radarsWindowController;
+
+/** The application preferences window controller. */
 @property(nonatomic, readonly) ANTPreferencesWindowController *preferencesWindowController;
 
 @end
@@ -46,8 +52,8 @@
     /** Application preferences */
     ANTPreferences *_preferences;
     
-    /** Summary window controller */
-    IBOutlet ANTSummaryWindowController *_summaryWindowController;
+    /** Viewer window controllers (lazy loaded; nil if not yet instantiated). */
+    ANTRadarsWindowController *_radarsWindowController;
 
     /** The login window controller (nil if login is not pending). */
     ANTLoginWindowController *_loginWindowController;
@@ -80,13 +86,9 @@
     [_networkClient loginWithAccount: nil cancelTicket: [PLCancelTicketSource new].ticket andCall: ^(NSError *error) {
         // TODO - Do we need to display an error here?
     }];
-    
-    /* Wait for login, and then fire up our summary window */
-    [[NSNotificationCenter defaultCenter] addObserverForName:  ANTNetworkClientDidChangeAuthState object: _networkClient queue: [NSOperationQueue mainQueue] usingBlock:^(NSNotification *note) {
-        // XXX hack
-        if (_networkClient.authState == ANTNetworkClientAuthStateAuthenticated)
-            [_summaryWindowController showWindow: nil];
-    }];
+
+    /* Display the viewer window */
+    [self.radarsWindowController showWindow: nil];    
 }
 
 // from AntennaAppDelegate protocol
@@ -96,6 +98,14 @@
         return YES;
     }
     return NO;
+}
+
+// Radars menu item action
+- (IBAction) openRadarsView: (id) sender {
+    if (self.radarsWindowController.window.isVisible)
+        [self.radarsWindowController close];
+    else
+        [self.radarsWindowController showWindow: nil];
 }
 
 // Preferences menu item action
@@ -158,6 +168,13 @@
 }
 
 #pragma mark Properties
+
+// property getter
+- (ANTRadarsWindowController *) radarsWindowController {
+    if (_radarsWindowController == nil)
+        _radarsWindowController = [[ANTRadarsWindowController alloc] init];
+    return _radarsWindowController;
+}
 
 // property getter
 - (ANTPreferencesWindowController *) preferencesWindowController {
