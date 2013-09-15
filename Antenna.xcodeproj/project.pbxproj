@@ -15,6 +15,7 @@
 		0562056817DAECE8009795FD /* ANTPreferencesORAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 0562056617DAECE8009795FD /* ANTPreferencesORAccountViewController.m */; };
 		0562056917DAECE8009795FD /* ANTPreferencesORAccountViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0562056717DAECE8009795FD /* ANTPreferencesORAccountViewController.xib */; };
 		0562057117DCF3F8009795FD /* AntennaApp.m in Sources */ = {isa = PBXBuildFile; fileRef = 0562057017DCF3F8009795FD /* AntennaApp.m */; };
+		057D9E2A17E54BCE00A0F377 /* PXSourceList.m in Sources */ = {isa = PBXBuildFile; fileRef = 057D9E2717E54BCE00A0F377 /* PXSourceList.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		05C84A3017D54D1B006EFB7D /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C84A2F17D54D1B006EFB7D /* Security.framework */; };
 		05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C84A3317D55861006EFB7D /* EMKeychainItem.m */; settings = {COMPILER_FLAGS = "-Wno-shorten-64-to-32 -fno-objc-arc"; }; };
 		05C84A3617D55861006EFB7D /* ReadMe.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 05C84A3417D55861006EFB7D /* ReadMe.rtf */; };
@@ -87,6 +88,10 @@
 		0562056717DAECE8009795FD /* ANTPreferencesORAccountViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ANTPreferencesORAccountViewController.xib; sourceTree = "<group>"; };
 		0562056F17DCF3F8009795FD /* AntennaApp.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AntennaApp.h; sourceTree = "<group>"; };
 		0562057017DCF3F8009795FD /* AntennaApp.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AntennaApp.m; sourceTree = "<group>"; };
+		057D9E2617E54BCE00A0F377 /* PXSourceList.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PXSourceList.h; sourceTree = "<group>"; };
+		057D9E2717E54BCE00A0F377 /* PXSourceList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PXSourceList.m; sourceTree = "<group>"; };
+		057D9E2817E54BCE00A0F377 /* PXSourceListDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PXSourceListDataSource.h; sourceTree = "<group>"; };
+		057D9E2917E54BCE00A0F377 /* PXSourceListDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PXSourceListDelegate.h; sourceTree = "<group>"; };
 		05C84A2F17D54D1B006EFB7D /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		05C84A3217D55861006EFB7D /* EMKeychainItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EMKeychainItem.h; sourceTree = "<group>"; };
 		05C84A3317D55861006EFB7D /* EMKeychainItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMKeychainItem.m; sourceTree = "<group>"; };
@@ -179,6 +184,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		057D9E2517E54B9C00A0F377 /* PXSourceList */ = {
+			isa = PBXGroup;
+			children = (
+				057D9E2617E54BCE00A0F377 /* PXSourceList.h */,
+				057D9E2717E54BCE00A0F377 /* PXSourceList.m */,
+				057D9E2817E54BCE00A0F377 /* PXSourceListDataSource.h */,
+				057D9E2917E54BCE00A0F377 /* PXSourceListDelegate.h */,
+			);
+			path = PXSourceList;
+			sourceTree = "<group>";
+		};
 		05C84A3117D55861006EFB7D /* EMKeychain */ = {
 			isa = PBXGroup;
 			children = (
@@ -298,6 +314,7 @@
 		05C9DA1717D45F430089603A /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
+				057D9E2517E54B9C00A0F377 /* PXSourceList */,
 				05C84A3117D55861006EFB7D /* EMKeychain */,
 				05C9DA1817D45F430089603A /* MAPlistTypeChecking */,
 				05E8332A17D93B0900DF3F9D /* PLFoundation.framework */,
@@ -568,6 +585,7 @@
 				05C9D9E617D43DF90089603A /* AntennaAppDelegate.m in Sources */,
 				05C9DA0917D43EB00089603A /* ANTNetworkClient.m in Sources */,
 				05C9DA1317D43FB90089603A /* ANTLoginWindowController.m in Sources */,
+				057D9E2A17E54BCE00A0F377 /* PXSourceList.m in Sources */,
 				05C9DA3417D45F830089603A /* MAErrorReportingArray.m in Sources */,
 				05C9DA3617D45F830089603A /* MAErrorReportingDictionary.m in Sources */,
 				05F6D70917E2BB5D005EE586 /* ANTSecureTextField.m in Sources */,

@@ -38,3 +38,17 @@ PLFoundation
 
     Modifications:
       - None
+
+
+PXSourceList
+    Description:
+      A Source List control for use with the Mac OS X 10.5 SDK or above.
+
+    Version:
+      c7e5c7930c2aa48470aca9c301712cb41af44f0b checked out from https://github.com/Perspx/PXSourceList
+
+    License:
+      BSD
+
+    Modifications:
+      - None
