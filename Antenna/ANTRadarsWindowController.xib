@@ -87,7 +87,7 @@
                                         <rect key="frame" x="0.0" y="0.0" width="1046" height="660"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="dEL-38-RSi" userLabel="Radar List">
+                                            <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" hasHorizontalScroller="NO" usesPredominantAxisScrolling="NO" id="dEL-38-RSi" userLabel="Radar List">
                                                 <rect key="frame" x="0.0" y="0.0" width="1046" height="254"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                 <clipView key="contentView" id="g0m-Bv-jPZ">
@@ -188,11 +188,11 @@
                                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                 </clipView>
                                                 <scroller key="horizontalScroller" hidden="YES" verticalHuggingPriority="750" id="q1c-VH-DX3">
-                                                    <rect key="frame" x="1" y="237" width="842" height="16"/>
+                                                    <rect key="frame" x="-100" y="-100" width="1046" height="16"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                 </scroller>
                                                 <scroller key="verticalScroller" hidden="YES" verticalHuggingPriority="750" doubleValue="1" id="GzN-0M-EvT">
-                                                    <rect key="frame" x="-15" y="17" width="16" height="0.0"/>
+                                                    <rect key="frame" x="1030" y="17" width="16" height="237"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                 </scroller>
                                                 <tableHeaderView key="headerView" id="atU-r3-s5z">
