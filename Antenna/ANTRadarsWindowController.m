@@ -72,6 +72,9 @@
     /** Summary table table view */
     __weak IBOutlet NSTableView *_summaryTableView;
     
+    /** Summary table's title menu */
+    __weak IBOutlet NSMenu *_summaryTableHeaderMenu;
+    
     /** Backing ANTRadarSummaryResponse values, if any. Nil if none have been loaded. */
     NSMutableArray *_summaries;
 }
@@ -115,6 +118,38 @@
 
     /* Expand all by default. TODO: Should we save/restore the user's preferences here? */
     [_sourceList expandItem: nil expandChildren: YES];
+}
+
+// Enable/disable columns
+- (void) toggleColumn: (NSMenuItem *) sender {
+    NSTableColumn *column = [sender representedObject];
+    if ([sender state] == NSOnState) {
+        [column setHidden: YES];
+    } else {
+        [column setHidden: NO];
+    }
+}
+
+// from NSMenuDelegate protocol
+- (void) menuWillOpen: (NSMenu *) menu {
+    assert(menu == _summaryTableHeaderMenu);
+    
+    [menu removeAllItems];
+    for (NSTableColumn *column in [_summaryTableView tableColumns]) {
+        NSMenuItem *item = [[NSMenuItem alloc] initWithTitle: [column.headerCell stringValue]
+                                                      action: @selector(toggleColumn:)
+                                               keyEquivalent: @""];
+        
+        if ([column isHidden]) {
+            [item setState: NSOffState];
+        } else {
+            [item setState: NSOnState];
+        }
+        
+        item.target = self;
+        item.representedObject = column;
+        [menu addItem: item];
+    }
 }
 
 

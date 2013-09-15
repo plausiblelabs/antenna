@@ -8,6 +8,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="ANTRadarsWindowController">
             <connections>
                 <outlet property="_sourceList" destination="VGy-Q8-PDf" id="lV1-BP-wIj"/>
+                <outlet property="_summaryTableHeaderMenu" destination="Qyy-b5-WI0" id="CZz-Gh-Twz"/>
                 <outlet property="_summaryTableView" destination="vEb-ek-UIp" id="lZf-fd-3ZL"/>
                 <outlet property="window" destination="1" id="3"/>
             </connections>
@@ -197,6 +198,9 @@
                                                 <tableHeaderView key="headerView" id="atU-r3-s5z">
                                                     <rect key="frame" x="0.0" y="0.0" width="1046" height="17"/>
                                                     <autoresizingMask key="autoresizingMask"/>
+                                                    <connections>
+                                                        <outlet property="menu" destination="Qyy-b5-WI0" id="4ke-5j-SWv"/>
+                                                    </connections>
                                                 </tableHeaderView>
                                             </scrollView>
                                             <customView id="lMO-zc-Qnv" userLabel="Detail View">
@@ -247,5 +251,10 @@
                 <outlet property="delegate" destination="-2" id="4"/>
             </connections>
         </window>
+        <menu id="Qyy-b5-WI0" userLabel="Summary Table Menu">
+            <connections>
+                <outlet property="delegate" destination="-2" id="SjP-Yd-Ujo"/>
+            </connections>
+        </menu>
     </objects>
 </document>
