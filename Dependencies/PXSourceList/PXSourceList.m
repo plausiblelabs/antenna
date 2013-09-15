@@ -208,7 +208,7 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
 	else if(![self allowsEmptySelection]&&[self numberOfSelectedRows]==0)
 	{
 		//Select the first non-group row if no rows are selected, and empty selection is disallowed
-		for(NSUInteger i=0;i<[self numberOfRows];i++)
+		for(NSInteger i=0;i<[self numberOfRows];i++)
 		{
 			if(![self isGroupItem:[self itemAtRow:i]]) {
 				[self selectRowIndexes:[NSIndexSet indexSetWithIndex:i] byExtendingSelection:NO];
@@ -292,7 +292,7 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
 	//Loop through the indexes and only add non-group row indexes
 	//Allows selection across groups without selecting the group rows
 	NSMutableIndexSet *newSelectionIndexes = [NSMutableIndexSet indexSet];
-	for(NSInteger i=0;i<numberOfIndexes;i++)
+	for(NSUInteger i=0;i<numberOfIndexes;i++)
 	{
 		if(![self isGroupItem:[self itemAtRow:selectedIndexes[i]]]) {
 			[newSelectionIndexes addIndex:selectedIndexes[i]];

@@ -51,4 +51,4 @@ PXSourceList
       BSD
 
     Modifications:
-      - None
+      - Fixed signed/unsigned comparisons
