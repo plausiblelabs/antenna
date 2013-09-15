@@ -106,11 +106,34 @@
     ]];
 
     _sourceItems = @[radarItem, openRadarItem];
+    
+    [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(didChangeAuthState:) name: ANTNetworkClientDidChangeAuthState object: _client];
 
     return self;
 }
 
-- (void)windowDidLoad {
+- (void) dealloc {
+    [[NSNotificationCenter defaultCenter] removeObserver: self];
+}
+
+// ANTNetworkClientDidChangeAuthState notification
+- (void) didChangeAuthState: (NSNotification *) notification {
+    if (_client.authState != ANTNetworkClientAuthStateAuthenticated)
+        return;
+    
+    /* Load all summaries */
+    [_client requestSummariesForSection: @"Open" completionHandler: ^(NSArray *summaries, NSError *error) {
+        if (error != nil) {
+            [[NSAlert alertWithError: error] beginSheetModalForWindow: self.window modalDelegate: self didEndSelector: @selector(summaryAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
+            return;
+        }
+        
+        _summaries = [summaries mutableCopy];
+        [_summaryTableView reloadData];
+    }];
+}
+
+- (void) windowDidLoad {
     [super windowDidLoad];
 
     /* Disallow column selection */
@@ -156,21 +179,6 @@
 // Delegate method for a failed summary network fetch.
 - (void) summaryAlertDidEnd: (NSAlert *) alert returnCode: (NSInteger) returnCode contextInfo: (void *) contextInfo {
     // TODO - recovery support
-}
-
-// XXX hack!
-// from NSWindowDelegate protocol
-- (void) windowDidBecomeMain: (NSNotification *) notification {
-    /* Load all summaries */
-    [_client requestSummariesForSection: @"Open" completionHandler: ^(NSArray *summaries, NSError *error) {
-        if (error != nil) {
-            [[NSAlert alertWithError: error] beginSheetModalForWindow: self.window modalDelegate: self didEndSelector: @selector(summaryAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
-            return;
-        }
-        
-        _summaries = [summaries mutableCopy];
-        [_summaryTableView reloadData];
-    }];
 }
 
 // from NSTableViewDataSource protocol
