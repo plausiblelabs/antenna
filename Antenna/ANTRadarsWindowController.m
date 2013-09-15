@@ -29,9 +29,12 @@
 #import "ANTRadarsWindowController.h"
 #import <PLFoundation/PLFoundation.h>
 
-@interface ANTRadarsWindowController () @end
+#import "PXSourceList.h"
 
-@interface ANTRadarsWindowSourceItem : NSObject <NSOutlineViewDataSource, NSOutlineViewDelegate, NSCopying>
+@interface ANTRadarsWindowController () <PXSourceListDelegate, PXSourceListDataSource>
+@end
+
+@interface ANTRadarsWindowSourceItem : NSObject <NSCopying>
 
 + (instancetype) itemWithTitle: (NSString *) title
                       children: (NSArray *) children;
@@ -58,7 +61,7 @@
 @implementation ANTRadarsWindowController {
 @private
     /** Left-side source tree */
-    __weak IBOutlet NSOutlineView *_outlineView;
+    __weak IBOutlet PXSourceList *_sourceList;
 
     /** Items listed in the left-hand source view */
     NSArray *_sourceItems;
@@ -68,17 +71,19 @@
     if ((self = [super initWithWindowNibName: [self className] owner: self]) == nil)
         return nil;
     
+    NSImage *folderIcon = [NSImage imageNamed: NSImageNameFolder];
+    NSImage *smartFolderIcon = [NSImage imageNamed: NSImageNameFolderSmart];
     ANTRadarsWindowSourceItem *radarItem = [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"My Radars", nil) children: @[
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Open", nil) icon: nil],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Closed", nil) icon: nil],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: [NSImage imageNamed: NSImageNameFolderSmart]]
+        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Open", nil) icon: folderIcon],
+        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Closed", nil) icon: folderIcon],
+        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon]
     ]];
 
     ANTRadarsWindowSourceItem *openRadarItem = [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"My Public Radars", nil) children: @[
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Open", nil) icon: nil],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Closed", nil) icon: nil],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Watching", nil) icon: [NSImage imageNamed: NSImageNameFolderSmart]],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: [NSImage imageNamed: NSImageNameFolderSmart]]
+        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Open", nil) icon: folderIcon],
+        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Closed", nil) icon: folderIcon],
+        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Watching", nil) icon: smartFolderIcon],
+        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon]
     ]];
 
     _sourceItems = @[radarItem, openRadarItem];
@@ -90,7 +95,7 @@
     [super windowDidLoad];
 
     /* Expand all by default. TODO: Should we save/restore the user's preferences here? */
-    [_outlineView expandItem: nil expandChildren: YES];
+    [_sourceList expandItem: nil expandChildren: YES];
 }
 
 - (NSView *) outlineView: (NSOutlineView *) outlineView viewForTableColumn: (NSTableColumn *) column item: (id) treeNode {
@@ -112,51 +117,115 @@
     return view;
 }
 
-// from NSOutlineViewDataSource protocol
-- (BOOL)outlineView:(NSOutlineView *)outlineView shouldSelectItem:(id)item {
-    /* Top-level items are not selectable */
-    if ([_sourceItems containsObject: item])
-        return NO;
+// from PXSourceListDataSource protocol
+- (NSUInteger) sourceList: (PXSourceList*) sourceList numberOfChildrenOfItem: (id) item {
+	if (item == nil)
+		return [_sourceItems count];
+
+    ANTRadarsWindowSourceItem *radarItem = item;
+    return [radarItem.children count];
+}
+
+// from PXSourceListDataSource protocol
+- (id) sourceList: (PXSourceList *) aSourceList child: (NSUInteger) index ofItem: (id) item {
+	if(item == nil)
+		return [_sourceItems objectAtIndex: index];
+
+    ANTRadarsWindowSourceItem *radarItem = item;
+    return [radarItem.children objectAtIndex:index];
+}
+
+// from PXSourceListDataSource protocol
+- (id) sourceList: (PXSourceList *) aSourceList objectValueForItem: (id) item {
+	return ((ANTRadarsWindowSourceItem *)item).title;
+}
+
+// from PXSourceListDataSource protocol
+- (void) sourceList: (PXSourceList *) aSourceList setObjectValue: (id) object forItem: (id) item {
+    // TODO
+	// [item setTitle:object];
+}
+
+// from PXSourceListDataSource protocol
+- (BOOL) sourceList: (PXSourceList *) aSourceList isItemExpandable: (id) item {
+    if ([((ANTRadarsWindowSourceItem *)item).children count] > 0)
+        return YES;
     
+    return NO;
+}
+
+// from PXSourceListDataSource protocol
+- (BOOL) sourceList: (PXSourceList*) aSourceList itemHasBadge: (id) item {
+    // TODO
+	return NO;
+}
+
+// from PXSourceListDataSource protocol
+- (NSInteger) sourceList: (PXSourceList*) aSourceList badgeValueForItem: (id) item {
+    // TODO
+	return 0;
+}
+
+// from PXSourceListDataSource protocol
+- (BOOL) sourceList: (PXSourceList*) aSourceList itemHasIcon: (id) item {
+    ANTRadarsWindowSourceItem *radarItem = item;
+    if (radarItem.icon != nil)
+        return YES;
+    
+    return NO;
+}
+
+// from PXSourceListDataSource protocol
+- (NSImage *) sourceList: (PXSourceList *) aSourceList iconForItem: (id) item {
+    ANTRadarsWindowSourceItem *radarItem = item;
+    return radarItem.icon;
+}
+
+// from PXSourceListDataSource protocol
+- (NSMenu *) sourceList: (PXSourceList *) aSourceList menuForEvent:(NSEvent*)theEvent item:(id)item {
+	if ([theEvent type] == NSRightMouseDown || ([theEvent type] == NSLeftMouseDown && ([theEvent modifierFlags] & NSControlKeyMask) == NSControlKeyMask)) {
+		NSMenu * m = [[NSMenu alloc] init];
+		if (item != nil) {
+			[m addItemWithTitle:[item title] action:nil keyEquivalent:@""];
+		} else {
+			[m addItemWithTitle:@"clicked outside" action:nil keyEquivalent:@""];
+		}
+		return m;
+	}
+	return nil;
+}
+
+// from PXSourceListDelegate protocol
+- (BOOL) sourceList: (PXSourceList *) aSourceList isGroupAlwaysExpanded: (id) group {
     return YES;
 }
 
-// from NSOutlineViewDataSource protocol
-- (BOOL) outlineView: (NSOutlineView *) outlineView isGroupItem: (id) item {
-    /* Top-level items use the group style */
-    if ([_sourceItems containsObject: item])
-        return YES;
 
-    return NO;
+- (void) sourceListSelectionDidChange: (NSNotification *) notification {
+#if 0
+	NSIndexSet *selectedIndexes = [sourceList selectedRowIndexes];
+	
+	//Set the label text to represent the new selection
+	if([selectedIndexes count]>1)
+		[selectedItemLabel setStringValue:@"(multiple)"];
+	else if([selectedIndexes count]==1) {
+		NSString *identifier = [[sourceList itemAtRow:[selectedIndexes firstIndex]] identifier];
+		
+		[selectedItemLabel setStringValue:identifier];
+	}
+	else {
+		[selectedItemLabel setStringValue:@"(none)"];
+	}
+#endif
 }
 
-// from NSOutlineViewDataSource protocol
-- (NSInteger) outlineView: (NSOutlineView *) outlineView numberOfChildrenOfItem: (id) item {
-    if (item == nil)
-        return [_sourceItems count];
 
-    return ((ANTRadarsWindowSourceItem *) item).children.count;
-}
-
-// from NSOutlineViewDataSource protocol
-- (id) outlineView: (NSOutlineView *) outlineView child: (NSInteger) index ofItem: (id) item {
-    if (item == nil)
-        return _sourceItems[index];
-
-    return ((ANTRadarsWindowSourceItem *) item).children[index];
-}
-
-// from NSOutlineViewDataSource protocol
-- (id) outlineView: (NSOutlineView *) outlineView objectValueForTableColumn: (NSTableColumn *) tableColumn byItem: (id) item {
-    return item;
-}
-
-// from NSOutlineViewDataSource protocol
-- (BOOL) outlineView: (NSOutlineView *) outlineView isItemExpandable: (id) item {
-    if (((ANTRadarsWindowSourceItem *) item).children.count > 0)
-        return YES;
-
-    return NO;
+- (void) sourceListDeleteKeyPressedOnRows: (NSNotification *) notification {
+	NSIndexSet *rows = [[notification userInfo] objectForKey:@"rows"];
+	
+	NSLog(@"Delete key pressed on rows %@", rows);
+	
+	//Do something here
 }
 
 @end
