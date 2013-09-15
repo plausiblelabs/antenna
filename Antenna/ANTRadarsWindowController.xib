@@ -30,21 +30,21 @@
                                 <rect key="frame" x="0.0" y="0.0" width="168" height="660"/>
                                 <autoresizingMask key="autoresizingMask"/>
                                 <subviews>
-                                    <scrollView autohidesScrollers="YES" horizontalLineScroll="20" horizontalPageScroll="10" verticalLineScroll="20" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="Isw-uk-dfA">
+                                    <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="20" horizontalPageScroll="10" verticalLineScroll="20" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="Isw-uk-dfA">
                                         <rect key="frame" x="0.0" y="0.0" width="168" height="660"/>
-                                        <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" heightSizable="YES"/>
+                                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <clipView key="contentView" id="oVk-4S-JVA">
-                                            <rect key="frame" x="1" y="1" width="166" height="658"/>
+                                            <rect key="frame" x="0.0" y="0.0" width="168" height="660"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <subviews>
                                                 <outlineView verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" selectionHighlightStyle="sourceList" autosaveColumns="NO" rowHeight="20" indentationPerLevel="14" outlineTableColumn="U5W-JA-HEw" id="VGy-Q8-PDf" customClass="PXSourceList">
-                                                    <rect key="frame" x="0.0" y="0.0" width="166" height="658"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="168" height="660"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                     <size key="intercellSpacing" width="3" height="0.0"/>
                                                     <color key="backgroundColor" name="_sourceListBackgroundColor" catalog="System" colorSpace="catalog"/>
                                                     <color key="gridColor" name="gridColor" catalog="System" colorSpace="catalog"/>
                                                     <tableColumns>
-                                                        <tableColumn width="163" minWidth="16" maxWidth="1000" id="U5W-JA-HEw">
+                                                        <tableColumn width="165" minWidth="16" maxWidth="1000" id="U5W-JA-HEw">
                                                             <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left">
                                                                 <font key="font" metaFont="smallSystem"/>
                                                                 <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -85,15 +85,15 @@
                                         <rect key="frame" x="0.0" y="0.0" width="1046" height="660"/>
                                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                         <subviews>
-                                            <scrollView autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="dEL-38-RSi" userLabel="Radar List">
+                                            <scrollView borderType="none" autohidesScrollers="YES" horizontalLineScroll="19" horizontalPageScroll="10" verticalLineScroll="19" verticalPageScroll="10" usesPredominantAxisScrolling="NO" id="dEL-38-RSi" userLabel="Radar List">
                                                 <rect key="frame" x="0.0" y="0.0" width="1046" height="254"/>
                                                 <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
                                                 <clipView key="contentView" id="g0m-Bv-jPZ">
-                                                    <rect key="frame" x="1" y="17" width="1044" height="236"/>
+                                                    <rect key="frame" x="0.0" y="17" width="1046" height="237"/>
                                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                                     <subviews>
                                                         <tableView focusRingType="none" verticalHuggingPriority="750" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" alternatingRowBackgroundColors="YES" columnSelection="YES" autosaveName="ANTSummaryTable" headerView="atU-r3-s5z" id="vEb-ek-UIp">
-                                                            <rect key="frame" x="0.0" y="0.0" width="1044" height="236"/>
+                                                            <rect key="frame" x="0.0" y="0.0" width="1046" height="237"/>
                                                             <autoresizingMask key="autoresizingMask"/>
                                                             <size key="intercellSpacing" width="3" height="2"/>
                                                             <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -162,7 +162,7 @@
                                                                     <sortDescriptor key="sortDescriptorPrototype" selector="compare:" sortKey="originatedDate"/>
                                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                                 </tableColumn>
-                                                                <tableColumn identifier="component" width="181" minWidth="10" maxWidth="3.4028234663852886e+38" id="Mhe-Pf-pZG">
+                                                                <tableColumn identifier="component" width="183" minWidth="10" maxWidth="3.4028234663852886e+38" id="Mhe-Pf-pZG">
                                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border" alignment="left" title="Component">
                                                                         <font key="font" metaFont="smallSystem"/>
                                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
@@ -190,7 +190,7 @@
                                                     <autoresizingMask key="autoresizingMask"/>
                                                 </scroller>
                                                 <tableHeaderView key="headerView" id="atU-r3-s5z">
-                                                    <rect key="frame" x="0.0" y="0.0" width="1044" height="17"/>
+                                                    <rect key="frame" x="0.0" y="0.0" width="1046" height="17"/>
                                                     <autoresizingMask key="autoresizingMask"/>
                                                 </tableHeaderView>
                                             </scrollView>
