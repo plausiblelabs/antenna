@@ -112,7 +112,12 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
         MAErrorReportingDictionary *jsonDict = [[MAErrorReportingDictionary alloc] initWithDictionary: jsonData];
         id (^Check)(id) = ^(id value) {
             if (value == nil) {
-                handler(nil, [jsonDict error]);
+                NSError *error = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                        code: ANTErrorInvalidResponse
+                                        localizedDescription: NSLocalizedString(@"Unable to parse the server result.", nil)
+                                      localizedFailureReason: NSLocalizedString(@"Response data is missing a required value.", nil)
+                                             underlyingError: [jsonDict error] userInfo: nil];
+                handler(nil, error);
                 return (id) nil;
             }
             
@@ -152,7 +157,13 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
             NSDate *origDate = [_dateFormatter dateFromString: origDateString];
             if (origDate == nil) {
                 NSLog(@"Could not format date: %@", origDateString);
-                handler(nil, [NSError errorWithDomain: NSCocoaErrorDomain code: NSURLErrorCannotParseResponse userInfo: nil]);
+                NSError *parseError = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                             code: ANTErrorInvalidResponse
+                                             localizedDescription: NSLocalizedString(@"Unable to parse the server result.", nil)
+                                           localizedFailureReason: NSLocalizedString(@"Server sent an unexpected date format.", nil)
+                                                  underlyingError: nil
+                                                         userInfo: nil];
+                handler(nil, parseError);
                 return;
             }
             
@@ -193,8 +204,8 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
         if (!ticket.isCancelled) {
             NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
                                                   code: ANTErrorRequestConflict
-                                  localizedDescription: @"Attempted to log in while not logged out"
-                                localizedFailureReason: nil
+                                  localizedDescription: NSLocalizedString(@"Sign in failed.", nil)
+                                localizedFailureReason: NSLocalizedString(@"Attempted to sign in while already authenticated.", nil)
                                        underlyingError: nil
                                               userInfo: nil];
             callback(err);
@@ -230,8 +241,8 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
         if (!ticket.isCancelled) {
             NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
                                                   code: ANTErrorRequestConflict
-                                  localizedDescription: @"Attempted to log out while not logged in"
-                                localizedFailureReason: nil
+                                  localizedDescription: NSLocalizedString(@"Failed to sign out.", nil)
+                                localizedFailureReason: NSLocalizedString(@"Attempted to sign out while not logged in.", nil)
                                        underlyingError: nil
                                               userInfo: nil];
             callback(err);
@@ -281,8 +292,8 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
         if ([httpResp statusCode] != 200) {
             NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
                                                   code: ANTErrorInvalidResponse
-                                  localizedDescription: @"The server returned a non-200 response value"
-                                localizedFailureReason: nil
+                                  localizedDescription: NSLocalizedString(@"The server request failed.", nil)
+                                localizedFailureReason: [NSString stringWithFormat: NSLocalizedString(@"The server returned an error response (%zd)", nil), [httpResp statusCode]]
                                        underlyingError: nil
                                               userInfo: nil];
             if (!ticket.isCancelled)
@@ -347,7 +358,13 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
     /* Issue the request */
     [NSURLConnection sendAsynchronousRequest: req queue: [NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *resp, NSData *data, NSError *error) {
         if (error != nil) {
-            handler(nil, error);
+            NSError *antError = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                       code: ANTErrorInvalidResponse
+                                       localizedDescription: NSLocalizedString(@"Unable to parse the server result", nil)
+                                     localizedFailureReason: NSLocalizedString(@"Server sent invalid JSON data", nil)
+                                            underlyingError: error
+                                                   userInfo: nil];
+            handler(nil, antError);
             return;
         }
         
@@ -355,7 +372,15 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
         NSError *jsonError;
         id jsonResult = [NSJSONSerialization JSONObjectWithData: data options:0 error: &jsonError];
         if (jsonResult == nil) {
-            handler(nil, jsonError);
+            NSError *error = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                    code: ANTErrorInvalidResponse
+                                    localizedDescription: NSLocalizedString(@"Unable to parse the server result", nil)
+                                  localizedFailureReason: NSLocalizedString(@"Server sent invalid JSON data", nil)
+                                         underlyingError: jsonError
+                                                userInfo: nil];
+            
+            
+            handler(nil, error);
             return;
         }
     
