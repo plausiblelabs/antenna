@@ -189,8 +189,18 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
              cancelTicket: (PLCancelTicket *) ticket
                   andCall: (void (^)(NSError *error)) callback
 {
-    if (_authState != ANTNetworkClientAuthStateLoggedOut)
+    if (_authState != ANTNetworkClientAuthStateLoggedOut) {
+        if (!ticket.isCancelled) {
+            NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                  code: ANTErrorRequestConflict
+                                  localizedDescription: @"Attempted to log in while not logged out"
+                                localizedFailureReason: nil
+                                       underlyingError: nil
+                                              userInfo: nil];
+            callback(err);
+        }
         return;
+    }
     
     NSAssert(_authDelegate != nil, @"Missing authentication delegate; was it deallocated?");
 
