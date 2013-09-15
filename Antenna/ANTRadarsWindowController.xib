@@ -7,6 +7,7 @@
     <objects>
         <customObject id="-2" userLabel="File's Owner" customClass="ANTRadarsWindowController">
             <connections>
+                <outlet property="_outlineView" destination="l0M-1H-W7U" id="ccM-VT-EVW"/>
                 <outlet property="window" destination="1" id="3"/>
             </connections>
         </customObject>
@@ -81,7 +82,7 @@
                                                                         <imageView id="TR1-Gg-lwb">
                                                                             <rect key="frame" x="3" y="0.0" width="17" height="17"/>
                                                                             <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
-                                                                            <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="NSActionTemplate" id="Jk3-0u-PQu"/>
+                                                                            <imageCell key="cell" refusesFirstResponder="YES" alignment="left" imageScaling="proportionallyDown" image="NSFolder" id="Jk3-0u-PQu"/>
                                                                         </imageView>
                                                                         <textField verticalHuggingPriority="750" id="oCB-5u-t6r">
                                                                             <rect key="frame" x="25" y="0.0" width="138" height="17"/>
@@ -103,6 +104,7 @@
                                                     </tableColumns>
                                                     <connections>
                                                         <outlet property="dataSource" destination="-2" id="obd-Pk-Qva"/>
+                                                        <outlet property="delegate" destination="-2" id="mdQ-Lb-Jeo"/>
                                                     </connections>
                                                 </outlineView>
                                             </subviews>
@@ -286,6 +288,6 @@
         </window>
     </objects>
     <resources>
-        <image name="NSActionTemplate" width="15" height="15"/>
+        <image name="NSFolder" width="32" height="32"/>
     </resources>
 </document>
