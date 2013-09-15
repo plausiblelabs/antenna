@@ -28,6 +28,10 @@
 
 #import <Cocoa/Cocoa.h>
 
+#import "ANTNetworkClient.h"
+
 @interface ANTRadarsWindowController : NSWindowController
+
+- (id) initWithClient: (ANTNetworkClient *) client;
 
 @end

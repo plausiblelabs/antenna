@@ -32,7 +32,6 @@
 #import "ANTPreferencesWindowController.h"
 
 #import "ANTRadarsWindowController.h"
-#import "ANTSummaryWindowController.h"
 #import "AntennaApp.h"
 
 #import "ANTPreferences.h"
@@ -172,7 +171,7 @@
 // property getter
 - (ANTRadarsWindowController *) radarsWindowController {
     if (_radarsWindowController == nil)
-        _radarsWindowController = [[ANTRadarsWindowController alloc] init];
+        _radarsWindowController = [[ANTRadarsWindowController alloc] initWithClient: _networkClient];
     return _radarsWindowController;
 }
 

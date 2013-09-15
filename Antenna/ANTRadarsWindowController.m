@@ -31,7 +31,7 @@
 
 #import "PXSourceList.h"
 
-@interface ANTRadarsWindowController () <PXSourceListDelegate, PXSourceListDataSource>
+@interface ANTRadarsWindowController () <PXSourceListDelegate, PXSourceListDataSource, NSTableViewDataSource, NSTableViewDelegate>
 @end
 
 @interface ANTRadarsWindowSourceItem : NSObject <NSCopying>
@@ -60,16 +60,32 @@
  */
 @implementation ANTRadarsWindowController {
 @private
+    /** Backing network client */
+    ANTNetworkClient *_client;
+
     /** Left-side source tree */
     __weak IBOutlet PXSourceList *_sourceList;
 
     /** Items listed in the left-hand source view */
     NSArray *_sourceItems;
+
+    /** Summary table table view */
+    __weak IBOutlet NSTableView *_summaryTableView;
+    
+    /** Backing ANTRadarSummaryResponse values, if any. Nil if none have been loaded. */
+    NSMutableArray *_summaries;
 }
 
-- (id) init {
+/**
+ * Initialize a new ANTRadarsWindowController instance.
+ *
+ * @param client The backing network Radar client.
+ */
+- (id) initWithClient: (ANTNetworkClient *) client {
     if ((self = [super initWithWindowNibName: [self className] owner: self]) == nil)
         return nil;
+    
+    _client = client;
     
     NSImage *folderIcon = [NSImage imageNamed: NSImageNameFolder];
     NSImage *smartFolderIcon = [NSImage imageNamed: NSImageNameFolderSmart];
@@ -94,27 +110,62 @@
 - (void)windowDidLoad {
     [super windowDidLoad];
 
+    /* Disallow column selection */
+    [_summaryTableView setAllowsColumnSelection: NO];
+
     /* Expand all by default. TODO: Should we save/restore the user's preferences here? */
     [_sourceList expandItem: nil expandChildren: YES];
 }
 
-- (NSView *) outlineView: (NSOutlineView *) outlineView viewForTableColumn: (NSTableColumn *) column item: (id) treeNode {
-    ANTRadarsWindowSourceItem *item = treeNode;
-    NSTableCellView *view;
 
-    if ([_sourceItems containsObject: item]) {
-        view = [outlineView makeViewWithIdentifier: @"HeaderCell" owner: self];
-    } else {
-        view = [outlineView makeViewWithIdentifier: @"DataCell" owner: self];
-        if (item.icon != nil) {
-            [[view imageView] setImage: item.icon];
-        } else {
-            [[view imageView] setImage: [NSImage imageNamed: NSImageNameFolder]];
+// Delegate method for a failed summary network fetch.
+- (void) summaryAlertDidEnd: (NSAlert *) alert returnCode: (NSInteger) returnCode contextInfo: (void *) contextInfo {
+    // TODO - recovery support
+}
+
+// XXX hack!
+// from NSWindowDelegate protocol
+- (void) windowDidBecomeMain: (NSNotification *) notification {
+    /* Load all summaries */
+    [_client requestSummariesForSection: @"Open" completionHandler: ^(NSArray *summaries, NSError *error) {
+        if (error != nil) {
+            [[NSAlert alertWithError: error] beginSheetModalForWindow: self.window modalDelegate: self didEndSelector: @selector(summaryAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
+            return;
         }
-    }
+        
+        _summaries = [summaries mutableCopy];
+        [_summaryTableView reloadData];
+    }];
+}
+
+// from NSTableViewDataSource protocol
+- (id) tableView: (NSTableView *) aTableView objectValueForTableColumn: (NSTableColumn *) aTableColumn row: (NSInteger) rowIndex {
+    BOOL (^Check)(NSString *) = ^(NSString *ident) {
+        return [[aTableColumn identifier] isEqualToString: ident];
+    };
     
-    [[view textField] setStringValue: item.title];
-    return view;
+    ANTRadarSummaryResponse *summary = [_summaries objectAtIndex: rowIndex];
+    
+#define RetVal(_ident, _data) if (Check(_ident)) return _data;
+    RetVal(@"id", summary.radarId);
+    RetVal(@"state", summary.stateName);
+    RetVal(@"title", summary.title);
+    RetVal(@"date", summary.originatedDate);
+    RetVal(@"component", summary.componentName);
+#undef RetVal
+    
+    return nil;
+}
+
+// from NSTableViewDataSource protocol
+- (void) tableView: (NSTableView *) tableView sortDescriptorsDidChange: (NSArray *) oldDescriptors {
+    [_summaries sortUsingDescriptors: [tableView sortDescriptors]];
+    [tableView reloadData];
+}
+
+// from NSTableViewDataSource protocol
+- (NSInteger) numberOfRowsInTableView: (NSTableView *) aTableView {
+    return [_summaries count];
 }
 
 // from PXSourceListDataSource protocol
@@ -197,7 +248,7 @@
 
 // from PXSourceListDelegate protocol
 - (BOOL) sourceList: (PXSourceList *) aSourceList isGroupAlwaysExpanded: (id) group {
-    return YES;
+    return NO;
 }
 
 

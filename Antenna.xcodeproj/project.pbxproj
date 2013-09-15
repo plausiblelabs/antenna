@@ -39,7 +39,6 @@
 		05C9DA3817D45F830089603A /* MAErrorReportingObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2017D45F430089603A /* MAErrorReportingObject.m */; };
 		05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2317D45F430089603A /* NSObject+MAErrorReporting.m */; };
 		05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */; };
-		05C9DA4217D4F15D0089603A /* ANTSummaryWindowController.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */; };
 		05E8332B17D93B0900DF3F9D /* PLFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
 		05E8332D17D93B2100DF3F9D /* PLFoundation.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
 		05E8333417D96EDB00DF3F9D /* ANTErrorDomain.m in Sources */ = {isa = PBXBuildFile; fileRef = 05E8333317D96EDA00DF3F9D /* ANTErrorDomain.m */; };
@@ -140,8 +139,6 @@
 		05C9DA2C17D45F430089603A /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
 		05C9DA3B17D462EE0089603A /* ANTRadarSummaryResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarSummaryResponse.h; sourceTree = "<group>"; };
 		05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarSummaryResponse.m; sourceTree = "<group>"; };
-		05C9DA4017D4F15D0089603A /* ANTSummaryWindowController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTSummaryWindowController.h; sourceTree = "<group>"; };
-		05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTSummaryWindowController.m; sourceTree = "<group>"; };
 		05E8332A17D93B0900DF3F9D /* PLFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PLFoundation.framework; sourceTree = "<group>"; };
 		05E8332E17D93C4100DF3F9D /* ANTNetworkClientAuthDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTNetworkClientAuthDelegate.h; sourceTree = "<group>"; };
 		05E8333217D96EDA00DF3F9D /* ANTErrorDomain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTErrorDomain.h; sourceTree = "<group>"; };
@@ -359,15 +356,6 @@
 			path = MAPlistTypeCheckingTests;
 			sourceTree = "<group>";
 		};
-		05C9DA3F17D4F1380089603A /* Summary Window */ = {
-			isa = PBXGroup;
-			children = (
-				05C9DA4017D4F15D0089603A /* ANTSummaryWindowController.h */,
-				05C9DA4117D4F15D0089603A /* ANTSummaryWindowController.m */,
-			);
-			name = "Summary Window";
-			sourceTree = "<group>";
-		};
 		05E8333017D95D4300DF3F9D /* Login UI */ = {
 			isa = PBXGroup;
 			children = (
@@ -402,7 +390,6 @@
 				05F6D71917E3DB6D005EE586 /* Radars Window */,
 				05E8333B17D97D1E00DF3F9D /* Preferences */,
 				05E8333017D95D4300DF3F9D /* Login UI */,
-				05C9DA3F17D4F1380089603A /* Summary Window */,
 				05F6D70617E2BB3E005EE586 /* API Extensions */,
 			);
 			name = "Cocoa UI";
@@ -594,7 +581,6 @@
 				05C9DA3817D45F830089603A /* MAErrorReportingObject.m in Sources */,
 				05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */,
 				05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */,
-				05C9DA4217D4F15D0089603A /* ANTSummaryWindowController.m in Sources */,
 				05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */,
 				05C84A3917D55ECF006EFB7D /* ANTPreferences.m in Sources */,
 				05E8333417D96EDB00DF3F9D /* ANTErrorDomain.m in Sources */,

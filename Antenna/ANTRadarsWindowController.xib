@@ -8,6 +8,7 @@
         <customObject id="-2" userLabel="File's Owner" customClass="ANTRadarsWindowController">
             <connections>
                 <outlet property="_sourceList" destination="VGy-Q8-PDf" id="lV1-BP-wIj"/>
+                <outlet property="_summaryTableView" destination="vEb-ek-UIp" id="lZf-fd-3ZL"/>
                 <outlet property="window" destination="1" id="3"/>
             </connections>
         </customObject>
@@ -177,6 +178,10 @@
                                                                     <tableColumnResizingMask key="resizingMask" resizeWithTable="YES" userResizable="YES"/>
                                                                 </tableColumn>
                                                             </tableColumns>
+                                                            <connections>
+                                                                <outlet property="dataSource" destination="-2" id="Tah-Iv-aPN"/>
+                                                                <outlet property="delegate" destination="-2" id="Uhl-VQ-Lng"/>
+                                                            </connections>
                                                         </tableView>
                                                     </subviews>
                                                     <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
