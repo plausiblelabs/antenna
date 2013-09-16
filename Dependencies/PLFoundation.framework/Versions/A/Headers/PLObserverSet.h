@@ -4,10 +4,12 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "PLDispatchContext.h"
 
 @interface PLObserverSet : NSObject
 
-- (void) addObserver: (id ) observer queue: (dispatch_queue_t) queue;
+- (void) addObserver: (id) observer dispatchContext: (id<PLDispatchContext>) context;
+
 - (void) removeObserver: (id) observer;
 
 - (void) enumerateObservers: (void (^)(id observer)) block;

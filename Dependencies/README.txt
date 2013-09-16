@@ -31,7 +31,7 @@ PLFoundation
       Plausible Labs ObjC Foundation Library
 
     Version:
-      v0.1 checked out and built from https://opensource.plausible.coop/stash/projects/PLF/repos/plfoundation-objc
+      v0.2 checked out and built from https://opensource.plausible.coop/stash/projects/PLF/repos/plfoundation-objc
 
     License:
       MIT
