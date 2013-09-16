@@ -40,7 +40,6 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
 
 
 @interface ANTNetworkClient ()
-- (void) postJSON: (id) json toPath: (NSString *) resourcePath completionHandler: (void (^)(id jsonData, NSError *error)) handler;
 @end
 
 @implementation ANTNetworkClient {
@@ -56,6 +55,12 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
 
     /** Date formatter to use for report dates (DD-MON-YYYY HH:MM) */
     NSDateFormatter *_dateFormatter;
+
+    /** Internal queue used to handle NSURLConnection callbacks */
+    NSOperationQueue *_opQueue;
+    
+    /** Registered observers. */
+    PLObserverSet *_observers;
 }
 
 /**
@@ -83,14 +88,36 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
     _dateFormatter = [[NSDateFormatter alloc] init];
     [_dateFormatter setDateFormat:@"dd-MMM-yyyy HH:mm"];
     [_dateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"]];
+    
+    _opQueue = [[NSOperationQueue alloc] init];
 
     return self;
+}
+
+/**
+ * Register an @a observer to which messages will be dispatched via @a context.
+ *
+ * @param observer The observer to add to the set. It will be weakly referenced.
+ * @param context The context on which messages to @a observer will be dispatched.
+ */
+- (void) addObserver: (id<ANTNetworkClientObserver>) observer dispatchContext: (id<PLDispatchContext>) context {
+    [_observers addObserver: observer dispatchContext: context];
+}
+
+/**
+ * Remove an observer.
+ *
+ * @param observer Observer registration to be removed.
+ */
+- (void) removeObserver: (id<ANTNetworkClientObserver>) observer {
+    [_observers removeObserver: observer];
 }
 
 /**
  * Request all radar issue summaries for @a sectionName.
  *
  * @param sectionName The section name.
+ * @param ticket A request cancellation ticket.
  * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
  * will be provided as an ordered array of ANTRadarSummaryResponse values.
  *
@@ -99,9 +126,13 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
  * @todo Allow for specifying the sort order.
  * @todo Implement cancellation support (return a cancellation ticket?).
  */
-- (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler {
+- (void) requestSummariesForSection: (NSString *) sectionName
+                       cancelTicket: (PLCancelTicket *) ticket
+                    dispatchContext: (id<PLDispatchContext>) context
+                  completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler
+{
     NSDictionary *req = @{@"reportID" : sectionName, @"orderBy" : @"DateOriginated,Descending", @"rowStartString":@"1" };
-    [self postJSON: req toPath: @"/developer/problem/getSectionProblems" completionHandler:^(id jsonData, NSError *error) {
+    [self postJSON: req toPath: @"/developer/problem/getSectionProblems" cancelTicket: ticket dispatchContext: context completionHandler:^(id jsonData, NSError *error) {
         /* Verify the response type */
         if (![jsonData isKindOfClass: [NSDictionary class]]) {
             handler(nil, [NSError errorWithDomain: NSCocoaErrorDomain code: NSURLErrorCannotParseResponse userInfo: nil]);
@@ -198,7 +229,8 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
  */
 - (void) loginWithAccount: (ANTNetworkClientAccount *) account
              cancelTicket: (PLCancelTicket *) ticket
-                  andCall: (void (^)(NSError *error)) callback
+          dispatchContext: (id<PLDispatchContext>) context
+        completionHandler: (void (^)(NSError *error)) callback
 {
     if (_authState != ANTNetworkClientAuthStateLoggedOut) {
         if (!ticket.isCancelled) {
@@ -236,7 +268,7 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
 /**
  * Issue a logout request.
  */
-- (void) logoutWithCancelTicket: (PLCancelTicket *) ticket andCall: (void (^)(NSError *error)) callback {
+- (void) logoutWithCancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionHandler: (void (^)(NSError *error)) callback {
     if (_authState != ANTNetworkClientAuthStateAuthenticated) {
         if (!ticket.isCancelled) {
             NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
@@ -322,16 +354,22 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
  *
  * @param json A foundation instance that may be represented as JSON
  * @param resourcePath The resource path to which the JSON data will be POSTed.
+ * @param ticket A request cancellation ticket.
+ * @param context The dispatch context on which the result @a handler will be called.
  * @param handler The block to call upon completion. If an error occurs, error will be non-nil. On success, the JSON response data
  * will be provided via jsonData.
  *
  * @todo Implement handling of the standard JSON error results.
  */
-- (void) postJSON: (id) json toPath: (NSString *) resourcePath completionHandler: (void (^)(id jsonData, NSError *error)) handler {
+- (void) postJSON: (id) json
+           toPath: (NSString *) resourcePath
+     cancelTicket: (PLCancelTicket *) ticket
+  dispatchContext: (id<PLDispatchContext>) context
+completionHandler: (void (^)(id jsonData, NSError *error)) handler
+{
     NSError *error;
     NSData *jsonData = [NSJSONSerialization dataWithJSONObject: json options: 0 error: &error];
-    if (jsonData == nil)
-        handler(nil, error);
+    NSAssert(jsonData != nil, @"Invalid JSON request data");
 
     /* Formulate the POST */
     NSURL *url = [NSURL URLWithString: resourcePath relativeToURL: [ANTNetworkClient bugReporterURL]];
@@ -356,7 +394,15 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
     [req setHTTPShouldHandleCookies: YES];
     
     /* Issue the request */
-    [NSURLConnection sendAsynchronousRequest: req queue: [NSOperationQueue mainQueue] completionHandler:^(NSURLResponse *resp, NSData *data, NSError *error) {
+    [NSURLConnection pl_sendAsynchronousRequest: req queue: _opQueue cancelTicket: ticket completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+        /* Perform the handler callback on the right dispatch context, checking for cancellation */
+        void (^performHandler)(id, NSError *) = ^(id value, NSError *error) {
+            [context performBlock:^{
+                if (!ticket.isCancelled)
+                    handler(value, error);
+            }];
+        };
+        
         if (error != nil) {
             NSError *antError = [NSError pl_errorWithDomain: ANTErrorDomain
                                                        code: ANTErrorInvalidResponse
@@ -364,7 +410,7 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
                                      localizedFailureReason: NSLocalizedString(@"Server sent invalid JSON data", nil)
                                             underlyingError: error
                                                    userInfo: nil];
-            handler(nil, antError);
+            performHandler(nil, antError);
             return;
         }
         
@@ -372,19 +418,19 @@ NSString *ANTNetworkClientDidChangeAuthState = @"ANTNetworkClientDidChangeAuthSt
         NSError *jsonError;
         id jsonResult = [NSJSONSerialization JSONObjectWithData: data options:0 error: &jsonError];
         if (jsonResult == nil) {
-            NSError *error = [NSError pl_errorWithDomain: ANTErrorDomain
-                                                    code: ANTErrorInvalidResponse
-                                    localizedDescription: NSLocalizedString(@"Unable to parse the server result", nil)
-                                  localizedFailureReason: NSLocalizedString(@"Server sent invalid JSON data", nil)
-                                         underlyingError: jsonError
-                                                userInfo: nil];
+            NSError *antError = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                       code: ANTErrorInvalidResponse
+                                       localizedDescription: NSLocalizedString(@"Unable to parse the server result", nil)
+                                     localizedFailureReason: NSLocalizedString(@"Server sent invalid JSON data", nil)
+                                            underlyingError: jsonError
+                                                   userInfo: nil];
             
-            
+            performHandler(nil, antError);
             handler(nil, error);
             return;
         }
     
-         handler(jsonResult, nil);
+         performHandler(jsonResult, nil);
     }];
 }
 

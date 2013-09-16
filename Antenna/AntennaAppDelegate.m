@@ -82,7 +82,7 @@
 // from NSApplicationDelegate protocol; sent after window restoration.
 - (void) applicationDidFinishLaunching: (NSNotification *) aNotification {
     /* Try to login by default */
-    [_networkClient loginWithAccount: nil cancelTicket: [PLCancelTicketSource new].ticket andCall: ^(NSError *error) {
+    [_networkClient loginWithAccount: nil cancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLGCDDispatchContext mainQueueContext] completionHandler: ^(NSError *error) {
         // TODO - Do we need to display an error here?
     }];
 

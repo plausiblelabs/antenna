@@ -31,7 +31,7 @@
 
 #import "PXSourceList.h"
 
-@interface ANTRadarsWindowController () <PXSourceListDelegate, PXSourceListDataSource, NSTableViewDataSource, NSTableViewDelegate>
+@interface ANTRadarsWindowController () <PXSourceListDelegate, PXSourceListDataSource, ANTNetworkClientObserver, NSTableViewDataSource, NSTableViewDelegate>
 @end
 
 @interface ANTRadarsWindowSourceItem : NSObject <NSCopying>
@@ -107,7 +107,7 @@
 
     _sourceItems = @[radarItem, openRadarItem];
     
-    [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(didChangeAuthState:) name: ANTNetworkClientDidChangeAuthState object: _client];
+    [_client addObserver: self dispatchContext: [PLGCDDispatchContext mainQueueContext]];
 
     return self;
 }
@@ -117,12 +117,12 @@
 }
 
 // ANTNetworkClientDidChangeAuthState notification
-- (void) didChangeAuthState: (NSNotification *) notification {
+- (void) networkClientDidChangeAuthState: (ANTNetworkClient *) client {
     if (_client.authState != ANTNetworkClientAuthStateAuthenticated)
         return;
     
     /* Load all summaries */
-    [_client requestSummariesForSection: @"Open" completionHandler: ^(NSArray *summaries, NSError *error) {
+    [_client requestSummariesForSection: @"Open" cancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLGCDDispatchContext mainQueueContext] completionHandler: ^(NSArray *summaries, NSError *error) {
         if (error != nil) {
             [[NSAlert alertWithError: error] beginSheetModalForWindow: self.window modalDelegate: self didEndSelector: @selector(summaryAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
             return;

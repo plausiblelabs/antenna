@@ -30,13 +30,12 @@
 #import "ANTRadarSummaryResponse.h"
 #import "ANTPreferences.h"
 
+#import "ANTNetworkClientObserver.h"
 #import "ANTNetworkClientAuthResult.h"
 #import "ANTNetworkClientAuthDelegate.h"
 #import "ANTNetworkClientAccount.h"
 
 #import "ANTErrorDomain.h"
-
-extern NSString *ANTNetworkClientDidChangeAuthState;
 
 /**
  * Client authentication states.
@@ -61,14 +60,24 @@ typedef NS_ENUM(NSUInteger, ANTNetworkClientAuthState) {
 
 - (instancetype) initWithAuthDelegate: (id<ANTNetworkClientAuthDelegate>) authDelegate;
 
+- (void) addObserver: (id<ANTNetworkClientObserver>) observer
+     dispatchContext: (id<PLDispatchContext>) context;
+
+- (void) removeObserver: (id<ANTNetworkClientObserver>) observer;
+
 - (void) loginWithAccount: (ANTNetworkClientAccount *) account
              cancelTicket: (PLCancelTicket *) ticket
-                  andCall: (void (^)(NSError *error)) callback;
+          dispatchContext: (id<PLDispatchContext>) context
+        completionHandler: (void (^)(NSError *error)) callback;
 
-- (void) logoutWithCancelTicket: (PLCancelTicket *) ticket andCall: (void (^)(NSError *error)) callback;
+- (void) logoutWithCancelTicket: (PLCancelTicket *) ticket
+                dispatchContext: (id<PLDispatchContext>) context
+              completionHandler: (void (^)(NSError *error)) callback;
 
-- (void) requestSummariesForSection: (NSString *) sectionName completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
-
+- (void) requestSummariesForSection: (NSString *) sectionName
+                       cancelTicket: (PLCancelTicket *) ticket
+                    dispatchContext: (id<PLDispatchContext>) context
+                  completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
 
 /** Current client authentication state. */
 @property(nonatomic, readonly) ANTNetworkClientAuthState authState;

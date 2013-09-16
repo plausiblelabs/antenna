@@ -75,6 +75,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0529C88C17E67AC500FCD30C /* ANTNetworkClientObserver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTNetworkClientObserver.h; sourceTree = "<group>"; };
 		0562055717D9A453009795FD /* ANTPreferencesWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ANTPreferencesWindowController.xib; sourceTree = "<group>"; };
 		0562055917DAAC9C009795FD /* ANTPreferencesAccountCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTPreferencesAccountCellView.h; sourceTree = "<group>"; };
 		0562055A17DAAC9C009795FD /* ANTPreferencesAccountCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTPreferencesAccountCellView.m; sourceTree = "<group>"; };
@@ -297,6 +298,7 @@
 			children = (
 				05C9DA0717D43EB00089603A /* ANTNetworkClient.h */,
 				05C9DA0817D43EB00089603A /* ANTNetworkClient.m */,
+				0529C88C17E67AC500FCD30C /* ANTNetworkClientObserver.h */,
 				05E8333817D976A100DF3F9D /* ANTNetworkClientAuthResult.h */,
 				05E8333917D976A100DF3F9D /* ANTNetworkClientAuthResult.m */,
 				05E8332E17D93C4100DF3F9D /* ANTNetworkClientAuthDelegate.h */,
@@ -498,7 +500,7 @@
 			isa = PBXProject;
 			attributes = {
 				CLASSPREFIX = PL;
-				LastUpgradeCheck = 0460;
+				LastUpgradeCheck = 0500;
 				ORGANIZATIONNAME = "Plausible Labs";
 			};
 			buildConfigurationList = 05C9D9CA17D43DF90089603A /* Build configuration list for PBXProject "Antenna" */;

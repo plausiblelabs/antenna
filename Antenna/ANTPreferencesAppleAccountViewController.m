@@ -30,7 +30,7 @@
 #import "EMKeychainItem.h"
 #import "ANTSecureTextField.h"
 
-@interface ANTPreferencesAppleAccountViewController () <NSTextFieldDelegate>
+@interface ANTPreferencesAppleAccountViewController () <NSTextFieldDelegate, ANTNetworkClientObserver>
 
 @end
 
@@ -75,8 +75,9 @@
 
     _client = client;
     _prefs = preferences;
+    
+    [_client addObserver: self dispatchContext: [PLGCDDispatchContext mainQueueContext]];
 
-    [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(updateAuthState:) name: ANTNetworkClientDidChangeAuthState object: _client];
     [[NSNotificationCenter defaultCenter] addObserver: self selector: @selector(updateAuthState:) name: ANTPreferencesDidChangeNotification object: _prefs];
     
     return self;
@@ -161,6 +162,11 @@
     }
 }
 
+// from ANTNetworkClientObserver protocol
+- (void) networkClientDidChangeAuthState: (ANTNetworkClient *) client {
+    [self updateAuthState: nil];
+}
+
 // from NSControl informal protocol
 - (void) controlTextDidChange: (NSNotification *) aNotification {
     [self tryEnableSignOnButton];
@@ -206,7 +212,8 @@
             ANTNetworkClientAccount *account = [[ANTNetworkClientAccount alloc] initWithUsername: _loginField.stringValue password: _passwordField.stringValue];
             [_client loginWithAccount: account
                          cancelTicket: ticketSource.ticket
-                              andCall: ^(NSError *error)
+                      dispatchContext: [PLGCDDispatchContext mainQueueContext]
+                    completionHandler: ^(NSError *error)
             {
                 if (error != nil) {
                     [[NSAlert alertWithError: error] beginSheetModalForWindow: self.view.window modalDelegate: self didEndSelector: @selector(loginFailedAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
@@ -231,7 +238,7 @@
             break;
             
         case ANTNetworkClientAuthStateAuthenticated:
-            [_client logoutWithCancelTicket: ticketSource.ticket andCall:^(NSError *error) {
+            [_client logoutWithCancelTicket: ticketSource.ticket dispatchContext: [PLGCDDispatchContext mainQueueContext] completionHandler:^(NSError *error) {
                 if (error != nil) {
                     [[NSAlert alertWithError: error] beginSheetModalForWindow: self.view.window modalDelegate: self didEndSelector: @selector(logoutFailedAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
                     return;
