@@ -5,6 +5,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class PLCancelTicket;
+
 /**
  * Dispatch contexts represent an arbitrary synchronous or asynchronous (direct) execution
  * context on which blocks may be dispatched.
@@ -51,7 +53,20 @@
 /**
  * Schedule a block for execution. This may occur immediately and synchronously, or asynchronously,
  * depending on the implementation of the target context.
+ *
+ * @param ticket A cancellation ticket for this operation. The ticket state will be checked for cancellation
+ * prior to executing @a block. This check will occur directly prior to synchronously executing the block in
+ * the receiver's execution environment, as doing so provide a consistent gauranteed ordering; on serial
+ * dispatch contexts, cancellation will always be validated after it has been issued.
+ */
+- (void) performWithCancelTicket: (PLCancelTicket *) ticket block: (void (^)(void)) block;
+
+/**
+ * Schedule a block for execution. This may occur immediately and synchronously, or asynchronously,
+ * depending on the implementation of the target context.
  */
 - (void) performBlock: (void (^)(void)) block;
 
 @end
+
+#import "PLCancelTicketSource.h"
