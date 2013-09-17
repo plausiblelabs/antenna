@@ -115,10 +115,76 @@
 }
 
 /**
+ * Request all radar issue summaries for the the given section names.
+ *
+ * @param sectionNames The section names to be fethed. The result order is undefined.
+ * @param ticket A request cancellation ticket.
+ * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
+ * will be provided as an ordered array of ANTRadarSummaryResponse values.
+ */
+- (void) requestSummariesForSections: (NSArray *) sectionNames
+                        cancelTicket: (PLCancelTicket *) ticket
+                     dispatchContext: (id<PLDispatchContext>) context
+                   completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler
+{
+    NSMutableSet *pending = [NSMutableSet setWithArray: sectionNames];
+    NSMutableArray *results = [NSMutableArray array];
+    __block OSSpinLock pendingLock = OS_SPINLOCK_INIT;
+
+    PLCancelTicketSource *internalTicketSource = [[PLCancelTicketSource alloc] initWithLinkedTickets: [NSSet setWithObjects: ticket, nil]];
+    for (NSString *name in sectionNames) {
+        [self requestSummariesForSection: name cancelTicket: internalTicketSource.ticket dispatchContext: [PLDirectDispatchContext context] completionHandler: ^(NSArray *summaries, NSError *error) {
+            NSUInteger remaining;
+            
+            /* Perform all mutation with the lock held */
+            OSSpinLockLock(&pendingLock); {
+                /* If an error occured elsewhere in one of the other fetches, we'll be cancelled. We check
+                 * this with our lock held to ensure strict ordering of cancellation handling. */
+                if (internalTicketSource.ticket.isCancelled) {
+                    OSSpinLockUnlock(&_lock);
+                    return;
+                }
+
+                /*
+                 * Handle errors:
+                 * - Cancel all other pending requests
+                 * - Report the error
+                 */
+                if (error != nil) {
+
+                    [internalTicketSource cancel];
+                    
+                    /* We can't call out to cancellation handlers with our lock held */
+                    OSSpinLockUnlock(&pendingLock);
+                    
+                    /* Note cancellation and return */
+                    [context performWithCancelTicket: ticket block:^{
+                        handler(nil, error);
+                    }];
+                    return;
+                }
+                
+                [pending removeObject: name];
+                [results addObjectsFromArray: summaries];
+                remaining = [pending count];
+            } OSSpinLockUnlock(&pendingLock);
+            
+            /* Check for (and report!) completion */
+            if (remaining == 0) {
+                [context performWithCancelTicket: ticket block:^{
+                    handler(results, nil);
+                }];
+            }
+        }];
+    }
+}
+
+/**
  * Request all radar issue summaries for @a sectionName.
  *
  * @param sectionName The section name.
  * @param ticket A request cancellation ticket.
+ * @param dispatchContext The dispatch context on which @a handler will be called.
  * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
  * will be provided as an ordered array of ANTRadarSummaryResponse values.
  *
@@ -180,10 +246,15 @@
             GetValue(radarId,           NSNumber,   issue[@"problemID"]);
             GetValue(stateName,         NSString,   issue[@"probstatename"]);
             GetValue(title,             NSString,   issue[@"problemTitle"]);
-            GetValue(componentName,     NSString,   issue[@"compNameForWeb"]);
             GetValue(hidden,            NSNumber,   issue[@"hide"]);
             GetValue(description,       NSString,   issue[@"problemDescription"]);
             GetValue(origDateString,    NSString,   issue[@"whenOriginatedDate"]);
+            
+            /* The component name seems to be excluded on archived bug reports; in the case where it's missing,
+             * provide a blank value. */
+            NSString *componentName = [NSString ma_castRequiredObject: issue[@"compNameForWeb"]];
+            if (componentName == nil)
+                componentName = @"";
 
             /* Format the date */
             NSDate *origDate = [_dateFormatter dateFromString: origDateString];

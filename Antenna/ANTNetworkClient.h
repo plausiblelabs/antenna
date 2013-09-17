@@ -74,6 +74,11 @@ typedef NS_ENUM(NSUInteger, ANTNetworkClientAuthState) {
                 dispatchContext: (id<PLDispatchContext>) context
               completionHandler: (void (^)(NSError *error)) callback;
 
+- (void) requestSummariesForSections: (NSArray *) sectionNames
+                        cancelTicket: (PLCancelTicket *) ticket
+                     dispatchContext: (id<PLDispatchContext>) context
+                   completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
+
 - (void) requestSummariesForSection: (NSString *) sectionName
                        cancelTicket: (PLCancelTicket *) ticket
                     dispatchContext: (id<PLDispatchContext>) context

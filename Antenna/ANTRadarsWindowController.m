@@ -122,7 +122,7 @@
         return;
     
     /* Load all summaries */
-    [_client requestSummariesForSection: @"Open" cancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLGCDDispatchContext mainQueueContext] completionHandler: ^(NSArray *summaries, NSError *error) {
+    [_client requestSummariesForSections: @[@"Open", @"Archive"] cancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLGCDDispatchContext mainQueueContext] completionHandler: ^(NSArray *summaries, NSError *error) {
         if (error != nil) {
             [[NSAlert alertWithError: error] beginSheetModalForWindow: self.window modalDelegate: self didEndSelector: @selector(summaryAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
             return;
