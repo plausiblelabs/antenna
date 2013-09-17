@@ -37,6 +37,12 @@
 
 #import "ANTErrorDomain.h"
 
+extern NSString *ANTNetworkClientFolderTypeAttention;
+extern NSString *ANTNetworkClientFolderTypeOpen;
+extern NSString *ANTNetworkClientFolderTypeClosed;
+extern NSString *ANTNetworkClientFolderTypeArchive;
+extern NSString *ANTNetworkClientFolderTypeDrafts;
+
 /**
  * Client authentication states.
  */

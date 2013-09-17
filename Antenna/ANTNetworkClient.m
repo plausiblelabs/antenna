@@ -32,6 +32,30 @@
 #import "MAErrorReportingDictionary.h"
 #import "NSObject+MAErrorReporting.h"
 
+/**
+ * @defgroup contents_network_folders Radar Folder Constants
+ * @{
+ */
+
+/** Attention folder. Items that require user response. */
+NSString *ANTNetworkClientFolderTypeAttention = @"Attention";
+
+/** Open bug reports. */
+NSString *ANTNetworkClientFolderTypeOpen = @"Open";
+
+/** Closed, non-archived bug reports. */
+NSString *ANTNetworkClientFolderTypeClosed = @"Closed";
+
+/** Closed, archived bug reports. */
+NSString *ANTNetworkClientFolderTypeArchive = @"Archive";
+
+/** Saved drafts. */
+NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
+
+/**
+ * @}
+ */
+
 @interface ANTNetworkClient ()
 @end
 
@@ -117,7 +141,7 @@
 /**
  * Request all radar issue summaries for the the given section names.
  *
- * @param sectionNames The section names to be fethed. The result order is undefined.
+ * @param sectionNames The section names to be fethed. The result order is undefined. @sa @ref contents_network_folders.
  * @param ticket A request cancellation ticket.
  * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
  * will be provided as an ordered array of ANTRadarSummaryResponse values.
@@ -182,16 +206,14 @@
 /**
  * Request all radar issue summaries for @a sectionName.
  *
- * @param sectionName The section name.
+ * @param sectionName The section to be fethed. The result order is undefined. @sa @ref contents_network_folders.
  * @param ticket A request cancellation ticket.
  * @param dispatchContext The dispatch context on which @a handler will be called.
  * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
  * will be provided as an ordered array of ANTRadarSummaryResponse values.
  *
- * @todo Define constants for supported sections ('Open', etc).
  * @todo Implement paging support.
  * @todo Allow for specifying the sort order.
- * @todo Implement cancellation support (return a cancellation ticket?).
  */
 - (void) requestSummariesForSection: (NSString *) sectionName
                        cancelTicket: (PLCancelTicket *) ticket
