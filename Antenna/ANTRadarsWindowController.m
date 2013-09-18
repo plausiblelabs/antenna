@@ -284,23 +284,19 @@
     return NO;
 }
 
-
+// from PXSourceListDelegate protocol
 - (void) sourceListSelectionDidChange: (NSNotification *) notification {
-#if 0
-	NSIndexSet *selectedIndexes = [sourceList selectedRowIndexes];
-	
-	//Set the label text to represent the new selection
-	if([selectedIndexes count]>1)
-		[selectedItemLabel setStringValue:@"(multiple)"];
-	else if([selectedIndexes count]==1) {
-		NSString *identifier = [[sourceList itemAtRow:[selectedIndexes firstIndex]] identifier];
-		
-		[selectedItemLabel setStringValue:identifier];
-	}
-	else {
-		[selectedItemLabel setStringValue:@"(none)"];
-	}
-#endif
+    NSIndexSet *selectedIndexes = [_sourceList selectedRowIndexes];
+    NSMutableArray *dataSources = [NSMutableArray arrayWithCapacity: [selectedIndexes count]];
+    [selectedIndexes enumerateIndexesUsingBlock: ^(NSUInteger idx, BOOL *stop) {
+        id<ANTRadarsWindowItemDataSource> ds = [_sourceList itemAtRow: idx];
+        if (![ds respondsToSelector: @selector(radarSummariesWithCancelTicket:dispatchContext:completionHander:)])
+            return;
+
+        [dataSources addObject: [_sourceList itemAtRow: idx]];
+    }];
+
+    NSLog(@"Selected data sources: %@", dataSources);
 }
 
 
