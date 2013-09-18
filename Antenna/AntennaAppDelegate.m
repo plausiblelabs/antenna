@@ -118,7 +118,10 @@
     _loginWindowController = nil;
 
     ANTNetworkClientAuthResult *result = [[ANTNetworkClientAuthResult alloc] initWithCSRFToken: csrfToken];
-    for (ANTNetworkClientAuthDelegateCallback cb in _authCallbacks) {
+    
+    NSArray *callbacks = _authCallbacks;
+    _authCallbacks = [NSMutableArray array];
+    for (ANTNetworkClientAuthDelegateCallback cb in callbacks) {
         cb(result, nil);
     }
 }
@@ -128,42 +131,46 @@
     [_loginWindowController close];
     _loginWindowController = nil;
 
-    for (ANTNetworkClientAuthDelegateCallback cb in _authCallbacks) {
+    NSArray *callbacks = _authCallbacks;
+    _authCallbacks = [NSMutableArray array];
+    for (ANTNetworkClientAuthDelegateCallback cb in callbacks) {
         cb(nil, error);
     }
 }
 
 // from ANTNetworkClientAuthDelegate protocol
 - (void) networkClient: (ANTNetworkClient *) sender authRequiredWithAccount: (ANTNetworkClientAccount *) account cancelTicket: (PLCancelTicket *) ticket andCall: (ANTNetworkClientAuthDelegateCallback) callback {
-    if (_loginWindowController != nil) {
-        if (!ticket.isCancelled)
-            callback(nil, [NSError pl_errorWithDomain: ANTErrorDomain
-                                                 code: ANTErrorRequestConflict
-                                 localizedDescription: NSLocalizedString(@"An sign in request is already in progress", nil)
-                               localizedFailureReason: nil
-                                      underlyingError: nil
-                                             userInfo: nil]);
-        return;
-    }
-
-    /* Set up the new controller */
-    _loginWindowController = [[ANTLoginWindowController alloc] initWithAccount: account preferences: _preferences];
-    _loginWindowController.delegate = self;
-    [_loginWindowController start];
-
-    /* Register the callback block and the cancellation handler */
-    void (^copied)(NSError *error) = [callback copy];
-    [_authCallbacks addObject: copied];
-    [ticket addCancelHandler: ^(PLCancelTicketReason reason) {
-        [_authCallbacks removeObject: copied];
-        
-        /* If no more callbacks remain, cancel the login process */
-        if ([_authCallbacks count] == 0) {
-            _loginWindowController.delegate = nil;
-            [_loginWindowController close];
-            _loginWindowController = nil;
+    [[PLGCDDispatchContext mainQueueContext] performWithCancelTicket: ticket block:^{
+        if (_loginWindowController != nil) {
+            if (!ticket.isCancelled)
+                callback(nil, [NSError pl_errorWithDomain: ANTErrorDomain
+                                                     code: ANTErrorRequestConflict
+                                     localizedDescription: NSLocalizedString(@"An sign in request is already in progress", nil)
+                                   localizedFailureReason: nil
+                                          underlyingError: nil
+                                                 userInfo: nil]);
+            return;
         }
-    } dispatchContext: [PLGCDDispatchContext mainQueueContext]];
+        
+        /* Set up the new controller */
+        _loginWindowController = [[ANTLoginWindowController alloc] initWithAccount: account preferences: _preferences];
+        _loginWindowController.delegate = self;
+        [_loginWindowController start];
+        
+        /* Register the callback block and the cancellation handler */
+        void (^copied)(NSError *error) = [callback copy];
+        [_authCallbacks addObject: copied];
+        [ticket addCancelHandler: ^(PLCancelTicketReason reason) {
+            [_authCallbacks removeObject: copied];
+            
+            /* If no more callbacks remain, cancel the login process */
+            if ([_authCallbacks count] == 0) {
+                _loginWindowController.delegate = nil;
+                [_loginWindowController close];
+                _loginWindowController = nil;
+            }
+        } dispatchContext: [PLGCDDispatchContext mainQueueContext]];
+    }];
 }
 
 #pragma mark Properties

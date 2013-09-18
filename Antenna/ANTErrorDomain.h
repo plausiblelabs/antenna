@@ -68,4 +68,9 @@ typedef NS_ENUM(NSInteger, ANTError) {
      * limitations of the underlying transport.
      */
     ANTErrorNetworkUnavailable = 10,
+    
+    /**
+     * The request was cancelled.
+     */
+    ANTErrorRequestCancelled = 11
 };

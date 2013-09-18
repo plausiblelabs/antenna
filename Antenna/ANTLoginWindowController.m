@@ -352,6 +352,21 @@
     }
 }
 
+// from NSWindowDelegate protocol
+- (void) windowWillClose: (NSNotification *) notification {
+    if (_loginNotifyDone)
+        return;
+
+    _loginNotifyDone = YES;
+    NSError *error = [NSError pl_errorWithDomain: ANTErrorDomain
+                                            code: ANTErrorRequestCancelled
+                            localizedDescription: NSLocalizedString(@"Sign in failed.", nil)
+                          localizedFailureReason: NSLocalizedString(@"The sign in window was closed", nil)
+                                 underlyingError: nil
+                                        userInfo: nil];
+    [_delegate loginWindowController: self didFailWithError: error];
+}
+
 - (void) webView: (WebView *) sender didFinishLoadForFrame: (WebFrame *) frame {
     /* Check for a login form. */
     if (!_loginDone) {
@@ -363,10 +378,16 @@
     if (_loginNotifyDone)
         return;
     
-    _loginNotifyDone = YES;
-    
     /* Try to fetch the CSRF token */
     NSString *csrfToken = [[_webView windowScriptObject] evaluateWebScript: @"$(\"#csrftokenPage\").val()"];
+    if ([csrfToken isKindOfClass: [WebUndefined class]]) {
+        /* Display the web view to simplify debugging. */
+        NSLog(@"Missing CSRF token on page!");
+        [self showWindow: nil];
+        return;
+    }
+    
+    _loginNotifyDone = YES;
     
     /*
      * If requested in the login dialog, save the password. This isn't done if
