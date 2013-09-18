@@ -27,32 +27,16 @@
  */
 
 #import "ANTRadarsWindowController.h"
+#import "ANTRadarsWindowItemDataSource.h"
+
 #import <PLFoundation/PLFoundation.h>
+
+#import "ANTRadarsWindowItemHeader.h"
+#import "ANTRadarsWindowItemFolder.h"
 
 #import "PXSourceList.h"
 
 @interface ANTRadarsWindowController () <PXSourceListDelegate, PXSourceListDataSource, ANTNetworkClientObserver, NSTableViewDataSource, NSTableViewDelegate>
-@end
-
-@interface ANTRadarsWindowSourceItem : NSObject <NSCopying>
-
-+ (instancetype) itemWithTitle: (NSString *) title
-                      children: (NSArray *) children;
-
-+ (instancetype) itemWithTitle: (NSString *) title
-                          icon: (NSImage *) icon;
-
-- (instancetype) initWithTitle: (NSString *) title icon: (NSImage *) icon children: (NSArray *) children;
-
-/** The source item's title. */
-@property(nonatomic, readonly) NSString *title;
-
-/** The item's icon, if any. */
-@property(nonatomic, readonly) NSImage *icon;
-
-/** Child elements, if any. */
-@property(nonatomic, readonly) NSArray *children;
-
 @end
 
 /**
@@ -92,17 +76,17 @@
     
     NSImage *folderIcon = [NSImage imageNamed: NSImageNameFolder];
     NSImage *smartFolderIcon = [NSImage imageNamed: NSImageNameFolderSmart];
-    ANTRadarsWindowSourceItem *radarItem = [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"My Radars", nil) children: @[
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Open", nil) icon: folderIcon],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Closed", nil) icon: folderIcon],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon]
+    ANTRadarsWindowItemHeader *radarItem = [ANTRadarsWindowItemHeader itemWithTitle: NSLocalizedString(@"My Radars", nil) children: @[
+        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Open", nil) icon: folderIcon],
+        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Closed", nil) icon: folderIcon],
+        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon]
     ]];
 
-    ANTRadarsWindowSourceItem *openRadarItem = [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"My Public Radars", nil) children: @[
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Open", nil) icon: folderIcon],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Closed", nil) icon: folderIcon],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Watching", nil) icon: smartFolderIcon],
-        [ANTRadarsWindowSourceItem itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon]
+    ANTRadarsWindowItemHeader *openRadarItem = [ANTRadarsWindowItemHeader itemWithTitle: NSLocalizedString(@"My Public Radars", nil) children: @[
+        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Open", nil) icon: folderIcon],
+        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Closed", nil) icon: folderIcon],
+        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Watching", nil) icon: smartFolderIcon],
+        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon]
     ]];
 
     _sourceItems = @[radarItem, openRadarItem];
@@ -216,8 +200,11 @@
 	if (item == nil)
 		return [_sourceItems count];
 
-    ANTRadarsWindowSourceItem *radarItem = item;
-    return [radarItem.children count];
+    id<ANTRadarsWindowItemDataSource> ds = item;
+    if (ds.children == nil)
+        return 0;
+
+    return [ds.children count];
 }
 
 // from PXSourceListDataSource protocol
@@ -225,13 +212,14 @@
 	if(item == nil)
 		return [_sourceItems objectAtIndex: index];
 
-    ANTRadarsWindowSourceItem *radarItem = item;
-    return [radarItem.children objectAtIndex:index];
+    id<ANTRadarsWindowItemDataSource> ds = item;
+    return [ds.children objectAtIndex: index];
 }
 
 // from PXSourceListDataSource protocol
 - (id) sourceList: (PXSourceList *) aSourceList objectValueForItem: (id) item {
-	return ((ANTRadarsWindowSourceItem *)item).title;
+    id<ANTRadarsWindowItemDataSource> ds = item;
+    return ds.title;
 }
 
 // from PXSourceListDataSource protocol
@@ -242,7 +230,9 @@
 
 // from PXSourceListDataSource protocol
 - (BOOL) sourceList: (PXSourceList *) aSourceList isItemExpandable: (id) item {
-    if ([((ANTRadarsWindowSourceItem *)item).children count] > 0)
+    id<ANTRadarsWindowItemDataSource> ds = item;
+
+    if (ds.children != nil && [ds.children count] > 0)
         return YES;
     
     return NO;
@@ -262,8 +252,8 @@
 
 // from PXSourceListDataSource protocol
 - (BOOL) sourceList: (PXSourceList*) aSourceList itemHasIcon: (id) item {
-    ANTRadarsWindowSourceItem *radarItem = item;
-    if (radarItem.icon != nil)
+    id<ANTRadarsWindowItemDataSource> ds = item;
+    if (ds.icon != nil)
         return YES;
     
     return NO;
@@ -271,8 +261,8 @@
 
 // from PXSourceListDataSource protocol
 - (NSImage *) sourceList: (PXSourceList *) aSourceList iconForItem: (id) item {
-    ANTRadarsWindowSourceItem *radarItem = item;
-    return radarItem.icon;
+    id<ANTRadarsWindowItemDataSource> ds = item;
+    return ds.icon;
 }
 
 // from PXSourceListDataSource protocol
@@ -320,60 +310,6 @@
 	NSLog(@"Delete key pressed on rows %@", rows);
 	
 	//Do something here
-}
-
-@end
-
-/**
- * A single source window item.
- */
-@implementation ANTRadarsWindowSourceItem
-
-/**
- * Return a new instance.
- *
- * @param title The instance's title.
- * @param children Child elements.
- */
-+ (instancetype) itemWithTitle: (NSString *) title children: (NSArray *) children {
-    return [[self alloc] initWithTitle: title icon: nil children: children];
-}
-
-/**
- * Return a new instance.
- *
- * @param title The instance's title.
- * @param icon The instance's custom icon, or nil to use the default.
- */
-+ (instancetype) itemWithTitle: (NSString *) title icon: (NSImage *) icon {
-    return [[self alloc] initWithTitle: title icon: icon children: nil];
-}
-
-
-/**
- * Initialize a new instance.
- *
- * @param title Title of the source item.
- * @param children Child elements.
- */
-- (instancetype) initWithTitle: (NSString *) title icon: (NSImage *) icon children: (NSArray *) children {
-    PLSuperInit();
-    
-    _title = title;
-    _children = children;
-    _icon = icon;
-
-    return self;
-}
-
-// from NSCopying protocol
-- (instancetype) copyWithZone:(NSZone *)zone {
-    return self;
-}
-
-// from NSCopying protocol
-- (instancetype) copy {
-    return [self copyWithZone: nil];
 }
 
 @end
