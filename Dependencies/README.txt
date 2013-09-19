@@ -25,6 +25,19 @@ MAPlistTypeChecking
 
     Modifications:
       - Added a -description method to MAErrorReportingObject.
+      
+PlausibleDatabase
+    Description:
+      A SQL database access library for Objective-C, initially focused on SQLite as an application database.
+
+    Version:
+      v2.0-beta1 downloaded https://opensource.plausible.coop/wiki/display/PLDB/PLDatabase
+
+    License:
+      3-Clause BSD
+
+    Modifications:
+      - None
 
 PLFoundation
     Description:
