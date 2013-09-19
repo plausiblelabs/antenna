@@ -207,7 +207,7 @@ typedef BOOL (^migration_action_t)(ANTDatabaseMigrationState *);
 }
 
 // property getter
-- (void (^)(NSUInteger version, void (^action)(ANTDatabaseMigrationState *))) version {
+- (void (^)(NSUInteger version, void (^action)(ANTDatabaseMigrationState *))) migration {
     return ^(NSUInteger version, void (^action)(ANTDatabaseMigrationState *state)) {
         [self addMigrationWithVersion: version action: action];
     };

@@ -47,7 +47,7 @@
 - (void) testDSL {
     ANTDatabaseMigrationBuilder *migration = [ANTDatabaseMigrationBuilder new];
     
-    migration.version(1, ^(ANTDatabaseMigrationState *state) {
+    migration.migration(1, ^(ANTDatabaseMigrationState *state) {
         state.update(
             @"CREATE TABLE radar ("
                 "id INTEGER PRIMARY KEY AUTOINCREMENT,"
@@ -60,7 +60,7 @@
         state.update(@"CREATE INDEX radar_number_idx ON radar (radar_number);");
     });
 
-    migration.version(2, ^(ANTDatabaseMigrationState *state) {
+    migration.migration(2, ^(ANTDatabaseMigrationState *state) {
         state.update(@"INSERT INTO radar (open_radar, radar_number, unread) VALUES ( ?, ?, ? );", @(0), @(1000), @(1));
     });
 

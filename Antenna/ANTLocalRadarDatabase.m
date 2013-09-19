@@ -31,6 +31,8 @@
 #import <PLFoundation/PLFoundation.h>
 #import <PlausibleDatabase/PlausibleDatabase.h>
 
+#import "ANTDatabaseMigrationBuilder.h"
+
 /**
  * @internal
  *
@@ -40,7 +42,11 @@
  *
  * Thread-safe. May be used from any thread.
  */
-@implementation ANTLocalRadarDatabase
+@implementation ANTLocalRadarDatabase {
+@private
+    /** Backing database connection provider */
+    id<PLDatabaseConnectionProvider> _connectionPool;
+}
 
 
 /**
@@ -52,7 +58,49 @@
 - (id) initWithConnectionProvider: (id<PLDatabaseConnectionProvider>) connectionProvider {
     PLSuperInit();
     
+    /* Configure our migrations */
+    ANTDatabaseMigrationBuilder *migrations = [ANTDatabaseMigrationBuilder new];
+    migrations.migration(1, ^(ANTDatabaseMigrationState *state) {
+        state.update(
+            @"CREATE TABLE radar ("
+                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "open_radar INTEGER NOT NULL CHECK (open_radar == 0 OR open_radar == 1),"
+                "radar_number INTEGER NOT NULL,"
+                "CONSTRAINT radar_unique_number UNIQUE (open_radar, radar_number)"
+            ");"
+        );
+        
+        state.update(
+            @"CREATE TABLE radar_bookmarks ("
+                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                "radar_id INTEGER NOT NULL REFERENCES radar (id),"
+                "unread INTEGER NOT NULL CHECK (unread == 0 OR unread == 1),"
+            ");"
+        );
+        state.update(@"CREATE INDEX radar_number_idx ON radar (radar_number);");
+    });
     
+    /* Insert a connection filter to perform one-time database connection configuration prior
+     * to the connection being placed in a connection pool */
+    PLDatabaseFilterConnectionProvider *filterProvider = [[PLDatabaseFilterConnectionProvider alloc] initWithConnectionProvider: connectionProvider filterBlock:^(id<PLDatabase> db) {
+        NSError *error;
+
+        /* Set the persistent journal mode to WAL; this provides us with improved concurrency and performance.
+         * While this setting is on-disk persisted, it must be set outside of a transaction, which precludes enabling it within a migration. */
+        if (![db executeUpdateAndReturnError: &error statement: @"PRAGMA journal_mode = WAL"])
+            NSLog(@"Failed to enable WAL journaling: %@", error);
+        
+        /* Enable foreign key constraints; these default to OFF, and the setting is not persistent across connections. */
+        if (![db executeUpdateAndReturnError: &error statement: @"PRAGMA foreign_keys = ON"])
+            NSLog(@"Failed to enable foreign key support: %@", error);
+    }];
+    
+    /*
+     * Insert a connection pool. This will pool connections for which migrations and one-time setup has already been completed.
+     * We set an unlimited capacity; in reality, capacity will be bounded by the maximum number of concurrent threads that access
+     * the pool.
+     */
+    _connectionPool = [[PLDatabasePoolConnectionProvider alloc] initWithConnectionProvider: filterProvider capacity: 0];
 
     return self;
 }

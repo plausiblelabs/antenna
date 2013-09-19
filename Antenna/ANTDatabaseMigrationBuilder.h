@@ -56,6 +56,6 @@
  *
  * Calling the returned block is equivalent to the -[ANTDatabaseMigration version:action:] method.
  */
-@property(nonatomic, readonly) void (^version)(NSUInteger version, void (^action)(ANTDatabaseMigrationState *state));
+@property(nonatomic, readonly) void (^migration)(NSUInteger version, void (^action)(ANTDatabaseMigrationState *state));
 
 @end
