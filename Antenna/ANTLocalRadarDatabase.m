@@ -80,9 +80,18 @@
         state.update(@"CREATE INDEX radar_number_idx ON radar (radar_number);");
     });
     
+    PLSqliteMigrationManager *sqliteMigrationManager = [PLSqliteMigrationManager new];
+    PLDatabaseMigrationManager *migrationManager = [[PLDatabaseMigrationManager alloc] initWithTransactionManager: sqliteMigrationManager
+                                                                                                   versionManager: sqliteMigrationManager
+                                                                                                         delegate: migrations];
+
+    /* Insert a migration provider */
+    PLDatabaseMigrationConnectionProvider *migrateProvider = [[PLDatabaseMigrationConnectionProvider alloc] initWithConnectionProvider: connectionProvider
+                                                                                                                      migrationManager: migrationManager];
+    
     /* Insert a connection filter to perform one-time database connection configuration prior
      * to the connection being placed in a connection pool */
-    PLDatabaseFilterConnectionProvider *filterProvider = [[PLDatabaseFilterConnectionProvider alloc] initWithConnectionProvider: connectionProvider filterBlock:^(id<PLDatabase> db) {
+    PLDatabaseFilterConnectionProvider *filterProvider = [[PLDatabaseFilterConnectionProvider alloc] initWithConnectionProvider: migrateProvider filterBlock:^(id<PLDatabase> db) {
         NSError *error;
 
         /* Set the persistent journal mode to WAL; this provides us with improved concurrency and performance.
