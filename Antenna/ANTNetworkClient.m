@@ -276,7 +276,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
              * provide a blank value. */
             NSString *componentName = [NSString ma_castRequiredObject: issue[@"compNameForWeb"]];
             if (componentName == nil)
-                componentName = @"";
+                componentName = @"Unknown";
 
             /* Format the date */
             NSDate *origDate = [_dateFormatter dateFromString: origDateString];
