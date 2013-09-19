@@ -31,7 +31,14 @@
 /**
  * A standard single section (eg, folder) item in the Radars Window source list.
  */
-@implementation ANTRadarsWindowItemFolder
+@implementation ANTRadarsWindowItemFolder {
+@private
+    /** Network client */
+    ANTNetworkClient *_client;
+
+    /** Radar sections represented by this folder */
+    NSArray *_sectionNames;
+}
 
 @synthesize title = _title;
 @synthesize icon = _icon;
@@ -42,9 +49,10 @@
  *
  * @param title The instance's title.
  * @param icon The instance's custom icon, or nil to use the default.
+ * @param sectionNames The section names to fetch for this folder.
  */
-+ (instancetype) itemWithTitle: (NSString *) title icon: (NSImage *) icon {
-    return [[self alloc] initWithTitle: title icon: icon];
++ (instancetype) itemWithClient: (ANTNetworkClient *) client title: (NSString *) title icon: (NSImage *) icon sectionNames: (NSArray *) sectionNames {
+    return [[self alloc] initWithClient: client title: title icon: icon sectionNames: sectionNames];
 }
 
 
@@ -53,14 +61,22 @@
  *
  * @param title Title of the source item.
  * @param children Child elements.
+ * @param sectionNames The section names to fetch for this folder.
  */
-- (instancetype) initWithTitle: (NSString *) title icon: (NSImage *) icon {
+- (instancetype) initWithClient: (ANTNetworkClient *) client title: (NSString *) title icon: (NSImage *) icon sectionNames: (NSArray *) sectionNames {
     PLSuperInit();
     
     _title = title;
     _icon = icon;
-    
+    _client = client;
+    _sectionNames = sectionNames;
+
     return self;
+}
+
+// from ANTRadarsWindowItemDataSource protocol
+- (void) radarSummariesWithCancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionHander: (void (^)(NSArray *, NSError *))handler {
+    [_client requestSummariesForSections: _sectionNames cancelTicket: ticket dispatchContext: context completionHandler: handler];
 }
 
 // from NSCopying protocol

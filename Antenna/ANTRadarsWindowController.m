@@ -58,9 +58,15 @@
     
     /** Summary table's title menu */
     __weak IBOutlet NSMenu *_summaryTableHeaderMenu;
+
+    /** Any in-progress fetch request, or nil if none */
+    PLCancelTicketSource *_fetchTicketSource;
     
     /** Backing ANTRadarSummaryResponse values, if any. Nil if none have been loaded. */
     NSMutableArray *_summaries;
+
+    /** Background serial dispatch queue for serialized, off-main-thread operations */
+    dispatch_queue_t _queue;
 }
 
 /**
@@ -73,20 +79,22 @@
         return nil;
     
     _client = client;
+    _queue = dispatch_queue_create([[self className] UTF8String], DISPATCH_QUEUE_SERIAL);
     
     NSImage *folderIcon = [NSImage imageNamed: NSImageNameFolder];
     NSImage *smartFolderIcon = [NSImage imageNamed: NSImageNameFolderSmart];
     ANTRadarsWindowItemHeader *radarItem = [ANTRadarsWindowItemHeader itemWithTitle: NSLocalizedString(@"My Radars", nil) children: @[
-        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Open", nil) icon: folderIcon],
-        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Closed", nil) icon: folderIcon],
-        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon]
+        [ANTRadarsWindowItemFolder itemWithClient: client title: NSLocalizedString(@"Open", nil) icon: folderIcon sectionNames: @[ANTNetworkClientFolderTypeOpen]],
+        [ANTRadarsWindowItemFolder itemWithClient: client title: NSLocalizedString(@"Closed", nil) icon: folderIcon sectionNames: @[ANTNetworkClientFolderTypeClosed, ANTNetworkClientFolderTypeArchive]],
+        [ANTRadarsWindowItemFolder itemWithClient: client title: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon sectionNames: @[@"Open"]] // TODO - Needs to be a custom source
     ]];
 
+    // TODO - Unimplemented
     ANTRadarsWindowItemHeader *openRadarItem = [ANTRadarsWindowItemHeader itemWithTitle: NSLocalizedString(@"My Public Radars", nil) children: @[
-        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Open", nil) icon: folderIcon],
-        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Closed", nil) icon: folderIcon],
-        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Watching", nil) icon: smartFolderIcon],
-        [ANTRadarsWindowItemFolder itemWithTitle: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon]
+        [ANTRadarsWindowItemFolder itemWithClient: client title: NSLocalizedString(@"Open", nil) icon: folderIcon sectionNames: @[@"Open"]],
+        [ANTRadarsWindowItemFolder itemWithClient: client title: NSLocalizedString(@"Closed", nil) icon: folderIcon sectionNames: @[@"Open"]],
+        [ANTRadarsWindowItemFolder itemWithClient: client title: NSLocalizedString(@"Watching", nil) icon: smartFolderIcon sectionNames: @[@"Open"]],
+        [ANTRadarsWindowItemFolder itemWithClient: client title: NSLocalizedString(@"Recently Updated", nil) icon: smartFolderIcon sectionNames: @[@"Open"]]
     ]];
 
     _sourceItems = @[radarItem, openRadarItem];
@@ -104,17 +112,6 @@
 - (void) networkClientDidChangeAuthState: (ANTNetworkClient *) client {
     if (_client.authState != ANTNetworkClientAuthStateAuthenticated)
         return;
-    
-    /* Load all summaries */
-    [_client requestSummariesForSections: @[ANTNetworkClientFolderTypeOpen, ANTNetworkClientFolderTypeArchive] cancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLGCDDispatchContext mainQueueContext] completionHandler: ^(NSArray *summaries, NSError *error) {
-        if (error != nil) {
-            [[NSAlert alertWithError: error] beginSheetModalForWindow: self.window modalDelegate: self didEndSelector: @selector(summaryAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
-            return;
-        }
-        
-        _summaries = [summaries mutableCopy];
-        [_summaryTableView reloadData];
-    }];
 }
 
 - (void) windowDidLoad {
@@ -286,6 +283,15 @@
 
 // from PXSourceListDelegate protocol
 - (void) sourceListSelectionDidChange: (NSNotification *) notification {
+    /* Cancel any pending requests */
+    [_fetchTicketSource cancel];
+    _fetchTicketSource = nil;
+    
+    /* Clear the current view */
+    [_summaries removeAllObjects];
+    [_summaryTableView reloadData];
+
+    /* Fetch all selected indexes that support summary loading */
     NSIndexSet *selectedIndexes = [_sourceList selectedRowIndexes];
     NSMutableArray *dataSources = [NSMutableArray arrayWithCapacity: [selectedIndexes count]];
     [selectedIndexes enumerateIndexesUsingBlock: ^(NSUInteger idx, BOOL *stop) {
@@ -295,8 +301,49 @@
 
         [dataSources addObject: [_sourceList itemAtRow: idx]];
     }];
+    
+    /* Set up a new ticket source */
 
-    NSLog(@"Selected data sources: %@", dataSources);
+    /* Fetch all data for the selected data sources */
+    PLGCDDispatchContext *context = [[PLGCDDispatchContext alloc] initWithQueue: _queue];
+    NSMutableArray *results = [NSMutableArray array];
+    __block NSUInteger remaining = [dataSources count];
+
+    for (id<ANTRadarsWindowItemDataSource> ds in dataSources) {
+        /* Saved copy of the sort descriptors to allow for speculative sorting on the background thread. */
+        NSArray *sortDescriptors = [_summaryTableView sortDescriptors];
+        [ds radarSummariesWithCancelTicket: _fetchTicketSource.ticket dispatchContext: context completionHander: ^(NSArray *summaries, NSError *error) {
+            /* Cancel all other pending requests on error */
+            if (error != nil) {
+                [_fetchTicketSource cancel];
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    [[NSAlert alertWithError: error] beginSheetModalForWindow: self.window modalDelegate: self didEndSelector: @selector(summaryAlertDidEnd:returnCode:contextInfo:) contextInfo: nil];
+                });
+                return;
+            }
+            
+            /* Add results */
+            [results addObjectsFromArray: summaries];
+            
+            /* Check for completion */
+            remaining--;
+            if (remaining == 0) {
+                /* Try to perform sorting on the background queue (and hope that we don't need to re-sort).*/
+                [results sortUsingDescriptors: sortDescriptors];
+
+                /* We're running on a background dispatch queue -- switch back to the main queue */
+                [[PLGCDDispatchContext mainQueueContext] performWithCancelTicket: _fetchTicketSource.ticket block:^{
+                    /* If the sort descriptors have changed, we'll need to re-sort here */
+                    if (![sortDescriptors isEqual: _summaryTableView.sortDescriptors]) {
+                        [results sortUsingDescriptors: [_summaryTableView sortDescriptors]];
+                    }
+
+                    _summaries = [results mutableCopy];
+                    [_summaryTableView reloadData];
+                }];
+            }
+        }];
+    }
 }
 
 

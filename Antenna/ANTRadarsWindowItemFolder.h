@@ -28,11 +28,18 @@
 
 #import <Foundation/Foundation.h>
 #import "ANTRadarsWindowItemDataSource.h"
+#import "ANTNetworkClient.h"
 
 @interface ANTRadarsWindowItemFolder : NSObject <ANTRadarsWindowItemDataSource>
 
-+ (instancetype) itemWithTitle: (NSString *) title icon: (NSImage *) icon;
++ (instancetype) itemWithClient: (ANTNetworkClient *) client
+                          title: (NSString *) title
+                           icon: (NSImage *) icon
+                   sectionNames: (NSArray *) sectionNames;
 
-- (instancetype) initWithTitle: (NSString *) title icon: (NSImage *) icon;
+- (instancetype) initWithClient: (ANTNetworkClient *) client
+                          title: (NSString *) title
+                           icon: (NSImage *) icon
+                   sectionNames: (NSArray *) sectionNames;
 
 @end
