@@ -52,3 +52,4 @@ PXSourceList
 
     Modifications:
       - Fixed signed/unsigned comparisons
+      - Hacked in support for displaying a progress indicator for -1 badge values.

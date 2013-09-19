@@ -47,7 +47,11 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
 @end
 
 #pragma mark -
-@implementation PXSourceList
+@implementation PXSourceList {
+@private
+    /** Visible/active progress indicators; maps row to view*/
+    NSMutableDictionary *_progressIndicators;
+}
 
 @synthesize iconSize = _iconSize;
 @dynamic dataSource;
@@ -82,6 +86,7 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
     [super setDataSource:self];
     
     _iconSize = NSMakeSize(16,16);
+    _progressIndicators = [[NSMutableDictionary alloc] init];
 }
 
 - (void)dealloc
@@ -93,6 +98,8 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
 	//Unregister the delegate from receiving notifications
 	[[NSNotificationCenter defaultCenter] removeObserver:_secondaryDelegate name:nil object:self];
 	
+    [_progressIndicators release];
+    
 	[super dealloc];
 }
 
@@ -163,7 +170,12 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
 - (void)reloadData
 {
 	[super reloadData];
-	
+
+    // Clean up progress indicators
+    for (NSProgressIndicator *progress in _progressIndicators)
+        [progress removeFromSuperview];
+    [_progressIndicators removeAllObjects];
+
 	//Expand items that are displayed as always expanded
 	if([_secondaryDataSource conformsToProtocol:@protocol(PXSourceListDataSource)] &&
 	   [_secondaryDelegate respondsToSelector:@selector(sourceList:isGroupAlwaysExpanded:)])
@@ -388,6 +400,24 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
 	if(![self itemHasBadge:rowItem]) {
 		return NSZeroSize;
 	}
+    
+    if ([self badgeValueForItem: rowItem] == -1) {
+        NSProgressIndicator *progress = [_progressIndicators objectForKey: @(rowIndex)];
+        if (progress == nil) {
+            NSLog(@"Create progress");
+            progress = [[[NSProgressIndicator alloc] init] autorelease];
+            [progress setIndeterminate: YES];
+            [progress setControlSize:NSSmallControlSize];
+            [progress setStyle: NSProgressIndicatorSpinningStyle];
+            [progress startAnimation: nil];
+            [_progressIndicators setObject: progress forKey: @(rowIndex)];
+        }
+        
+        [progress sizeToFit];
+        return [progress frame].size;
+    } else {
+        [_progressIndicators removeObjectForKey: @(rowIndex)];
+    }
 	
 	NSAttributedString *badgeAttrString = [[NSAttributedString alloc] initWithString:[NSString stringWithFormat:@"%ld", (long)[self badgeValueForItem:rowItem]]
 																		  attributes:[NSDictionary dictionaryWithObjectsAndKeys:BADGE_FONT, NSFontAttributeName, nil]];
@@ -489,6 +519,23 @@ NSString * const PXSLDeleteKeyPressedOnRowsNotification = @"PXSourceListDeleteKe
 - (void)drawBadgeForRow:(NSInteger)rowIndex inRect:(NSRect)badgeFrame
 {
 	id rowItem = [self itemAtRow:rowIndex];
+
+    NSProgressIndicator *progress = [_progressIndicators objectForKey: @(rowIndex)];
+    if ([self badgeValueForItem:rowItem] == -1) {
+        if ([progress superview] != self) {
+            if ([progress superview] != nil)
+                [progress removeFromSuperview];
+
+            [self addSubview: progress];
+            [progress startAnimation: nil];
+        }
+        
+        [progress setFrame: badgeFrame];
+        return;
+    } else {
+        [progress removeFromSuperview];
+        [_progressIndicators removeObjectForKey: @(rowIndex)];
+    }
 	
 	NSBezierPath *badgePath = [NSBezierPath bezierPathWithRoundedRect:badgeFrame
 															  xRadius:(BADGE_HEIGHT/2.0)
