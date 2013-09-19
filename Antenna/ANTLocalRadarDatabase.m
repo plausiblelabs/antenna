@@ -58,6 +58,21 @@
 - (id) initWithConnectionProvider: (id<PLDatabaseConnectionProvider>) connectionProvider {
     PLSuperInit();
     
+    
+    /* Insert a connection filter to perform one-time database connection configuration. */
+    PLDatabaseFilterConnectionProvider *filterProvider = [[PLDatabaseFilterConnectionProvider alloc] initWithConnectionProvider: connectionProvider filterBlock:^(id<PLDatabase> db) {
+        NSError *error;
+        
+        /* Set the persistent journal mode to WAL; this provides us with improved concurrency and performance.
+         * While this setting is on-disk persisted, it must be set outside of a transaction, which precludes enabling it within a migration. */
+        if (![db executeUpdateAndReturnError: &error statement: @"PRAGMA journal_mode = WAL"])
+            NSLog(@"Failed to enable WAL journaling: %@", error);
+        
+        /* Enable foreign key constraints; these default to OFF, and the setting is not persistent across connections. */
+        if (![db executeUpdateAndReturnError: &error statement: @"PRAGMA foreign_keys = ON"])
+            NSLog(@"Failed to enable foreign key support: %@", error);
+    }];
+
     /* Configure our migrations */
     ANTDatabaseMigrationBuilder *migrations = [ANTDatabaseMigrationBuilder new];
     migrations.migration(1, ^(ANTDatabaseMigrationState *state) {
@@ -86,30 +101,16 @@
                                                                                                          delegate: migrations];
 
     /* Insert a migration provider */
-    PLDatabaseMigrationConnectionProvider *migrateProvider = [[PLDatabaseMigrationConnectionProvider alloc] initWithConnectionProvider: connectionProvider
+    PLDatabaseMigrationConnectionProvider *migrateProvider = [[PLDatabaseMigrationConnectionProvider alloc] initWithConnectionProvider: filterProvider
                                                                                                                       migrationManager: migrationManager];
-    
-    /* Insert a connection filter to perform one-time database connection configuration prior
-     * to the connection being placed in a connection pool */
-    PLDatabaseFilterConnectionProvider *filterProvider = [[PLDatabaseFilterConnectionProvider alloc] initWithConnectionProvider: migrateProvider filterBlock:^(id<PLDatabase> db) {
-        NSError *error;
 
-        /* Set the persistent journal mode to WAL; this provides us with improved concurrency and performance.
-         * While this setting is on-disk persisted, it must be set outside of a transaction, which precludes enabling it within a migration. */
-        if (![db executeUpdateAndReturnError: &error statement: @"PRAGMA journal_mode = WAL"])
-            NSLog(@"Failed to enable WAL journaling: %@", error);
-        
-        /* Enable foreign key constraints; these default to OFF, and the setting is not persistent across connections. */
-        if (![db executeUpdateAndReturnError: &error statement: @"PRAGMA foreign_keys = ON"])
-            NSLog(@"Failed to enable foreign key support: %@", error);
-    }];
     
     /*
      * Insert a connection pool. This will pool connections for which migrations and one-time setup has already been completed.
      * We set an unlimited capacity; in reality, capacity will be bounded by the maximum number of concurrent threads that access
      * the pool.
      */
-    _connectionPool = [[PLDatabasePoolConnectionProvider alloc] initWithConnectionProvider: filterProvider capacity: 0];
+    _connectionPool = [[PLDatabasePoolConnectionProvider alloc] initWithConnectionProvider: migrateProvider capacity: 0];
 
     return self;
 }
