@@ -81,15 +81,8 @@
                 "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 "open_radar INTEGER NOT NULL CHECK (open_radar == 0 OR open_radar == 1),"
                 "radar_number INTEGER NOT NULL,"
+                "last_read_date DATETIME NOT NULL DEFAULT (strftime('%s','now'))" // The last read comment's date (as a UNIX timestamp).
                 "CONSTRAINT radar_unique_number UNIQUE (open_radar, radar_number)"
-            ");"
-        );
-        
-        state.update(
-            @"CREATE TABLE radar_bookmarks ("
-                "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                "radar_id INTEGER NOT NULL REFERENCES radar (id),"
-                "unread INTEGER NOT NULL CHECK (unread == 0 OR unread == 1),"
             ");"
         );
         state.update(@"CREATE INDEX radar_number_idx ON radar (radar_number);");
@@ -115,5 +108,95 @@
     return self;
 }
 
+/**
+ * Return the latest comment date that has been read for @a radarNumber. If no comments for the given Radar
+ * have previously been read, the @a date value will be nil.
+ *
+ * @param date On return, the latest comment date that has been read for @a radarNumber, or nil if the Radar has not been previously read.
+ * @param radarNumber The radar number to look up.
+ * @param openRadar YES if this is an Open Radar entry.
+ * @param outError On error, will contain an error in the PLDatabaseErrorDomain.
+ *
+ * @return Returns YES if the database query completed successfully, NO if a database error has occured.
+ */
+- (BOOL) latestReadCommentDate: (NSDate **) date forRadarNumber: (NSNumber *) radarNumber openRadar: (BOOL) openRadar error: (NSError **) outError {
+    PLSqliteDatabase *db = [_connectionPool getConnectionAndReturnError: outError];
+    if (db == nil)
+        return NO;
+    
+    __block BOOL result = NO;
+    BOOL txSuccess = [db performTransactionWithRetryBlock: ^PLDatabaseTransactionResult {
+        /* Check for an existing entry */
+        NSString *query = @"SELECT radar.last_read_date FROM radar WHERE radar.radar_number = ? AND open_radar = ?";
+        
+        id<PLResultSet> rs = [db executeQueryAndReturnError: outError statement: query, radarNumber, @(openRadar)];
+        if (rs == NULL)
+            return PLDatabaseTransactionRollback;
+        
+        switch ([rs nextAndReturnError: outError]) {
+            case PLResultSetStatusError:
+                /* Query failed */
+                result = NO;
+                break;
+                
+            case PLResultSetStatusDone:
+                /* No match found -- note that the query completed */
+                result = YES;
+                break;
+                
+            case PLResultSetStatusRow:
+                result = YES;
+                *date = [rs dateForColumnIndex: 0];
+                break;
+        }
+
+        /* Clean up. This was a read-only transaction, so we can roll back */
+        [rs close];
+        return PLDatabaseTransactionRollback;
+    } error: outError];
+    
+    if (!txSuccess)
+        return NO;
+
+    return result;
+}
+
+/**
+ * Update the last comment read market for @a radarNumber. If no comments for the given Radar
+ * have previously been read, the @a date value will be nil.
+ *
+ * @param date On return, the latest comment date that has been read for @a radarNumber, or nil if the Radar has not been previously read.
+ * @param radarNumber The radar number to look up
+ * @param outError On error, will contain an error in the PLDatabaseErrorDomain.
+ *
+ * @return Returns YES if the database query completed successfully, NO if a database error has occured.
+ */
+- (BOOL) setReadCommentDate: (NSDate *) date forRadarNumber: (NSNumber *) radarNumber openRadar: (BOOL) openRadar error: (NSError **) outError {
+    PLSqliteDatabase *db = [_connectionPool getConnectionAndReturnError: outError];
+    if (db == nil)
+        return NO;
+    
+    __block BOOL result = NO;
+    BOOL txSuccess = [db performTransactionWithRetryBlock: ^PLDatabaseTransactionResult {
+        /* Speculatively try to update an existing entry */
+        if (![db executeUpdateAndReturnError: outError statement: @"UPDATE radar SET last_read_date = ? WHERE radar_number = ? AND open_radar = ?", date, radarNumber, @(openRadar)])
+            return PLDatabaseTransactionRollback;
+        
+        /* If no existing entry, INSERT */
+        if ([db lastModifiedRowCount] == 0) {
+            if (![db executeUpdateAndReturnError: outError statement: @"INSERT INTO radar (radar_number, open_radar, last_read_date) values (?, ?, ?)", radarNumber, @(openRadar), date])
+                return PLDatabaseTransactionRollback;
+        }
+
+        /* Mark as complete and commit */
+        result = YES;
+        return PLDatabaseTransactionCommit;
+    } error: outError];
+    
+    if (!txSuccess)
+        return NO;
+    
+    return result;
+}
 
 @end

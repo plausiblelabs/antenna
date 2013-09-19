@@ -30,4 +30,7 @@
 
 @interface ANTLocalRadarDatabase : NSObject
 
+- (BOOL) latestReadCommentDate: (NSDate **) date forRadarNumber: (NSNumber *) radarNumber openRadar: (BOOL) openRadar error: (NSError **) outError;
+- (BOOL) setReadCommentDate: (NSDate *) date forRadarNumber: (NSNumber *) radarNumber openRadar: (BOOL) openRadar error: (NSError **) outError;
+
 @end

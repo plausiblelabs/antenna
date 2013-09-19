@@ -27,7 +27,19 @@
  */
 
 #import "ANTLocalRadarCache.h"
+#import <PLFoundation/PLFoundation.h>
 
+/**
+ * Manages a local Radar cache.
+ */
 @implementation ANTLocalRadarCache
+
+- (instancetype) initWithPath: (NSString *) cachePath {
+    PLSuperInit();
+    
+    
+
+    return self;
+}
 
 @end
