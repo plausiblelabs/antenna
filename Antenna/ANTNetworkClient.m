@@ -584,7 +584,15 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     /* We need cookies for session and authentication verification done by the server */
     [req setHTTPShouldHandleCookies: YES];
     
+    /* Used to track completion; allows for idempotent cancellation, as well as resolving
+     * any potential A->B->A issues with cancellation of later requests. */
+    __block BOOL finished = NO;
     [NSURLConnection pl_sendAsynchronousRequest: req queue: _opQueue cancelTicket: ticket completionHandler:^(NSURLResponse *resp, NSData *data, NSError *error) {
+        /* Mark as finished */
+        OSSpinLockLock(&_lock); {
+            finished = YES;
+        } OSSpinLockUnlock(&_lock);
+        
         if (error != nil) {
             /* Reset to the authenticated state. This may not be true, but we can retry logout
              * from within that state */
@@ -636,13 +644,22 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     }];
     
     /* On cancellation, reset the auth state. Any potential A->B->A condition is prevented
-     * by the state preconditions require to change _authState; eg, it shouldn't be possible to trigger
-     * a login event before logout has completed. */
+     * by checking the per-request completion flag */
     [ticket addCancelHandler:^(PLCancelTicketReason reason) {
-        NSAssert(_authState == ANTNetworkClientAuthStateLoggingOut, @"Authentication state was changed for in-process sign out");
+        OSSpinLockLock(&_lock); {
+            /* If already completed, there's nothing left to do */
+            if (finished) {
+                OSSpinLockUnlock(&_lock);
+                return;
+            }
 
-        if (_authState == ANTNetworkClientAuthStateLoggingOut)
+            /* Mark as finished; this ensures that future cancellation requests are ignored (eg, cancellation
+             * remains idempotent) */
+            finished = YES;
+
+            NSAssert(_authState == ANTNetworkClientAuthStateLoggingOut, @"Authentication state was changed for in-process sign out");
             _authState = ANTNetworkClientAuthStateLoggedOut;
+        } OSSpinLockUnlock(&_lock);
     } dispatchContext: [PLGCDDispatchContext mainQueueContext]];
 }
 
@@ -810,6 +827,16 @@ completionHandler: (void (^)(id jsonData, NSError *error)) handler
     
          performHandler(jsonResult, nil);
     }];
+}
+
+// property getter
+- (ANTNetworkClientAuthState) authState {
+    ANTNetworkClientAuthState result;
+    OSSpinLockLock(&_lock);
+    result = _authState;
+    OSSpinLockUnlock(&_lock);
+    
+    return result;
 }
 
 @end
