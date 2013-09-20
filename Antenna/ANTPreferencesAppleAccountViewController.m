@@ -117,6 +117,8 @@
             [self tryEnableSignOnButton];
 
             [_signInButton setTitle: NSLocalizedString(@"Sign In", nil)];
+            [_signInButton setKeyEquivalent: @"\r"];
+
             [_forgotPasswordButton setHidden: NO];
             [_spinner stopAnimation: self];
             break;
@@ -155,6 +157,8 @@
 
             [_signInButton setTitle: NSLocalizedString(@"Sign Out", nil)];
             [_signInButton setEnabled: YES];
+            [_signInButton setKeyEquivalent: @""];
+
             [_forgotPasswordButton setHidden: YES];
             [_spinner stopAnimation: self];
             break;
