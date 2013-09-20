@@ -27,10 +27,48 @@
  */
 
 #import "ANTRadarResponse.h"
+#import <PLFoundation/PLFoundation.h>
 
 /**
  * A single Radar response.
  */
 @implementation ANTRadarResponse
+
+- (instancetype) initWithTitle: (NSString *) title
+                      comments: (NSArray *) comments
+                      resolved: (BOOL) resolved
+              lastModifiedDate: (NSDate *) lastModifiedDate
+                   enclosureId: (NSString *) enclosureId
+{
+    PLSuperInit();
+    
+    _title = title;
+    _comments = comments;
+    _resolved = resolved;
+    _lastModifiedDate = lastModifiedDate;
+    _enclosureId = enclosureId;
+
+    return self;
+}
+
+@end
+
+/**
+ * A Radar comment response.
+ */
+@implementation ANTRadarCommentResponse
+
+- (instancetype) initWithAuthorName: (NSString *) authorName
+                            content: (NSString *) content
+                          timestamp: (NSDate *) timestamp
+{
+    PLSuperInit();
+    
+    _authorName = authorName;
+    _content = content;
+    _timestamp = timestamp;
+
+    return self;
+}
 
 @end

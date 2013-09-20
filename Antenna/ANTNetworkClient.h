@@ -27,13 +27,15 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "ANTRadarSummaryResponse.h"
 #import "ANTPreferences.h"
 
 #import "ANTNetworkClientObserver.h"
 #import "ANTNetworkClientAuthResult.h"
 #import "ANTNetworkClientAuthDelegate.h"
 #import "ANTNetworkClientAccount.h"
+
+#import "ANTRadarSummaryResponse.h"
+#import "ANTRadarResponse.h"
 
 #import "ANTErrorDomain.h"
 
@@ -79,6 +81,12 @@ typedef NS_ENUM(NSUInteger, ANTNetworkClientAuthState) {
 - (void) logoutWithCancelTicket: (PLCancelTicket *) ticket
                 dispatchContext: (id<PLDispatchContext>) context
               completionHandler: (void (^)(NSError *error)) callback;
+
+- (void) requestRadarWithId: (NSNumber *) radarId
+               cancelTicket: (PLCancelTicket *) ticket
+            dispatchContext: (id<PLDispatchContext>) context
+          completionHandler: (void (^)(ANTRadarResponse *radar, NSError *error)) handler;
+
 
 - (void) requestSummariesForSections: (NSArray *) sectionNames
                         cancelTicket: (PLCancelTicket *) ticket

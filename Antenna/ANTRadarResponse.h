@@ -30,6 +30,10 @@
 
 @interface ANTRadarCommentResponse : NSObject
 
+- (instancetype) initWithAuthorName: (NSString *) authorName
+                            content: (NSString *) content
+                          timestamp: (NSDate *) timestamp;
+
 /** The name of the author. */
 @property(nonatomic, readonly) NSString *authorName;
 
@@ -42,6 +46,12 @@
 @end
 
 @interface ANTRadarResponse : NSObject
+
+- (instancetype) initWithTitle: (NSString *) title
+                      comments: (NSArray *) comments
+                      resolved: (BOOL) resolved
+              lastModifiedDate: (NSDate *) lastModifiedDate
+                   enclosureId: (NSString *) enclosureId;
 
 /** The issue title */
 @property(nonatomic, readonly) NSString *title;

@@ -76,8 +76,17 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     /** The authentication result, if available. Nil if authentication has not completed or has been invalidated. */
     ANTNetworkClientAuthResult *_authResult;
 
-    /** Date formatter to use for report dates (DD-MON-YYYY HH:MM) */
+    /** Date formatter to use for report dates (DD-MON-YYYY HH:mm), assuming local time zone. */
     NSDateFormatter *_dateFormatter;
+    
+    /** Date formatter to use for report dates (DD-MON-YYYY HH:mm:ss), assuming local time zone. */
+    NSDateFormatter *_dateFormatterSeconds;
+
+    /** Date formatter to use for report dates (DD-MON-YYYY HH:mm:ss), assuming GMT. */
+    NSDateFormatter *_gmtDateFormatter;
+    
+    /** (Concurrent) context on which to handle all parsing */
+    id<PLDispatchContext> _parseContext;
 
     /** Internal queue used to handle NSURLConnection callbacks */
     NSOperationQueue *_opQueue;
@@ -113,6 +122,29 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     [_dateFormatter setDateFormat:@"dd-MMM-yyyy HH:mm"];
     [_dateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"]];
     
+    /* Note that Radar Web seems to query the (in our case, embedded) browser for
+     * time zone information, and then uses this to return local times to the client.
+     * 
+     * If our local time zone changes after login, a +localTimeZone date formatter will
+     * be incorrect (it automatically updates to the current time zone). However,
+     * if we pass in a +defaultTimezone (which does not update), then future
+     * logins/logouts will use the incorrect time zone.
+     *
+     * TODO: We should modify our embedded login web view to report a GMT timezone, such
+     * that we can rely on the returned times always being correct.
+     */
+    [_dateFormatter setTimeZone: [NSTimeZone localTimeZone]];
+    
+    _dateFormatterSeconds = [_dateFormatter copy];
+    [_dateFormatterSeconds setDateFormat:@"dd-MMM-yyyy HH:mm:ss"];
+
+    /* Formatter for 'gmtDate' fields */
+    _gmtDateFormatter = [[NSDateFormatter alloc] init];
+    [_gmtDateFormatter setDateFormat:@"dd-MMM-yyyy HH:mm:ss"];
+    [_gmtDateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"]];
+    [_gmtDateFormatter setTimeZone: [NSTimeZone timeZoneForSecondsFromGMT: 0]];
+
+    _parseContext = [[PLGCDDispatchContext alloc] initWithQueue: PL_DEFAULT_QUEUE];
     _opQueue = [NSOperationQueue new];
     _observers = [PLObserverSet new];
     
@@ -139,10 +171,130 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
 }
 
 /**
+ * Request the Radar issue associated with @a radarId.
+ *
+ * @param radarId The radar number
+ * @param ticket A request cancellation ticket.
+ * @param context The dispatch context on which @a handler will be called.
+ * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
+ * will be provided as an ordered array of ANTRadarSummaryResponse values.
+ */
+- (void) requestRadarWithId: (NSNumber *) radarId
+               cancelTicket: (PLCancelTicket *) ticket
+            dispatchContext: (id<PLDispatchContext>) context
+          completionHandler: (void (^)(ANTRadarResponse *radar, NSError *error)) handler
+{
+    NSString *path = [@"/developer/problem/openProblem" stringByAppendingPathComponent: [radarId stringValue]];
+    [self getJSONWithPath: path cancelTicket: ticket dispatchContext: _parseContext completionHandler:^(id jsonData, NSError *error) {
+        /* Perform the handler callback on the user's specified dispatch context, checking for cancellation */
+        void (^performHandler)(id, NSError *) = ^(id value, NSError *error) {
+            [context performWithCancelTicket: ticket block: ^{
+                handler(value, error);
+            }];
+        };
+        
+        
+        /* Verify the response type */
+        if (![jsonData isKindOfClass: [NSDictionary class]]) {
+            performHandler(nil, [NSError errorWithDomain: NSCocoaErrorDomain code: NSURLErrorCannotParseResponse userInfo: nil]);
+            return;
+        }
+        
+        /* Parse out the data */
+        MAErrorReportingDictionary *jsonDict = [MAErrorReportingObject wrapObject: jsonData];
+        id (^Check)(id) = ^(id value) {
+            if (value == nil && [jsonDict error] != nil) {
+                NSError *error = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                        code: ANTErrorInvalidResponse
+                                        localizedDescription: NSLocalizedString(@"Unable to parse the server result.", nil)
+                                      localizedFailureReason: NSLocalizedString(@"Response data is missing a required value.", nil)
+                                             underlyingError: [jsonDict error] userInfo: nil];
+                performHandler(nil, error);
+                return (id) nil;
+            }
+            
+            return value;
+        };
+        
+        #define GetValue(_varname, _type, _source) \
+            _type *_varname = Check([_type ma_castRequiredObject: _source]); \
+            if (_varname == nil) { \
+                NSLog(@"Missing required var " # _source " in %@", jsonDict); \
+                return; \
+            }
+        
+        /* Fetch the basic attributes */
+        GetValue(title,                 NSString,   jsonDict[@"problemTitle"]);
+        GetValue(resolved,              NSNumber,   jsonDict[@"resolved"]);
+        GetValue(modifiedDateString,    NSString,   jsonDict[@"lastModifiedDate"]);
+        GetValue(descriptionText,       NSArray,    jsonDict[@"descriptionText"]);
+        
+        /* May be nil */
+        NSString *enclosureId = [NSString ma_castOptionalObject: jsonDict[@"enclosureId"]];
+        
+        NSDate *lastModifiedDate = [_dateFormatterSeconds dateFromString: modifiedDateString];
+        if (lastModifiedDate == nil) {
+            NSLog(@"Could not format date: %@", modifiedDateString);
+            NSError *parseError = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                         code: ANTErrorInvalidResponse
+                                         localizedDescription: NSLocalizedString(@"Unable to parse the server result.", nil)
+                                       localizedFailureReason: NSLocalizedString(@"Server sent an unexpected date format.", nil)
+                                              underlyingError: nil
+                                                     userInfo: nil];
+            
+            performHandler(nil, parseError);
+            return;
+        }
+
+        
+        /* Parse the comments */
+        NSMutableArray *comments = [NSMutableArray arrayWithCapacity: [descriptionText count]];
+        for (id commentVal in comments) {
+            GetValue(commentDict,       NSDictionary,   commentVal);
+            GetValue(content,           NSString,       commentDict[@"content"]);
+            GetValue(authorName,        NSString,       commentDict[@"personDetails"]);
+            GetValue(gmtDateString,     NSString,       commentDict[@"gmtTime"]);
+            
+            /* Format the date */
+            NSDate *timestamp = [_gmtDateFormatter dateFromString: gmtDateString];
+            if (timestamp == nil) {
+                NSLog(@"Could not format date: %@", gmtDateString);
+                NSError *parseError = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                             code: ANTErrorInvalidResponse
+                                             localizedDescription: NSLocalizedString(@"Unable to parse the server result.", nil)
+                                           localizedFailureReason: NSLocalizedString(@"Server sent an unexpected date format.", nil)
+                                                  underlyingError: nil
+                                                         userInfo: nil];
+                
+                performHandler(nil, parseError);
+                return;
+            }
+            
+            
+            ANTRadarCommentResponse *comment = [[ANTRadarCommentResponse alloc] initWithAuthorName: authorName content: content timestamp: timestamp];
+            [comments addObject: comment];
+        }
+        
+        /* Create the result */
+        ANTRadarResponse *radar = [[ANTRadarResponse alloc] initWithTitle: title
+                                                                 comments: comments
+                                                                 resolved: [resolved boolValue]
+                                                         lastModifiedDate: lastModifiedDate
+                                                              enclosureId: enclosureId];
+    
+        /* Dispatch the results */
+        performHandler(radar, error);
+
+        #undef GetValue
+    }];
+}
+
+/**
  * Request all radar issue summaries for the the given section names.
  *
  * @param sectionNames The section names to be fethed. The result order is undefined. @sa @ref contents_network_folders.
  * @param ticket A request cancellation ticket.
+ * @param context The dispatch context on which @a handler will be called.
  * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
  * will be provided as an ordered array of ANTRadarSummaryResponse values.
  */
@@ -208,7 +360,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
  *
  * @param sectionName The section to be fethed. The result order is undefined. @sa @ref contents_network_folders.
  * @param ticket A request cancellation ticket.
- * @param dispatchContext The dispatch context on which @a handler will be called.
+ * @param context The dispatch context on which @a handler will be called.
  * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
  * will be provided as an ordered array of ANTRadarSummaryResponse values.
  *
@@ -221,10 +373,17 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
                   completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler
 {
     NSDictionary *req = @{@"reportID" : sectionName, @"orderBy" : @"DateOriginated,Descending", @"rowStartString":@"1" };
-    [self postJSON: req toPath: @"/developer/problem/getSectionProblems" cancelTicket: ticket dispatchContext: context completionHandler:^(id jsonData, NSError *error) {
+    [self postJSON: req toPath: @"/developer/problem/getSectionProblems" cancelTicket: ticket dispatchContext: _parseContext completionHandler:^(id jsonData, NSError *error) {
+        /* Perform the handler callback on the user's specified dispatch context, checking for cancellation */
+        void (^performHandler)(id, NSError *) = ^(id value, NSError *error) {
+            [context performWithCancelTicket: ticket block: ^{
+                handler(value, error);
+            }];
+        };
+
         /* Verify the response type */
         if (![jsonData isKindOfClass: [NSDictionary class]]) {
-            handler(nil, [NSError errorWithDomain: NSCocoaErrorDomain code: NSURLErrorCannotParseResponse userInfo: nil]);
+            performHandler(nil, [NSError errorWithDomain: NSCocoaErrorDomain code: NSURLErrorCannotParseResponse userInfo: nil]);
             return;
         }
     
@@ -237,7 +396,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
                                         localizedDescription: NSLocalizedString(@"Unable to parse the server result.", nil)
                                       localizedFailureReason: NSLocalizedString(@"Response data is missing a required value.", nil)
                                              underlyingError: [jsonDict error] userInfo: nil];
-                handler(nil, error);
+                performHandler(nil, error);
                 return (id) nil;
             }
             
@@ -247,7 +406,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
 #define GetValue(_varname, _type, _source) \
     _type *_varname = Check([_type ma_castRequiredObject: _source]); \
     if (_varname == nil) { \
-        NSLog(@"Missing required var " # _source " in %@", _source); \
+        NSLog(@"Missing required var " # _source " in %@", jsonDict); \
         return; \
     }
 
@@ -288,7 +447,8 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
                                            localizedFailureReason: NSLocalizedString(@"Server sent an unexpected date format.", nil)
                                                   underlyingError: nil
                                                          userInfo: nil];
-                handler(nil, parseError);
+                
+                performHandler(nil, parseError);
                 return;
             }
             
@@ -308,7 +468,8 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
             [results addObject: summaryEntry];
         }
         
-        handler(results, error);
+        /* Dispatch the results */
+        performHandler(results, error);
     }];
 }
 
@@ -500,51 +661,62 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
 }
 
 /**
- * Post JSON request data @a json to @a resourcePath, calling @a completionHandler on finish.
+ * Send @a request, calling @a completionHandler on finish.
  *
- * @param json A foundation instance that may be represented as JSON
- * @param resourcePath The resource path to which the JSON data will be POSTed.
+ * @param request The request to be dispatched
  * @param ticket A request cancellation ticket.
  * @param context The dispatch context on which the result @a handler will be called.
  * @param handler The block to call upon completion. If an error occurs, error will be non-nil. On success, the JSON response data
  * will be provided via jsonData.
  *
- * @todo Implement handling of the standard JSON error results.
+ * @todo Implement handling of the standard error results.
  */
-- (void) postJSON: (id) json
-           toPath: (NSString *) resourcePath
-     cancelTicket: (PLCancelTicket *) ticket
-  dispatchContext: (id<PLDispatchContext>) context
-completionHandler: (void (^)(id jsonData, NSError *error)) handler
+- (void) sendRequest: (NSURLRequest *) request
+        cancelTicket: (PLCancelTicket *) ticket
+     dispatchContext: (id<PLDispatchContext>) context
+   completionHandler: (void (^)(NSURLResponse *response, NSData *data, NSError *error)) handler
 {
-    NSError *error;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject: json options: 0 error: &error];
-    NSAssert(jsonData != nil, @"Invalid JSON request data");
-
-    /* Formulate the POST */
-    NSURL *url = [NSURL URLWithString: resourcePath relativeToURL: [ANTNetworkClient bugReporterURL]];
+    NSMutableURLRequest *mreq = [request mutableCopy];
     
-    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL: url];
-    [req setHTTPMethod: @"POST"];
-    [req setHTTPBody: jsonData];
-    [req setValue: @"application/json; charset=UTF-8" forHTTPHeaderField: @"Content-Type"];
-
     /* CSRF handling */
-    [req addValue: _authResult.csrfToken forHTTPHeaderField:@"csrftokencheck"];
-
+    [mreq addValue: _authResult.csrfToken forHTTPHeaderField:@"csrftokencheck"];
+    
     /* Try to make the headers look more like the browser */
-    [req setValue: [[ANTNetworkClient bugReporterURL] absoluteString] forHTTPHeaderField: @"Origin"];
-    [req setValue: @"XMLHTTPRequest" forHTTPHeaderField: @"X-Requested-With"];
+    [mreq setValue: [[ANTNetworkClient bugReporterURL] absoluteString] forHTTPHeaderField: @"Origin"];
+    [mreq setValue: @"XMLHTTPRequest" forHTTPHeaderField: @"X-Requested-With"];
     
     /* Disable caching */
-    [req setCachePolicy: NSURLCacheStorageNotAllowed];
-    [req addValue: @"no-cache" forHTTPHeaderField: @"Cache-Control"];
-
+    [mreq setCachePolicy: NSURLCacheStorageNotAllowed];
+    [mreq addValue: @"no-cache" forHTTPHeaderField: @"Cache-Control"];
+    
     /* We need cookies for session and authentication verification done by the server */
-    [req setHTTPShouldHandleCookies: YES];
+    [mreq setHTTPShouldHandleCookies: YES];
     
     /* Issue the request */
-    [NSURLConnection pl_sendAsynchronousRequest: req queue: _opQueue cancelTicket: ticket completionHandler:^(NSURLResponse *response, NSData *data, NSError *error) {
+    [NSURLConnection pl_sendAsynchronousRequest: mreq queue: _opQueue cancelTicket: ticket completionHandler: ^(NSURLResponse *response, NSData *data, NSError *error) {
+        [context performWithCancelTicket: ticket block:^{
+            handler(response, data, error);
+        }];
+    }];
+}
+
+
+/**
+ * Send a GET request for JSON at @a resourcePath, calling @a completionHandler on finish.
+ *
+ * @param resourcePath The resource path for which a GET should be issued.
+ * @param ticket A request cancellation ticket.
+ * @param context The dispatch context on which the result @a handler will be called.
+ * @param handler The block to call upon completion. If an error occurs, error will be non-nil. On success, the JSON response data
+ * will be provided via jsonData.
+ */
+- (void) getJSONWithPath: (NSString *) resourcePath cancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionHandler: (void (^)(id jsonData, NSError *error)) handler {
+    /* Formulate the GET */
+    NSURL *url = [NSURL URLWithString: resourcePath relativeToURL: [ANTNetworkClient bugReporterURL]];
+    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL: url];
+    
+    /* Issue the request */
+    [self sendRequest: req cancelTicket: ticket dispatchContext: [PLDirectDispatchContext context] completionHandler: ^(NSURLResponse *response, NSData *data, NSError *error) {
         /* Perform the handler callback on the right dispatch context, checking for cancellation */
         void (^performHandler)(id, NSError *) = ^(id value, NSError *error) {
             [context performBlock:^{
@@ -576,7 +748,77 @@ completionHandler: (void (^)(id jsonData, NSError *error)) handler
                                                    userInfo: nil];
             
             performHandler(nil, antError);
-            handler(nil, error);
+            return;
+        }
+        
+        performHandler(jsonResult, nil);
+    }];
+}
+
+
+/**
+ * Post JSON request data @a json to @a resourcePath, calling @a completionHandler on finish.
+ *
+ * @param json A foundation instance that may be represented as JSON
+ * @param resourcePath The resource path to which the JSON data will be POSTed.
+ * @param ticket A request cancellation ticket.
+ * @param context The dispatch context on which the result @a handler will be called.
+ * @param handler The block to call upon completion. If an error occurs, error will be non-nil. On success, the JSON response data
+ * will be provided via jsonData.
+ *
+ * @todo Implement handling of the standard JSON error results.
+ */
+- (void) postJSON: (id) json
+           toPath: (NSString *) resourcePath
+     cancelTicket: (PLCancelTicket *) ticket
+  dispatchContext: (id<PLDispatchContext>) context
+completionHandler: (void (^)(id jsonData, NSError *error)) handler
+{
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject: json options: 0 error: &error];
+    NSAssert(jsonData != nil, @"Invalid JSON request data");
+
+    /* Formulate the POST */
+    NSURL *url = [NSURL URLWithString: resourcePath relativeToURL: [ANTNetworkClient bugReporterURL]];
+    
+    NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL: url];
+    [req setHTTPMethod: @"POST"];
+    [req setHTTPBody: jsonData];
+    [req setValue: @"application/json; charset=UTF-8" forHTTPHeaderField: @"Content-Type"];
+    
+    /* Issue the request */
+    [self sendRequest: req cancelTicket: ticket dispatchContext: [PLDirectDispatchContext context] completionHandler: ^(NSURLResponse *response, NSData *data, NSError *error) {
+        /* Perform the handler callback on the right dispatch context, checking for cancellation */
+        void (^performHandler)(id, NSError *) = ^(id value, NSError *error) {
+            [context performBlock:^{
+                if (!ticket.isCancelled)
+                    handler(value, error);
+            }];
+        };
+        
+        if (error != nil) {
+            NSError *antError = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                       code: ANTErrorInvalidResponse
+                                       localizedDescription: NSLocalizedString(@"Unable to parse the server result", nil)
+                                     localizedFailureReason: NSLocalizedString(@"Server sent invalid JSON data", nil)
+                                            underlyingError: error
+                                                   userInfo: nil];
+            performHandler(nil, antError);
+            return;
+        }
+        
+        /* Parse the result. TODO: Generic handling of JSON isError results */
+        NSError *jsonError;
+        id jsonResult = [NSJSONSerialization JSONObjectWithData: data options:0 error: &jsonError];
+        if (jsonResult == nil) {
+            NSError *antError = [NSError pl_errorWithDomain: ANTErrorDomain
+                                                       code: ANTErrorInvalidResponse
+                                       localizedDescription: NSLocalizedString(@"Unable to parse the server result", nil)
+                                     localizedFailureReason: NSLocalizedString(@"Server sent invalid JSON data", nil)
+                                            underlyingError: jsonError
+                                                   userInfo: nil];
+            
+            performHandler(nil, antError);
             return;
         }
     

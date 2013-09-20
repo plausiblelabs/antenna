@@ -162,6 +162,8 @@
     // TODO - recovery support
 }
 
+#pragma mark Table View
+
 // from NSTableViewDataSource protocol
 - (id) tableView: (NSTableView *) aTableView objectValueForTableColumn: (NSTableColumn *) aTableColumn row: (NSInteger) rowIndex {
     BOOL (^Check)(NSString *) = ^(NSString *ident) {
@@ -187,10 +189,28 @@
     [tableView reloadData];
 }
 
+
 // from NSTableViewDataSource protocol
 - (NSInteger) numberOfRowsInTableView: (NSTableView *) aTableView {
     return [_summaries count];
 }
+
+// from NSTableViewDataSource protocol
+- (void) tableViewSelectionDidChange: (NSNotification *) aNotification {
+    NSIndexSet *selection = [_summaryTableView selectedRowIndexes];
+    if ([selection count] > 1) {
+        NSLog(@"TODO: Handle multi-selection");
+        return;
+    }
+    
+    // XXX - We should actually display the radar ...
+    ANTRadarSummaryResponse *summary = [_summaries objectAtIndex: [selection firstIndex]];
+    [_client requestRadarWithId: summary.radarId cancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLGCDDispatchContext mainQueueContext] completionHandler:^(ANTRadarResponse *radar, NSError *error) {
+        NSLog(@"Radar: %@", radar.title);
+    }];
+}
+
+#pragma mark Source List
 
 // from PXSourceListDataSource protocol
 - (NSUInteger) sourceList: (PXSourceList*) sourceList numberOfChildrenOfItem: (id) item {
