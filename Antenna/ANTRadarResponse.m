@@ -26,38 +26,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#import "ANTRadarResponse.h"
 
-@interface ANTRadarSummaryResponse : NSObject
-
-- (id) initWithRadarId: (NSNumber *) radarId
-             stateName: (NSString *) stateName
-                 title: (NSString *) summary
-         componentName: (NSString *) componentName
-                hidden: (BOOL) hidden
-           description: (NSString *) description
-        originatedDate: (NSDate *) originatedDate;
-
-/** The Radar issue number for this bug. */
-@property(nonatomic, readonly) NSNumber *radarId;
-
-/** The issue state (eg, Open, Closed) */
-@property(nonatomic, readonly) NSString *stateName;
-
-/** The issue's title (eg, summary). */
-@property(nonatomic, readonly) NSString *title;
-
-/** The component name (eg, "Developer Tools" or "iPhone SDK") */
-@property(nonatomic, readonly) NSString *componentName;
-
-/** Whether the issue should be hidden. */
-@property(nonatomic, readonly) BOOL hidden;
-
-/** A truncated copy of the issue description. */
-@property(nonatomic, readonly) NSString *description;
-
-/** The issue's originated date. */
-@property(nonatomic, readonly) NSDate *originatedDate;
-
+/**
+ * A single Radar response.
+ */
+@implementation ANTRadarResponse
 
 @end

@@ -10,6 +10,7 @@
 		054F27CD17EB5AFD00CADC47 /* ANTDatabaseMigrationBuilderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D39B17EB558800A6C3A4 /* ANTDatabaseMigrationBuilderTests.m */; };
 		054F27CE17EB5B0100CADC47 /* PLFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
 		054F27CF17EB757E00CADC47 /* PlausibleDatabase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D38D17EB4EF400A6C3A4 /* PlausibleDatabase.framework */; };
+		054F27D217EBC75700CADC47 /* ANTRadarResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 054F27D117EBC75700CADC47 /* ANTRadarResponse.m */; };
 		0562055817D9A453009795FD /* ANTPreferencesWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0562055717D9A453009795FD /* ANTPreferencesWindowController.xib */; };
 		0562055B17DAAC9C009795FD /* ANTPreferencesAccountCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0562055A17DAAC9C009795FD /* ANTPreferencesAccountCellView.m */; };
 		0562055F17DAD909009795FD /* openradar_icon.pdf in Resources */ = {isa = PBXBuildFile; fileRef = 0562055E17DAD909009795FD /* openradar_icon.pdf */; };
@@ -85,6 +86,8 @@
 
 /* Begin PBXFileReference section */
 		0529C88C17E67AC500FCD30C /* ANTNetworkClientObserver.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTNetworkClientObserver.h; sourceTree = "<group>"; };
+		054F27D017EBC75700CADC47 /* ANTRadarResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarResponse.h; sourceTree = "<group>"; };
+		054F27D117EBC75700CADC47 /* ANTRadarResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarResponse.m; sourceTree = "<group>"; };
 		0562055717D9A453009795FD /* ANTPreferencesWindowController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ANTPreferencesWindowController.xib; sourceTree = "<group>"; };
 		0562055917DAAC9C009795FD /* ANTPreferencesAccountCellView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTPreferencesAccountCellView.h; sourceTree = "<group>"; };
 		0562055A17DAAC9C009795FD /* ANTPreferencesAccountCellView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTPreferencesAccountCellView.m; sourceTree = "<group>"; };
@@ -359,6 +362,8 @@
 				05F6D70E17E2CEC3005EE586 /* ANTNetworkClientAccount.m */,
 				05C9DA3B17D462EE0089603A /* ANTRadarSummaryResponse.h */,
 				05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */,
+				054F27D017EBC75700CADC47 /* ANTRadarResponse.h */,
+				054F27D117EBC75700CADC47 /* ANTRadarResponse.m */,
 			);
 			name = "Network Client";
 			sourceTree = "<group>";
@@ -628,6 +633,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				05C9D9DF17D43DF90089603A /* main.m in Sources */,
+				054F27D217EBC75700CADC47 /* ANTRadarResponse.m in Sources */,
 				05C9D9E617D43DF90089603A /* AntennaAppDelegate.m in Sources */,
 				05C9DA0917D43EB00089603A /* ANTNetworkClient.m in Sources */,
 				05C9DA1317D43FB90089603A /* ANTLoginWindowController.m in Sources */,

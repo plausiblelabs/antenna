@@ -28,36 +28,34 @@
 
 #import <Foundation/Foundation.h>
 
-@interface ANTRadarSummaryResponse : NSObject
+@interface ANTRadarCommentResponse : NSObject
 
-- (id) initWithRadarId: (NSNumber *) radarId
-             stateName: (NSString *) stateName
-                 title: (NSString *) summary
-         componentName: (NSString *) componentName
-                hidden: (BOOL) hidden
-           description: (NSString *) description
-        originatedDate: (NSDate *) originatedDate;
+/** The name of the author. */
+@property(nonatomic, readonly) NSString *authorName;
 
-/** The Radar issue number for this bug. */
-@property(nonatomic, readonly) NSNumber *radarId;
+/** The content of the comment. */
+@property(nonatomic, readonly) NSString *content;
 
-/** The issue state (eg, Open, Closed) */
-@property(nonatomic, readonly) NSString *stateName;
+/** The comment timestamp. */
+@property(nonatomic, readonly) NSDate *timestamp;
 
-/** The issue's title (eg, summary). */
+@end
+
+@interface ANTRadarResponse : NSObject
+
+/** The issue title */
 @property(nonatomic, readonly) NSString *title;
 
-/** The component name (eg, "Developer Tools" or "iPhone SDK") */
-@property(nonatomic, readonly) NSString *componentName;
+/** All issue comments (as an ordered array of ANTRadarCommentResponse instances) */
+@property(nonatomic, readonly) NSArray *comments;
 
-/** Whether the issue should be hidden. */
-@property(nonatomic, readonly) BOOL hidden;
+/** YES if the Radar is marked as resolved, NO otherwise */
+@property(nonatomic, readonly, getter=isResolved) BOOL resolved;
 
-/** A truncated copy of the issue description. */
-@property(nonatomic, readonly) NSString *description;
+/** The time at which this Radar was last modified. */
+@property(nonatomic, readonly) NSDate *lastModifiedDate;
 
-/** The issue's originated date. */
-@property(nonatomic, readonly) NSDate *originatedDate;
-
+/** The enclosure identifer for this issue's attachments, or nil if none */
+@property(nonatomic, readonly) NSString *enclosureId;
 
 @end
