@@ -565,20 +565,6 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     [_observers enumerateObserversRespondingToSelector: @selector(networkClientDidChangeAuthState:) block: ^(id observer) {
         [observer networkClientDidChangeAuthState: self];
     }];
-
-    if (_authState != ANTNetworkClientAuthStateAuthenticated) {
-        if (!ticket.isCancelled) {
-            NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
-                                                  code: ANTErrorRequestConflict
-                                  localizedDescription: NSLocalizedString(@"Failed to sign out.", nil)
-                                localizedFailureReason: NSLocalizedString(@"Attempted to sign out while not logged in.", nil)
-                                       underlyingError: nil
-                                              userInfo: nil];
-            callback(err);
-        }
-            
-        return;
-    }
     
     NSAssert(_authDelegate != nil, @"Missing authentication delegate; was it deallocated?");
     
