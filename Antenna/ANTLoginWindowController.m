@@ -322,7 +322,7 @@
     if (_account == nil) {
         _lastAuthKeychainItem = [_preferences appleKeychainItem];
         NSString *accountName;
-        if (_lastAuthKeychainItem != nil) {
+        if (_lastAuthKeychainItem == nil) {
             accountName = [accountElement getAttribute: @"value"];
         } else {
             accountName = _lastAuthKeychainItem.username;
