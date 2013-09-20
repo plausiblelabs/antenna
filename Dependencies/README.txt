@@ -18,7 +18,7 @@ MAPlistTypeChecking
       Conveniences for type-checking and reporting errors in plists, JSON, and other similar structures
 
     Version:
-      d8940aa5299fa8dadeb0f6841e23958b4b6014a5 checked out from https://github.com/mikeash/MAPlistTypeChecking
+      861ccff49e888824b5bc22ee87df38db5f045fcc checked out from https://github.com/mikeash/MAPlistTypeChecking
 
     License:
       BSD

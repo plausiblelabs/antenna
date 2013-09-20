@@ -8,65 +8,97 @@
 
 #import "MAErrorReportingObject.h"
 
+#import <objc/message.h>
+#import <objc/runtime.h>
+
 #import "MAErrorReportingArray.h"
 #import "MAErrorReportingDictionary.h"
 #import "NSObject+MAErrorReporting.h"
 
 
+void MAErrorReportingClassFixup(Class class)
+{
+    Class superclass = class_getSuperclass(class);
+    
+    if(class_respondsToSelector(superclass, @selector(wrappedObject)))
+        return;
+    
+    while(superclass != [NSObject class])
+    {
+        Method *methods = class_copyMethodList(superclass, NULL);
+        for(Method *cursor = methods; *cursor; cursor++)
+        {
+            SEL sel = method_getName(*cursor);
+            const char *types = method_getTypeEncoding(*cursor);
+            class_addMethod(class, sel, _objc_msgForward, types);
+        }
+        free(methods);
+        superclass = class_getSuperclass(superclass);
+    }
+}
+
 @implementation MAErrorReportingObject {
-    id _parent;
-    NSMutableArray *_errors;
+    MA_ERROR_REPORTING_IVARS
 }
 
 + (id)wrapObject: (id)object parent: (id)parent key: (id)key
 {
-    if([object isKindOfClass: [NSArray class]])
-        return [[MAErrorReportingArray alloc] initWithParent: parent array: object key: key];
-    if([object isKindOfClass: [NSDictionary class]])
-        return [[MAErrorReportingDictionary alloc] initWithParent: parent dictionary: object key: key];
+    Class class = self;
     
-    return [[self alloc] initWithParent: parent object: object key: key];
+#define CASE(baseName) else if([object isKindOfClass: [NS ## baseName class]]) class = [MAErrorReporting ## baseName class];
+    if(0) {}
+    CASE(Array)
+    CASE(Dictionary)
+    CASE(String)
+    CASE(Number)
+    CASE(Data)
+    CASE(Date)
+#undef CASE
+    
+    return [[class alloc] initWithParent: parent object: object key: key];
 }
 
-- (id)initWithParent: (id)parent object: (id)object key: (id)key
++ (id)wrapObject: (id)object
 {
-    if((self = [super init]))
-    {
-        _parent = parent;
-        _wrappedObject = object;
-        _key = key;
-    }
-    return self;
+    return [self wrapObject: object parent: nil key: nil];
 }
 
-- (void)setError: (NSError *)error
-{
-    error = [error ma_errorByPrependingKey: _key];
-    [_parent setError: error];
-    _errors = [NSMutableArray arrayWithObjects: error, nil];
+MA_ERROR_REPORTING_METHODS
+
+@end
+
+@implementation MAErrorReportingString {
+    MA_ERROR_REPORTING_IVARS
 }
 
-- (NSError *)error
-{
-    return [_errors lastObject];
+MA_ERROR_REPORTING_METHODS
+MA_ERROR_REPORTING_AUTO_CLUSTER_FORWARD
+
+@end
+
+@implementation MAErrorReportingNumber {
+    MA_ERROR_REPORTING_IVARS
 }
 
-- (void)addError: (NSError *)error
-{
-    error = [error ma_errorByPrependingKey: _key];
-    [_parent addError: error];
-    if(!_errors)
-        _errors = [NSMutableArray array];
-    [_errors addObject: error];
+MA_ERROR_REPORTING_METHODS
+MA_ERROR_REPORTING_AUTO_CLUSTER_FORWARD
+
+@end
+
+@implementation MAErrorReportingData {
+    MA_ERROR_REPORTING_IVARS
 }
 
-- (NSArray *)errors
-{
-    return _errors;
+MA_ERROR_REPORTING_METHODS
+MA_ERROR_REPORTING_AUTO_CLUSTER_FORWARD
+
+@end
+
+@implementation MAErrorReportingDate {
+    MA_ERROR_REPORTING_IVARS
 }
 
-- (NSString *) description {
-    return [NSString stringWithFormat: @"%@ = (%@)", [super description], [_wrappedObject description]];
-}
+MA_ERROR_REPORTING_METHODS
+MA_ERROR_REPORTING_AUTO_CLUSTER_FORWARD
 
 @end

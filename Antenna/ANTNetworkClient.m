@@ -229,7 +229,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
         }
     
         /* Parse out the data */
-        MAErrorReportingDictionary *jsonDict = [[MAErrorReportingDictionary alloc] initWithDictionary: jsonData];
+        MAErrorReportingDictionary *jsonDict = [MAErrorReportingObject wrapObject: jsonData];
         id (^Check)(id) = ^(id value) {
             if (value == nil) {
                 NSError *error = [NSError pl_errorWithDomain: ANTErrorDomain
@@ -247,7 +247,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
 #define GetValue(_varname, _type, _source) \
     _type *_varname = Check([_type ma_castRequiredObject: _source]); \
     if (_varname == nil) { \
-        NSLog(@"Missing required var " # _source " in %@", jsonDict); \
+        NSLog(@"Missing required var " # _source " in %@", _source); \
         return; \
     }
 
