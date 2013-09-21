@@ -27,8 +27,11 @@
  */
 
 #import <Foundation/Foundation.h>
+#import <PlausibleDatabase/PlausibleDatabase.h>
 
 @interface ANTLocalRadarDatabase : NSObject
+
+- (id) initWithConnectionProvider: (id<PLDatabaseConnectionProvider>) connectionProvider;
 
 - (BOOL) latestReadCommentDate: (NSDate **) date forRadarNumber: (NSNumber *) radarNumber openRadar: (BOOL) openRadar error: (NSError **) outError;
 - (BOOL) setReadCommentDate: (NSDate *) date forRadarNumber: (NSNumber *) radarNumber openRadar: (BOOL) openRadar error: (NSError **) outError;

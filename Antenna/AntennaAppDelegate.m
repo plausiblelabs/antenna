@@ -30,6 +30,7 @@
 
 #import "ANTLoginWindowController.h"
 #import "ANTPreferencesWindowController.h"
+#import "ANTLocalRadarCache.h"
 
 #import "ANTRadarsWindowController.h"
 #import "AntennaApp.h"
@@ -59,6 +60,9 @@
 
     /** Preferences window controller (lazy loaded; nil if not yet instantiated). */
     ANTPreferencesWindowController *_prefsWindowController;
+
+    /** The local Radar cache */
+    ANTLocalRadarCache *_radarCache;
     
     /**
      * All pending authentication blocks; these should be dispatched when the login
@@ -69,11 +73,24 @@
 
 // from NSApplicationDelegate protocol; sent prior to window restoration.
 - (void) applicationWillFinishLaunching: (NSNotification *) notification {
+    NSError *error;
+
+    /* Find the cache directory */
+    NSString *cacheDir = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) objectAtIndex: 0];
+    cacheDir = [cacheDir stringByAppendingPathComponent: [[NSBundle mainBundle] bundleIdentifier]];
+    
     /* Fetch preferences */
     _preferences = [[ANTPreferences alloc] init];
     
     /* Set up client */
     _networkClient = [[ANTNetworkClient alloc] initWithAuthDelegate: self];
+
+    /* Set up the Radar cache */
+    _radarCache = [[ANTLocalRadarCache alloc] initWithClient: _networkClient path: [cacheDir stringByAppendingPathComponent: @"Radars"] error: &error];
+    if (_radarCache == nil) {
+        [[NSAlert alertWithError: error] runModal];
+        [NSApp terminate: nil];
+    }
     
     /* Configure authentication state */
     _authCallbacks = [NSMutableArray array];

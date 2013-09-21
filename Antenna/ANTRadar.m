@@ -26,13 +26,11 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
-
-#import "ANTNetworkClient.h"
 #import "ANTRadar.h"
 
-@interface ANTLocalRadarCache : NSObject
-
-- (instancetype) initWithClient: (ANTNetworkClient *) client path: (NSString *) path error: (NSError **) outError;
+/**
+ * A single Radar, either fetched from Apple or Open Radar.
+ */
+@implementation ANTRadar
 
 @end

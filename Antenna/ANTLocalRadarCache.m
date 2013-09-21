@@ -28,16 +28,63 @@
 
 #import "ANTLocalRadarCache.h"
 #import <PLFoundation/PLFoundation.h>
+#import <PlausibleDatabase/PlausibleDatabase.h>
+
+#import "ANTLocalRadarDatabase.h"
+
+#import <objc/runtime.h>
 
 /**
  * Manages a local Radar cache.
  */
-@implementation ANTLocalRadarCache
+@implementation ANTLocalRadarCache {
+@private
+    /** Our storage directory */
+    NSString *_path;
 
-- (instancetype) initWithPath: (NSString *) cachePath {
+    /** Backing database */
+    ANTLocalRadarDatabase *_db;
+
+    /** The backing network client */
+    ANTNetworkClient *_client;
+}
+
+/**
+ * Initialize a new Radar cache instance.
+ *
+ * @param client The Radar network client to be used for Radar synchronization.
+ * @param cachePath The path at which the cache should be stored.
+ * @param outError If initialization of the cache fails, an error in the ANTErrorDomain will be returned.
+ *
+ * @return Returns an initialized instance on success, or nil on failure.
+ */
+- (instancetype) initWithClient: (ANTNetworkClient *) client path: (NSString *) path error: (NSError **) outError {
     PLSuperInit();
+    NSError *error;
     
+    _path = path;
+    _client = client;
+
+    /* Set up the destination directory */
+    NSFileManager *fm = [NSFileManager new];
+    if (![fm createDirectoryAtPath: path withIntermediateDirectories: YES attributes: @{NSFilePosixPermissions: @(0750)} error: &error]) {
+        /* This should only happen on a misconfigured host */
+        NSLog(@"Failed to create %s path %@", class_getName([self class]), path);
+        [NSError pl_errorWithDomain: ANTErrorDomain
+                               code: ANTErrorStorageFailure
+               localizedDescription: [error localizedDescription]
+             localizedFailureReason: [error localizedFailureReason]
+                    underlyingError: error
+                           userInfo: nil];
+        return nil;
+    }
     
+    /* Set up the backing database */
+    NSString *dbPath = [_path stringByAppendingPathComponent: @"radar.db"];
+    PLSqliteConnectionProvider *connectionProvider;
+    connectionProvider = [[PLSqliteConnectionProvider alloc] initWithPath: dbPath
+                                                                    flags: SQLITE_OPEN_READWRITE|SQLITE_OPEN_CREATE|SQLITE_OPEN_SHAREDCACHE|SQLITE_OPEN_FULLMUTEX];
+    _db = [[ANTLocalRadarDatabase alloc] initWithConnectionProvider: connectionProvider];
 
     return self;
 }

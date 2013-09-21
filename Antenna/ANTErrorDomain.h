@@ -72,5 +72,8 @@ typedef NS_ENUM(NSInteger, ANTError) {
     /**
      * The request was cancelled.
      */
-    ANTErrorRequestCancelled = 11
+    ANTErrorRequestCancelled = 11,
+    
+    /** A storage failure occured (eg, I/O error, missing file, etc). */
+    ANTErrorStorageFailure = 12,
 };

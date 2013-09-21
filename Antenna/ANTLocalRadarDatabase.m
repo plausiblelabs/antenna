@@ -29,7 +29,6 @@
 #import "ANTLocalRadarDatabase.h"
 
 #import <PLFoundation/PLFoundation.h>
-#import <PlausibleDatabase/PlausibleDatabase.h>
 
 #import "ANTDatabaseMigrationBuilder.h"
 
@@ -80,6 +79,13 @@
             @"CREATE TABLE radar ("
                 "id INTEGER PRIMARY KEY AUTOINCREMENT,"
                 "open_radar INTEGER NOT NULL CHECK (open_radar == 0 OR open_radar == 1),"
+                "originator TEXT NOT NULL,"
+                "originated_date DATETIME NOT NULL," // Originated date (as a UNIX timestamp)
+                "resolved_date DATETIME," // Resolution date (as a UNIX timestamp)
+                "status TEXT NOT NULL,"
+                "product TEXT NOT NULL,"
+                "product_version TEXT NOT NULL,"
+                "classification TEXT NOT NULL,"
                 "radar_number INTEGER NOT NULL,"
                 "last_read_date DATETIME NOT NULL DEFAULT (strftime('%s','now'))" // The last read comment's date (as a UNIX timestamp).
                 "CONSTRAINT radar_unique_number UNIQUE (open_radar, radar_number)"
