@@ -29,7 +29,6 @@
 		05C84A3917D55ECF006EFB7D /* ANTPreferences.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C84A3817D55ECF006EFB7D /* ANTPreferences.m */; };
 		05C9D38E17EB4EF400A6C3A4 /* PlausibleDatabase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D38D17EB4EF400A6C3A4 /* PlausibleDatabase.framework */; };
 		05C9D38F17EB505A00A6C3A4 /* PlausibleDatabase.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D38D17EB4EF400A6C3A4 /* PlausibleDatabase.framework */; };
-		05C9D39217EB50B400A6C3A4 /* ANTLocalRadarDatabase.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D39117EB50B400A6C3A4 /* ANTLocalRadarDatabase.m */; };
 		05C9D39617EB50CB00A6C3A4 /* ANTLocalRadarCache.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D39517EB50CB00A6C3A4 /* ANTLocalRadarCache.m */; };
 		05C9D39917EB52A700A6C3A4 /* ANTDatabaseMigrationBuilder.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D39817EB52A700A6C3A4 /* ANTDatabaseMigrationBuilder.m */; };
 		05C9D3A617EB56BB00A6C3A4 /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D39F17EB564B00A6C3A4 /* XCTest.framework */; };
@@ -119,8 +118,6 @@
 		05C84A3717D55ECF006EFB7D /* ANTPreferences.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTPreferences.h; sourceTree = "<group>"; };
 		05C84A3817D55ECF006EFB7D /* ANTPreferences.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTPreferences.m; sourceTree = "<group>"; };
 		05C9D38D17EB4EF400A6C3A4 /* PlausibleDatabase.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PlausibleDatabase.framework; sourceTree = "<group>"; };
-		05C9D39017EB50B400A6C3A4 /* ANTLocalRadarDatabase.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTLocalRadarDatabase.h; sourceTree = "<group>"; };
-		05C9D39117EB50B400A6C3A4 /* ANTLocalRadarDatabase.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTLocalRadarDatabase.m; sourceTree = "<group>"; };
 		05C9D39417EB50CB00A6C3A4 /* ANTLocalRadarCache.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTLocalRadarCache.h; sourceTree = "<group>"; };
 		05C9D39517EB50CB00A6C3A4 /* ANTLocalRadarCache.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTLocalRadarCache.m; sourceTree = "<group>"; };
 		05C9D39717EB52A700A6C3A4 /* ANTDatabaseMigrationBuilder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTDatabaseMigrationBuilder.h; sourceTree = "<group>"; };
@@ -240,18 +237,8 @@
 				0510F8B317ED48120050AF5E /* ANTRadar.m */,
 				05C9D39417EB50CB00A6C3A4 /* ANTLocalRadarCache.h */,
 				05C9D39517EB50CB00A6C3A4 /* ANTLocalRadarCache.m */,
-				05C9D39317EB50B700A6C3A4 /* Private */,
 			);
 			name = "Radar Cache";
-			sourceTree = "<group>";
-		};
-		05C9D39317EB50B700A6C3A4 /* Private */ = {
-			isa = PBXGroup;
-			children = (
-				05C9D39017EB50B400A6C3A4 /* ANTLocalRadarDatabase.h */,
-				05C9D39117EB50B400A6C3A4 /* ANTLocalRadarDatabase.m */,
-			);
-			name = Private;
 			sourceTree = "<group>";
 		};
 		05C9D39A17EB52AA00A6C3A4 /* Database Migrations */ = {
@@ -660,7 +647,6 @@
 				05C84A3917D55ECF006EFB7D /* ANTPreferences.m in Sources */,
 				05E8333417D96EDB00DF3F9D /* ANTErrorDomain.m in Sources */,
 				05E8333A17D976A100DF3F9D /* ANTNetworkClientAuthResult.m in Sources */,
-				05C9D39217EB50B400A6C3A4 /* ANTLocalRadarDatabase.m in Sources */,
 				05E8333F17D97D3E00DF3F9D /* ANTPreferencesWindowController.m in Sources */,
 				0562055B17DAAC9C009795FD /* ANTPreferencesAccountCellView.m in Sources */,
 				0562056317DAE1DF009795FD /* ANTPreferencesAppleAccountViewController.m in Sources */,

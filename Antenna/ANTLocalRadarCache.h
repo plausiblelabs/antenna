@@ -35,4 +35,6 @@
 
 - (instancetype) initWithClient: (ANTNetworkClient *) client path: (NSString *) path error: (NSError **) outError;
 
+- (void) performSyncWithCancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionBlock: (void(^)(NSError *error)) completionBlock;
+
 @end
