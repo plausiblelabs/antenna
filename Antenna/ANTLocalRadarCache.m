@@ -159,6 +159,8 @@
         [self performSyncWithCancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLDirectDispatchContext context] completionBlock: ^(NSError *error) {
             if (error != nil)
                 NSLog(@"Synchronization failed with %@", error);
+            else
+                NSLog(@"Synchronization completed successfully");
         }];
 }
 
@@ -169,9 +171,13 @@
  * @param ticket A request cancellation ticket.
  * @param context The dispatch context on which @a handler will be called.
  * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil.
+ *
+ * @todo We need to coalesce concurrent synchronization requests to prevent deletion of issues that are added by a later synchronization
+ * attempt before the earlier attempt has finished.
  */
 - (void) performSyncWithCancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionBlock: (void(^)(NSError *error)) completionBlock {
-    PLGCDDispatchContext *bgContext = [[PLGCDDispatchContext alloc] initWithQueue: PL_DEFAULT_QUEUE];
+    PLGCDDispatchContext *concurrentContext = [[PLGCDDispatchContext alloc] initWithQueue: PL_DEFAULT_QUEUE];
+    PLGCDDispatchContext *serialContext = [[PLGCDDispatchContext alloc] initWithQueue: dispatch_queue_create("coop.plausible.antenna.cache-sync", DISPATCH_QUEUE_SERIAL)];
 
     /* Executes the caller's completion block on the expected context */
     void (^PerformCompletion)(NSError *) = ^(NSError *error) {
@@ -182,25 +188,34 @@
 
     /* Request summaries for all supported sections */
     NSArray *sections = @[ANTNetworkClientFolderTypeOpen, ANTNetworkClientFolderTypeClosed, ANTNetworkClientFolderTypeArchive];
-    [_client requestSummariesForSections: sections maximumCount: MAX_RADARS cancelTicket: ticket dispatchContext: bgContext completionHandler: ^(NSArray *summaries, NSError *error) {
+    [_client requestSummariesForSections: sections maximumCount: MAX_RADARS cancelTicket: ticket dispatchContext: concurrentContext completionHandler: ^(NSArray *summaries, NSError *error) {
         /* Handle network failure */
         if (error != nil) {
             PerformCompletion(error);
             return;
         }
+        
+        /* The radars seen during this synchronization cycle, and the remaining number of summaries to process. Access to these values is synchronized via our serialContext. */
+        NSMutableArray *radarsSeen = [NSMutableArray array];
+        __block NSUInteger remainingItems = [summaries count];
 
         /* Iterate over the summary data, fetching and caching the Radar contents. */
         for (ANTRadarSummaryResponse *summaryResponse in summaries) {
             /* The requests are all dispatched concurrently; we use an internal cancellation ticket to support cancelling all of our requests should
              * one of our requests fail */
             PLCancelTicketSource *multiRequestCancellation = [[PLCancelTicketSource alloc] initWithLinkedTickets: [NSSet setWithObjects: ticket, nil]];
-            PLGCDDispatchContext *serialContext = [[PLGCDDispatchContext alloc] initWithQueue: dispatch_queue_create("coop.plausible.antenna.cache-sync", DISPATCH_QUEUE_SERIAL)];
 
-            /* Fetch the radar details for each radar summary and insert them concurrently into the backing database. */
-            [_client requestRadarWithId: summaryResponse.radarId cancelTicket: multiRequestCancellation.ticket dispatchContext: bgContext completionHandler: ^(ANTRadarResponse *radarResponse, NSError *error) {
+            /* Fetch the radar details for each radar summary and insert into the backing database. We maintain serialization through the use of a shared serial context*/
+            [_client requestRadarWithId: summaryResponse.radarId cancelTicket: multiRequestCancellation.ticket dispatchContext: serialContext completionHandler: ^(ANTRadarResponse *radarResponse, NSError *error) {
                 PLSqliteDatabase *db;
                 NSError *dbError;
                 
+                /* Mark the radar as seen */
+                [radarsSeen addObject: summaryResponse.radarId];
+                
+                /* Mark the summary as processed */
+                remainingItems--;
+
                 /* Executes the caller's completion block on the expected context, using our own cancellation ticket on
                  * a serial queue to prevent multiple cancellations from being issued. Whichever completion block is scheduled
                  * first wins. */
@@ -306,6 +321,30 @@
                         }
                     }
                     
+                    /* If this is the last lookup, clean up any Radars that were not seen during synchronization */
+                    if (remainingItems == 0) {
+                        /* Set up the temporary memory tabel */
+                        if (![db executeUpdateAndReturnError: &txError statement: @"DROP TABLE IF EXISTS radar_seen_temp"])
+                          return PLDatabaseTransactionRollback;
+                        
+                        if (![db executeUpdateAndReturnError: &txError statement: @"CREATE TEMP TABLE radar_seen_temp ( radar_number INTEGER NOT NULL )"])
+                            return PLDatabaseTransactionRollback;
+                        
+                        /* Insert all known radar identifiers */
+                        for (NSNumber *radarNumber in radarsSeen) {
+                            if (![db executeUpdateAndReturnError: &txError statement: @"INSERT INTO radar_seen_temp (radar_number) VALUES (?)", radarNumber])
+                                return PLDatabaseTransactionRollback;
+                        }
+                        
+                        /* Delete all stale radar values */
+                        if (![db executeUpdateAndReturnError: &txError statement: @"DELETE FROM radar WHERE radar_number NOT IN (SELECT radar_number FROM radar_seen_temp)"])
+                            return PLDatabaseTransactionRollback;
+                        
+                        /* Drop the temporary table */
+                        if (![db executeUpdateAndReturnError: &txError statement: @"DROP TABLE radar_seen_temp"])
+                            return PLDatabaseTransactionRollback;
+                    }
+                    
                     /* Mark as complete and commit */
                     txError = nil;
                     return PLDatabaseTransactionCommit;
@@ -337,6 +376,11 @@
                     PerformMultiCompletion(err);
                     return;
                 }
+                
+                /* Check for completion */
+                if (remainingItems == 0)
+                    PerformMultiCompletion(nil);
+
                 
                 return;
             }];
