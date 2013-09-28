@@ -31,7 +31,7 @@ PlausibleDatabase
       A SQL database access library for Objective-C, initially focused on SQLite as an application database.
 
     Version:
-      v2.0-beta1 downloaded https://opensource.plausible.coop/wiki/display/PLDB/PLDatabase
+      v2.0-beta2 downloaded https://opensource.plausible.coop/wiki/display/PLDB/PLDatabase
 
     License:
       3-Clause BSD
