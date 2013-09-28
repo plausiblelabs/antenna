@@ -26,11 +26,30 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import "ANTRadar.h"
+#import "ANTCachedRadar.h"
+#import <PLFoundation/PLFoundation.h>
 
 /**
- * A single Radar, either fetched from Apple or Open Radar.
+ * A single cached Radar, either fetched from Apple or Open Radar.
  */
-@implementation ANTRadar
+@implementation ANTCachedRadar
+
+/**
+ * Initialize a new instance.
+ */
+- (instancetype) initWithTitle: (NSString *) title
+                      resolved: (BOOL) resolved
+              lastModifiedDate: (NSDate *) lastModifiedDate
+                        unread: (BOOL) unread
+{
+    PLSuperInit();
+    
+    _title = title;
+    _resolved = resolved;
+    _lastModifiedDate = lastModifiedDate;
+    _unread = unread;
+
+    return self;
+}
 
 @end

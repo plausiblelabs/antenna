@@ -29,12 +29,15 @@
 #import <Foundation/Foundation.h>
 
 #import "ANTNetworkClient.h"
-#import "ANTRadar.h"
+#import "ANTCachedRadar.h"
 
 @interface ANTLocalRadarCache : NSObject
 
 - (instancetype) initWithClient: (ANTNetworkClient *) client path: (NSString *) path error: (NSError **) outError;
 
 - (void) performSyncWithCancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionBlock: (void(^)(NSError *error)) completionBlock;
+
+- (NSArray *) radarsWithState: (NSString *) state openRadar: (BOOL) openRadar error: (NSError **) outError;
+- (NSArray *) radarsUpdatedSince: (NSDate *) dateSince openRadar: (BOOL) openRadar error: (NSError **) outError;
 
 @end

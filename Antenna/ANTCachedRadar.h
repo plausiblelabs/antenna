@@ -28,6 +28,23 @@
 
 #import <Foundation/Foundation.h>
 
-@interface ANTRadar : NSObject
+@interface ANTCachedRadar : NSObject
+
+- (instancetype) initWithTitle: (NSString *) title
+                      resolved: (BOOL) resolved
+              lastModifiedDate: (NSDate *) lastModifiedDate
+                        unread: (BOOL) unread;
+
+/** The issue title */
+@property(nonatomic, readonly) NSString *title;
+
+/** YES if the Radar is marked as resolved, NO otherwise */
+@property(nonatomic, readonly, getter=isResolved) BOOL resolved;
+
+/** The time at which this Radar was last modified. */
+@property(nonatomic, readonly) NSDate *lastModifiedDate;
+
+/** YES if this Radar is marked as unread, NO otherwise. */
+@property(nonatomic, readonly) BOOL unread;
 
 @end

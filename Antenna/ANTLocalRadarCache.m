@@ -165,6 +165,100 @@
 }
 
 /**
+ * @internal
+ * Acquire and return a database connection, or nil on failure.
+ */
+- (PLSqliteDatabase *) getConnectionAndReturnError: (NSError **) outError {
+    NSError *dbError;
+    PLSqliteDatabase *db = [_connectionPool getConnectionAndReturnError: &dbError];
+    if (db != nil)
+        return db;
+    
+    if (outError != NULL) {
+        *outError = [NSError pl_errorWithDomain: ANTErrorDomain
+                                           code: ANTErrorStorageFailure
+                           localizedDescription: NSLocalizedString(@"Could not acquire a connection to the backing database.", nil)
+                         localizedFailureReason: nil
+                                underlyingError: dbError
+                                       userInfo: nil];
+    }
+
+    return nil;
+}
+
+/**
+ * Return all Radars modified with the given @a state @a date, as an array of ANTCachedRadar instances.
+ *
+ * @param state All radars matching this state will be returned.
+ * @param openRadar If YES Open Radars will be returned. If NO, Apple Radars will be returned.
+ * @param outError If the query fails, an error in the ANTErrorDomain will be returned.
+ */
+- (NSArray *) radarsWithState: (NSString *) state openRadar: (BOOL) openRadar error: (NSError **) outError {
+    PLSqliteDatabase *db = [self getConnectionAndReturnError: outError];
+    if (db == nil)
+        return nil;
+    
+    /* Enumerate the results */
+    NSMutableArray *results = [NSMutableArray array];
+    NSError *dbError;
+    BOOL dbFailed;
+    dbFailed = [[db executeQueryAndReturnError: &dbError statement: @"SELECT title, resolved, modified_date, (modified_date > last_read_date) FROM radar WHERE state = ? AND open_radar = ?", state, @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
+        ANTCachedRadar *radar = [[ANTCachedRadar alloc] initWithTitle: rs[0]
+                                                             resolved: [rs boolForColumnIndex: 1]
+                                                     lastModifiedDate: [rs dateForColumnIndex: 2]
+                                                               unread: [rs boolForColumnIndex: 3]];
+        [results addObject: radar];
+        
+    }];
+    
+    /* Handle query failure; should never fail */
+    if (dbFailed) {
+        if (outError != NULL)
+            *outError = [NSError pl_errorWithDomain: ANTErrorDomain code: ANTErrorStorageFailure localizedDescription: NSLocalizedString(@"Query failed.", nil) localizedFailureReason: nil underlyingError: dbError userInfo: nil];
+
+        return nil;
+    }
+
+    return results;
+}
+
+/**
+ * Return all Radars modified since @a date, as an array of ANTCachedRadar instances.
+ *
+ * @param dateSince All radars modified since this date will be returned.
+ * @param openRadar If YES Open Radars will be returned. If NO, Apple Radars will be returned.
+ * @param outError If the query fails, an error in the ANTErrorDomain will be returned.
+ */
+- (NSArray *) radarsUpdatedSince: (NSDate *) dateSince openRadar: (BOOL) openRadar error: (NSError **) outError {
+    PLSqliteDatabase *db = [self getConnectionAndReturnError: outError];
+    if (db == nil)
+        return nil;
+    
+    /* Enumerate the results */
+    NSMutableArray *results = [NSMutableArray array];
+    NSError *dbError;
+    BOOL dbFailed;
+    dbFailed = [[db executeQueryAndReturnError: &dbError statement: @"SELECT title, resolved, modified_date, (modified_date > last_read_date) FROM radar WHERE last_modified > ? AND open_radar = ?", dateSince, @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
+        ANTCachedRadar *radar = [[ANTCachedRadar alloc] initWithTitle: rs[0]
+                                                             resolved: [rs boolForColumnIndex: 1]
+                                                     lastModifiedDate: [rs dateForColumnIndex: 2]
+                                                               unread: [rs boolForColumnIndex: 3]];
+        [results addObject: radar];
+        
+    }];
+    
+    /* Handle query failure; should never fail */
+    if (dbFailed) {
+        if (outError != NULL)
+            *outError = [NSError pl_errorWithDomain: ANTErrorDomain code: ANTErrorStorageFailure localizedDescription: NSLocalizedString(@"Query failed.", nil) localizedFailureReason: nil underlyingError: dbError userInfo: nil];
+        
+        return nil;
+    }
+    
+    return results;
+}
+
+/**
  * Synchronize the local store with the remote database, using the authenticated backing network client. If the network client
  * is not authenticated, the synchronization will fail.
  *
