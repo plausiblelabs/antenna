@@ -34,6 +34,7 @@
 #import "ANTNetworkClientAuthDelegate.h"
 #import "ANTNetworkClientAccount.h"
 
+#import "ANTRadarSummariesResponse.h"
 #import "ANTRadarSummaryResponse.h"
 #import "ANTRadarResponse.h"
 
@@ -89,14 +90,16 @@ typedef NS_ENUM(NSUInteger, ANTNetworkClientAuthState) {
 
 
 - (void) requestSummariesForSections: (NSArray *) sectionNames
+                        maximumCount: (NSUInteger) maximumCount
                         cancelTicket: (PLCancelTicket *) ticket
                      dispatchContext: (id<PLDispatchContext>) context
                    completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
 
 - (void) requestSummariesForSection: (NSString *) sectionName
+                       previousPage: (ANTRadarSummariesResponse *) previousPage
                        cancelTicket: (PLCancelTicket *) ticket
                     dispatchContext: (id<PLDispatchContext>) context
-                  completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler;
+                  completionHandler: (void (^)(ANTRadarSummariesResponse *summaries, NSError *error)) handler;
 
 /** Current client authentication state. */
 @property(nonatomic, readonly) ANTNetworkClientAuthState authState;

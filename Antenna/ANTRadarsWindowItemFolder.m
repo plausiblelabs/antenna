@@ -28,6 +28,9 @@
 
 #import "ANTRadarsWindowItemFolder.h"
 
+/* Maximum number of Radars to be displayed; this is a completely arbitrary sanity check. */
+#define MAX_RADARS 10000
+
 /**
  * A standard single section (eg, folder) item in the Radars Window source list.
  */
@@ -76,7 +79,7 @@
 
 // from ANTRadarsWindowItemDataSource protocol
 - (void) radarSummariesWithCancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionHander: (void (^)(NSArray *, NSError *))handler {
-    [_client requestSummariesForSections: _sectionNames cancelTicket: ticket dispatchContext: context completionHandler: handler];
+    [_client requestSummariesForSections: _sectionNames maximumCount: MAX_RADARS cancelTicket: ticket dispatchContext: context completionHandler: handler];
 }
 
 // from NSCopying protocol

@@ -34,6 +34,9 @@
 
 #import <objc/runtime.h>
 
+/* Maximum number of Radars to be fetched; this is admitedly a completely arbitrary sanity check. */
+#define MAX_RADARS 10000
+
 @interface ANTLocalRadarCache () <ANTNetworkClientObserver>
 
 @end
@@ -155,7 +158,7 @@
     if (client.authState == ANTNetworkClientAuthStateAuthenticated)
         [self performSyncWithCancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLDirectDispatchContext context] completionBlock: ^(NSError *error) {
             if (error != nil)
-                NSLog(@"Failed with %@", error);
+                NSLog(@"Synchronization failed with %@", error);
         }];
 }
 
@@ -179,7 +182,7 @@
 
     /* Request summaries for all supported sections */
     NSArray *sections = @[ANTNetworkClientFolderTypeOpen, ANTNetworkClientFolderTypeClosed, ANTNetworkClientFolderTypeArchive];
-    [_client requestSummariesForSections: sections cancelTicket: ticket dispatchContext: bgContext completionHandler: ^(NSArray *summaries, NSError *error) {
+    [_client requestSummariesForSections: sections maximumCount: MAX_RADARS cancelTicket: ticket dispatchContext: bgContext completionHandler: ^(NSArray *summaries, NSError *error) {
         /* Handle network failure */
         if (error != nil) {
             PerformCompletion(error);

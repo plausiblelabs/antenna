@@ -293,12 +293,17 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
  * Request all radar issue summaries for the the given section names.
  *
  * @param sectionNames The section names to be fethed. The result order is undefined. @sa @ref contents_network_folders.
+ * @param maximumCount The maximum number of radars to be returned.
  * @param ticket A request cancellation ticket.
  * @param context The dispatch context on which @a handler will be called.
  * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
  * will be provided as an ordered array of ANTRadarSummaryResponse values.
+ *
+ * @note This method will automatically handle pagination of the underlying requests, and will return up to @a maximumCount
+ * radars.
  */
 - (void) requestSummariesForSections: (NSArray *) sectionNames
+                        maximumCount: (NSUInteger) maximumCount
                         cancelTicket: (PLCancelTicket *) ticket
                      dispatchContext: (id<PLDispatchContext>) context
                    completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler
@@ -309,7 +314,9 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
 
     PLCancelTicketSource *internalTicketSource = [[PLCancelTicketSource alloc] initWithLinkedTickets: [NSSet setWithObjects: ticket, nil]];
     for (NSString *name in sectionNames) {
-        [self requestSummariesForSection: name cancelTicket: internalTicketSource.ticket dispatchContext: [PLDirectDispatchContext context] completionHandler: ^(NSArray *summaries, NSError *error) {
+        __block void (^completionHandler)(ANTRadarSummariesResponse *, NSError *);
+        __block __weak void (^recursiveCompletionHandler)(ANTRadarSummariesResponse *, NSError *);
+        recursiveCompletionHandler = completionHandler = [^(ANTRadarSummariesResponse *response, NSError *error) {
             NSUInteger remaining;
             
             /* Perform all mutation with the lock held */
@@ -320,14 +327,14 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
                     OSSpinLockUnlock(&_lock);
                     return;
                 }
-
+                
                 /*
                  * Handle errors:
                  * - Cancel all other pending requests
                  * - Report the error
                  */
                 if (error != nil) {
-
+                    
                     [internalTicketSource cancel];
                     
                     /* We can't call out to cancellation handlers with our lock held */
@@ -340,18 +347,27 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
                     return;
                 }
                 
-                [pending removeObject: name];
-                [results addObjectsFromArray: summaries];
+                /* Save the results */
+                [results addObjectsFromArray: response.summaries];
+                
+                /* Mark completion if no further rows are required */
+                if (!response.hasAdditionalRows) {
+                    [pending removeObject: name];
+                }
                 remaining = [pending count];
             } OSSpinLockUnlock(&pendingLock);
             
-            /* Check for (and report!) completion */
-            if (remaining == 0) {
+            /* Check for (and report!) completion. If additional rows are available, we're not complete. */
+            if (response.hasAdditionalRows) {
+                [self requestSummariesForSection: name previousPage: nil cancelTicket: internalTicketSource.ticket dispatchContext: [PLDirectDispatchContext context] completionHandler: recursiveCompletionHandler];
+            } else if (remaining == 0) {
                 [context performWithCancelTicket: ticket block:^{
                     handler(results, nil);
                 }];
             }
-        }];
+        } copy];
+        
+        [self requestSummariesForSection: name previousPage: nil cancelTicket: internalTicketSource.ticket dispatchContext: [PLDirectDispatchContext context] completionHandler: completionHandler];
     }
 }
 
@@ -359,25 +375,31 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
  * Request all radar issue summaries for @a sectionName.
  *
  * @param sectionName The section to be fethed. The result order is undefined. @sa @ref contents_network_folders.
+ * @param previousPage The previous page of responses, or nil if this is the first request. The previous page will be used
+ * to formulate an appropriate paginated request for a new page of data.
  * @param ticket A request cancellation ticket.
  * @param context The dispatch context on which @a handler will be called.
- * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil. The summaries
- * will be provided as an ordered array of ANTRadarSummaryResponse values.
+ * @param completionHandler The block to call upon completion. If an error occurs, error will be non-nil.
  *
- * @todo Implement paging support.
  * @todo Allow for specifying the sort order.
  */
 - (void) requestSummariesForSection: (NSString *) sectionName
+                       previousPage: (ANTRadarSummariesResponse *) previousPage
                        cancelTicket: (PLCancelTicket *) ticket
                     dispatchContext: (id<PLDispatchContext>) context
-                  completionHandler: (void (^)(NSArray *summaries, NSError *error)) handler
+                  completionHandler: (void (^)(ANTRadarSummariesResponse *summaries, NSError *error)) handler
 {
-    NSDictionary *req = @{@"reportID" : sectionName, @"orderBy" : @"DateOriginated,Descending", @"rowStartString":@"1" };
+    NSString *rowStartString = @"1";
+    if (previousPage != nil)
+        rowStartString = @(previousPage.rowStart + previousPage.summaries.count).stringValue;
+
+    NSDictionary *req = @{@"reportID" : sectionName, @"orderBy" : @"DateOriginated,Descending", @"rowStartString": rowStartString };
+    
     [self postJSON: req toPath: @"/developer/problem/getSectionProblems" cancelTicket: ticket dispatchContext: _parseContext completionHandler:^(id jsonData, NSError *error) {
         /* Perform the handler callback on the user's specified dispatch context, checking for cancellation */
-        void (^performHandler)(id, NSError *) = ^(id value, NSError *error) {
+        void (^performHandler)(ANTRadarSummariesResponse *, NSError *) = ^(ANTRadarSummariesResponse *response, NSError *error) {
             [context performWithCancelTicket: ticket block: ^{
-                handler(value, error);
+                handler(response, error);
             }];
         };
 
@@ -409,11 +431,16 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
         NSLog(@"Missing required var " # _source " in %@", jsonDict); \
         return; \
     }
-
+        
         /* It's called a list, but it's actually a dictionary. Go figure */
         GetValue(list, NSDictionary, jsonDict[@"List"]);
         GetValue(issues, NSArray, list[@"RDRGetMyOrignatedProblems"]);
+        GetValue(SQL, NSDictionary, list[@"SQL"]);
         
+        /* Fetch the pagination data */
+        GetValue(rowStart, NSNumber, SQL[@"ROWSTART"]);
+        GetValue(rowsInCache, NSNumber, SQL[@"ROWSINCACHE"]);
+
         /* Regex to match radar attribution lines, eg, '<GMT09-Aug-2013 21:14:47GMT> Landon Fuller:' */
         NSRegularExpression *attributionLineRegex;
         attributionLineRegex = [NSRegularExpression regularExpressionWithPattern: @"<[A-Z0-9+]+-[A-Za-z]+-[0-9]+ [0-9]+:[0-9]+:[0-9]+[A-Z0-9+]+> .*:[ \t\n]*"
@@ -469,7 +496,10 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
         }
         
         /* Dispatch the results */
-        performHandler(results, error);
+        ANTRadarSummariesResponse *resp = [[ANTRadarSummariesResponse alloc] initWithRowStart: [rowStart unsignedIntegerValue]
+                                                                                  rowsInCache: [rowsInCache unsignedIntegerValue]
+                                                                                    summaries: results];
+        performHandler(resp, error);
     }];
 }
 

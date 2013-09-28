@@ -23,6 +23,7 @@
 		057D9E2A17E54BCE00A0F377 /* PXSourceList.m in Sources */ = {isa = PBXBuildFile; fileRef = 057D9E2717E54BCE00A0F377 /* PXSourceList.m */; settings = {COMPILER_FLAGS = "-fno-objc-arc"; }; };
 		05987EB517EA43AB006A4B8C /* ANTRadarsWindowItemHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 05987EB417EA43AB006A4B8C /* ANTRadarsWindowItemHeader.m */; };
 		05987EB817EA44AB006A4B8C /* ANTRadarsWindowItemFolder.m in Sources */ = {isa = PBXBuildFile; fileRef = 05987EB717EA44AB006A4B8C /* ANTRadarsWindowItemFolder.m */; };
+		05BB3E0D17F73C2700F464E9 /* ANTRadarSummariesResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 05BB3E0C17F73C2700F464E9 /* ANTRadarSummariesResponse.m */; };
 		05C84A3017D54D1B006EFB7D /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C84A2F17D54D1B006EFB7D /* Security.framework */; };
 		05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C84A3317D55861006EFB7D /* EMKeychainItem.m */; settings = {COMPILER_FLAGS = "-Wno-shorten-64-to-32 -fno-objc-arc"; }; };
 		05C84A3617D55861006EFB7D /* ReadMe.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 05C84A3417D55861006EFB7D /* ReadMe.rtf */; };
@@ -111,6 +112,8 @@
 		05987EB417EA43AB006A4B8C /* ANTRadarsWindowItemHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarsWindowItemHeader.m; sourceTree = "<group>"; };
 		05987EB617EA44AB006A4B8C /* ANTRadarsWindowItemFolder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarsWindowItemFolder.h; sourceTree = "<group>"; };
 		05987EB717EA44AB006A4B8C /* ANTRadarsWindowItemFolder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarsWindowItemFolder.m; sourceTree = "<group>"; };
+		05BB3E0B17F73C2700F464E9 /* ANTRadarSummariesResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarSummariesResponse.h; sourceTree = "<group>"; };
+		05BB3E0C17F73C2700F464E9 /* ANTRadarSummariesResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarSummariesResponse.m; sourceTree = "<group>"; };
 		05C84A2F17D54D1B006EFB7D /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		05C84A3217D55861006EFB7D /* EMKeychainItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EMKeychainItem.h; sourceTree = "<group>"; };
 		05C84A3317D55861006EFB7D /* EMKeychainItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMKeychainItem.m; sourceTree = "<group>"; };
@@ -352,6 +355,8 @@
 				05E8332E17D93C4100DF3F9D /* ANTNetworkClientAuthDelegate.h */,
 				05F6D70D17E2CEC3005EE586 /* ANTNetworkClientAccount.h */,
 				05F6D70E17E2CEC3005EE586 /* ANTNetworkClientAccount.m */,
+				05BB3E0B17F73C2700F464E9 /* ANTRadarSummariesResponse.h */,
+				05BB3E0C17F73C2700F464E9 /* ANTRadarSummariesResponse.m */,
 				05C9DA3B17D462EE0089603A /* ANTRadarSummaryResponse.h */,
 				05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */,
 				054F27D017EBC75700CADC47 /* ANTRadarResponse.h */,
@@ -643,6 +648,7 @@
 				05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */,
 				05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */,
 				05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */,
+				05BB3E0D17F73C2700F464E9 /* ANTRadarSummariesResponse.m in Sources */,
 				05C9D39917EB52A700A6C3A4 /* ANTDatabaseMigrationBuilder.m in Sources */,
 				05C84A3917D55ECF006EFB7D /* ANTPreferences.m in Sources */,
 				05E8333417D96EDB00DF3F9D /* ANTErrorDomain.m in Sources */,
