@@ -356,13 +356,12 @@
             return;
         }
         
-        /* The radars seen during this synchronization cycle, and the remaining number of summaries to process. Access to these values is synchronized via our serialContext. */
-        NSMutableArray *radarsSeen = [NSMutableArray array];
+        /* The radars seen during this synchronization cycle, radars deleted, and the remaining number of summaries to process. Access to these values is synchronized via our serialContext. */
+        NSMutableSet *radarsSeen = [NSMutableSet set];
+        NSMutableSet *radarsUpdated = [NSMutableSet set];
+        NSMutableSet *radarsDeleted = [NSMutableSet set];
         __block NSUInteger remainingItems = [summaries count];
         
-        /* Maps state names to sets of radar numbers; used to collect all the updated radars for later notification dispatches. Access is synchronized via our serialContext. */
-        NSMutableDictionary *notificationData = [NSMutableDictionary dictionary];
-
         /* Iterate over the summary data, fetching and caching the Radar contents. */
         for (ANTRadarSummaryResponse *summaryResponse in summaries) {
             /* The requests are all dispatched concurrently; we use an internal cancellation ticket to support cancelling all of our requests should
@@ -434,16 +433,16 @@
                         if ([radarResponse.comments count] > 0) {
                             ANTRadarCommentResponse *commentResponse = radarResponse.comments[0];
                             originatorName = commentResponse.authorName;
-                            if (![rs[1] isEqual: originatorName])
+                            if (![rs[0] isEqual: originatorName])
                                 dirty = YES;
-                        } else if (rs[1] != nil) {
+                        } else if (rs[0] != nil) {
                             dirty = YES;
                         }
 
-                        #define CHECK_STALE(current, val) if (current != val && ![current isEqual: val]) dirty = YES;
+                        #define CHECK_STALE(current, val) if (current != val && ![current isEqual: val]) { dirty = YES; NSLog(@"Dirty field: %@ != %@", current, val); }
                         CHECK_STALE(rs[1], radarResponse.title);
-                        CHECK_STALE(rs[2], summaryResponse.originatedDate);
-                        CHECK_STALE(rs[3], radarResponse.lastModifiedDate);
+                        CHECK_STALE([rs dateForColumnIndex: 2], summaryResponse.originatedDate);
+                        CHECK_STALE([rs dateForColumnIndex: 3], radarResponse.lastModifiedDate);
                         CHECK_STALE(rs[4], ((NSNumber *) @(summaryResponse.requiresAttention)));
                         CHECK_STALE(rs[5], ((NSNumber *) @(radarResponse.isResolved)));
                         CHECK_STALE(rs[6], summaryResponse.stateName);
@@ -489,34 +488,41 @@
                     }
                     
                     /* Add to the notification set */
-                    if ((found && dirty) || !found) {
-                        if (notificationData[summaryResponse.stateName] == nil)
-                            notificationData[summaryResponse.stateName] = [NSMutableSet set];
-                        
-                        [notificationData[summaryResponse.stateName] addObject: summaryResponse.radarId];
-                    }
+                    if ((found && dirty) || !found)
+                        [radarsUpdated addObject: summaryResponse.radarId];
                     
                     /* If this is the last lookup, clean up any Radars that were not seen during synchronization */
                     if (remainingItems == 0) {
-                        /* Set up the temporary memory tabel */
-                        if (![db executeUpdateAndReturnError: &txError statement: @"DROP TABLE IF EXISTS radar_seen_temp"])
-                          return PLDatabaseTransactionRollback;
-                        
-                        if (![db executeUpdateAndReturnError: &txError statement: @"CREATE TEMP TABLE radar_seen_temp ( radar_number INTEGER NOT NULL )"])
-                            return PLDatabaseTransactionRollback;
-                        
+                        /* Set up (or re-initialize) the temporary memory table */
+                        if ([db tableExists: @"radar_seen_temp"]) {
+                            if (![db executeUpdateAndReturnError: &txError statement: @"DELETE FROM radar_seen_temp"])
+                                return PLDatabaseTransactionRollback;
+                        } else {
+                            if (![db executeUpdateAndReturnError: &txError statement: @"CREATE TEMP TABLE radar_seen_temp ( radar_number INTEGER NOT NULL )"])
+                                return PLDatabaseTransactionRollback;
+                        }
+
                         /* Insert all known radar identifiers */
                         for (NSNumber *radarNumber in radarsSeen) {
                             if (![db executeUpdateAndReturnError: &txError statement: @"INSERT INTO radar_seen_temp (radar_number) VALUES (?)", radarNumber])
                                 return PLDatabaseTransactionRollback;
                         }
                         
+                        /* Save the list of to-be-deleted radars */
+                        if (![[db executeQueryAndReturnError: &txError statement: @"SELECT radar_number FROM radar WHERE radar_number NOT IN (SELECT radar_number FROM radar_seen_temp)"] enumerateAndReturnError: &txError block:^(id<PLResultSet> rs, BOOL *stop) {
+                            [radarsDeleted addObject: rs[0]];
+                        }]) {
+                            return PLDatabaseTransactionRollback;
+                        }
+                        
                         /* Delete all stale radar values */
                         if (![db executeUpdateAndReturnError: &txError statement: @"DELETE FROM radar WHERE radar_number NOT IN (SELECT radar_number FROM radar_seen_temp)"])
                             return PLDatabaseTransactionRollback;
                         
+                        NSAssert((NSUInteger)[db lastModifiedRowCount] == [radarsDeleted count], @"Incorrect deletion count");
+                        
                         /* Drop the temporary table */
-                        if (![db executeUpdateAndReturnError: &txError statement: @"DROP TABLE radar_seen_temp"])
+                        if (![db executeUpdateAndReturnError: &txError statement: @"DELETE FROM radar_seen_temp"])
                             return PLDatabaseTransactionRollback;
                     }
                     
@@ -541,7 +547,8 @@
                 }
                 
                 /* Report any query errors; this should never happen. */
-                if (txError) {
+                if (txError != nil) {
+                    NSLog(@"TX ERROR");
                     NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
                                                           code: ANTErrorStorageFailure
                                           localizedDescription: NSLocalizedString(@"Could not update the radar cache.", nil)
@@ -555,12 +562,12 @@
                 /* Check for completion */
                 if (remainingItems == 0) {
                     /* Notify observers */
-                    for (NSString *stateName in notificationData) {
-                        [_observers enumerateObserversRespondingToSelector: @selector(radarCache:didUpdateCachedRadarsWithIds:withState:) block:^(id observer) {
-                            [(id<ANTLocalRadarCacheObserver>)observer radarCache: self didUpdateCachedRadarsWithIds: notificationData[stateName] withState: stateName];
-                        }];
-                    }
+                    [_observers enumerateObserversRespondingToSelector: @selector(radarCache:didUpdateCachedRadarsWithIds:didRemoveCachedRadarsWithIds:) block:^(id observer) {
+                        if ([radarsUpdated count] > 0 || [radarsDeleted count] > 0)
+                            [(id<ANTLocalRadarCacheObserver>)observer radarCache: self didUpdateCachedRadarsWithIds: radarsUpdated didRemoveCachedRadarsWithIds: radarsDeleted];
+                    }];
 
+                    /* Notify caller of completion */
                     PerformMultiCompletion(nil);
                 }
 

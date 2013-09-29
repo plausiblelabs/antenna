@@ -38,12 +38,16 @@
 @optional
 
 /**
- * Sent when radars with a given @a section have been updated.
+ * Sent when radars with a given @a openState have been updated.
  *
  * @param cache The sending cache.
- * @param radarIds The radar ids (numbers) corresponding to the updated radars.
- * @param state The state for all of @a radarNumbers set
+ * @param updatedRadarIds The radar ids (numbers) corresponding to the updated radars.
+ * @param removedRadarIds The radar ids (numbers) corresponding to the removed radars.
+ *
+ * Note that the dispatched ordering of observer messages are not gauranteed; listeners should
+ * not rely on the values here to provide the current Radar state, and should instead consult
+ * the cache directly.
  */
-- (void) radarCache: (ANTLocalRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) radarIds withState: (NSString *) state;
+- (void) radarCache: (ANTLocalRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) updatedRadarIds didRemoveCachedRadarsWithIds: (NSSet *) removedRadarIds;
 
 @end

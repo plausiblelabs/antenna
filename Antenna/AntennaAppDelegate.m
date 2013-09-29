@@ -98,8 +98,9 @@
     _authCallbacks = [NSMutableArray array];
 }
 
-- (void) radarCache: (ANTLocalRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) radarIds withState: (NSString *) state {
-    NSLog(@"%@ = %@", state, radarIds);
+- (void) radarCache: (ANTLocalRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) updatedRadarIds didRemoveCachedRadarsWithIds: (NSSet *) removedRadarIds {
+    NSLog(@"Updated = %@", updatedRadarIds);
+    NSLog(@"Removed = %@", removedRadarIds);
 }
 
 // from NSApplicationDelegate protocol; sent after window restoration.
