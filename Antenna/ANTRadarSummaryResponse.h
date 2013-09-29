@@ -34,6 +34,7 @@
              stateName: (NSString *) stateName
                  title: (NSString *) summary
          componentName: (NSString *) componentName
+     requiresAttention: (BOOL) requiresAttention
                 hidden: (BOOL) hidden
            description: (NSString *) description
         originatedDate: (NSDate *) originatedDate;
@@ -49,6 +50,9 @@
 
 /** The component name (eg, "Developer Tools" or "iPhone SDK") */
 @property(nonatomic, readonly) NSString *componentName;
+
+/** YES if the Radar is marked as requiring a user response, NO otherwise. */
+@property(nonatomic, readonly) BOOL requiresAttention;
 
 /** Whether the issue should be hidden. */
 @property(nonatomic, readonly) BOOL hidden;

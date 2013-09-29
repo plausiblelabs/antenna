@@ -37,7 +37,7 @@
 
 #import "ANTPreferences.h"
 
-@interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, LoginWindowControllerDelegate, AntennaAppDelegate>
+@interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, ANTLocalRadarCacheObserver, LoginWindowControllerDelegate, AntennaAppDelegate>
 
 /** The primary viewer window. */
 @property(nonatomic, readonly) ANTRadarsWindowController *radarsWindowController;
@@ -92,8 +92,14 @@
         [NSApp terminate: nil];
     }
     
+    [_radarCache addObserver: self dispatchContext: [PLGCDDispatchContext mainQueueContext]];
+    
     /* Configure authentication state */
     _authCallbacks = [NSMutableArray array];
+}
+
+- (void) radarCache: (ANTLocalRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) radarIds withState: (NSString *) state {
+    NSLog(@"%@ = %@", state, radarIds);
 }
 
 // from NSApplicationDelegate protocol; sent after window restoration.

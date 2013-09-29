@@ -38,6 +38,7 @@
  * Initialize a new instance.
  */
 - (instancetype) initWithTitle: (NSString *) title
+             requiresAttention: (BOOL) requiresAttention
                       resolved: (BOOL) resolved
               lastModifiedDate: (NSDate *) lastModifiedDate
                         unread: (BOOL) unread
@@ -45,6 +46,7 @@
     PLSuperInit();
     
     _title = title;
+    _requiresAttention = requiresAttention;
     _resolved = resolved;
     _lastModifiedDate = lastModifiedDate;
     _unread = unread;

@@ -26,38 +26,24 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import "ANTRadarSummaryResponse.h"
+#import <Foundation/Foundation.h>
+
+@class ANTLocalRadarCache;
 
 /**
- * An issue summary network response.
+ * Implement the ANTLocalRadarCacheObserver protocol to observe state events
+ * dispatched by the ANTLocalRadarCache.
  */
-@implementation ANTRadarSummaryResponse
+@protocol ANTLocalRadarCacheObserver <NSObject>
+@optional
 
 /**
- * Initialize a new instance.
+ * Sent when radars with a given @a section have been updated.
+ *
+ * @param cache The sending cache.
+ * @param radarIds The radar ids (numbers) corresponding to the updated radars.
+ * @param state The state for all of @a radarNumbers set
  */
-- (id) initWithRadarId: (NSNumber *) radarId
-             stateName: (NSString *) stateName
-                 title: (NSString *) title
-         componentName: (NSString *) componentName
-     requiresAttention: (BOOL) requiresAttention
-                hidden: (BOOL) hidden
-           description: (NSString *) description
-        originatedDate: (NSDate *) originatedDate
-{
-    if ((self = [super init]) == nil)
-        return nil;
-
-    _radarId = radarId;
-    _stateName = stateName;
-    _title = title;
-    _componentName = componentName;
-    _requiresAttention = requiresAttention;
-    _hidden = hidden;
-    _description = description;
-    _originatedDate = originatedDate;
-    
-    return self;
-}
+- (void) radarCache: (ANTLocalRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) radarIds withState: (NSString *) state;
 
 @end

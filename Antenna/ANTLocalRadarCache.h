@@ -30,6 +30,7 @@
 
 #import "ANTNetworkClient.h"
 #import "ANTCachedRadar.h"
+#import "ANTLocalRadarCacheObserver.h"
 
 @interface ANTLocalRadarCache : NSObject
 
@@ -37,7 +38,12 @@
 
 - (void) performSyncWithCancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionBlock: (void(^)(NSError *error)) completionBlock;
 
-- (NSArray *) radarsWithState: (NSString *) state openRadar: (BOOL) openRadar error: (NSError **) outError;
+- (NSArray *) radarsWithOpenState: (BOOL) openState openRadar: (BOOL) openRadar error: (NSError **) outError;
 - (NSArray *) radarsUpdatedSince: (NSDate *) dateSince openRadar: (BOOL) openRadar error: (NSError **) outError;
+
+- (void) addObserver: (id<ANTLocalRadarCacheObserver>) observer
+     dispatchContext: (id<PLDispatchContext>) context;
+
+- (void) removeObserver: (id<ANTNetworkClientObserver>) observer;
 
 @end

@@ -31,12 +31,16 @@
 @interface ANTCachedRadar : NSObject
 
 - (instancetype) initWithTitle: (NSString *) title
+             requiresAttention: (BOOL) requiresAttention
                       resolved: (BOOL) resolved
               lastModifiedDate: (NSDate *) lastModifiedDate
                         unread: (BOOL) unread;
 
 /** The issue title */
 @property(nonatomic, readonly) NSString *title;
+
+/** YES if the Radar is marked as requiring a user response, NO otherwise. */
+@property(nonatomic, readonly) BOOL requiresAttention;
 
 /** YES if the Radar is marked as resolved, NO otherwise */
 @property(nonatomic, readonly, getter=isResolved) BOOL resolved;

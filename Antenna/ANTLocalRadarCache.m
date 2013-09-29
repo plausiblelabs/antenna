@@ -48,6 +48,9 @@
 @private
     /** Our storage directory */
     NSString *_path;
+    
+    /** Observers. */
+    PLObserverSet *_observers;
 
     /** Backing database connection provider */
     id<PLDatabaseConnectionProvider> _connectionPool;
@@ -75,6 +78,8 @@
     _path = path;
     _client = client;
     [_client addObserver: self dispatchContext: [PLDirectDispatchContext context]];
+    
+    _observers = [PLObserverSet new];
 
     /* Set up the destination directory */
     NSFileManager *fm = [NSFileManager new];
@@ -121,6 +126,7 @@
                  "originator TEXT,"
                  "originated_date DATETIME NOT NULL," // Originated date (as a UNIX timestamp)
                  "modified_date DATETIME NOT NULL," // Modified date (as a UNIX timestamp)
+                 "requires_attention INTEGER NOT NULL CHECK (requires_attention == 0 OR requires_attention == 1),"
                  "resolved INTEGER NOT NULL CHECK (resolved == 0 OR resolved == 1),"
                  "state TEXT NOT NULL,"
                  "component TEXT NOT NULL,"
@@ -165,6 +171,25 @@
 }
 
 /**
+ * Register an @a observer to which messages will be dispatched via @a context.
+ *
+ * @param observer The observer to add to the set. It will be weakly referenced.
+ * @param context The context on which messages to @a observer will be dispatched.
+ */
+- (void) addObserver: (id<ANTLocalRadarCacheObserver>) observer dispatchContext: (id<PLDispatchContext>) context {
+    [_observers addObserver: observer dispatchContext: context];
+}
+
+/**
+ * Remove an observer.
+ *
+ * @param observer Observer registration to be removed.
+ */
+- (void) removeObserver: (id<ANTNetworkClientObserver>) observer {
+    [_observers removeObserver: observer];
+}
+
+/**
  * @internal
  * Acquire and return a database connection, or nil on failure.
  */
@@ -187,7 +212,45 @@
 }
 
 /**
- * Return all Radars modified with the given @a state @a date, as an array of ANTCachedRadar instances.
+ * Return all Radars with the given @a openState, as an array of ANTCachedRadar instances.
+ *
+ * @param openState If YES, only open radars are returned; if NO, closed radars.
+ * @param openRadar If YES Open Radars will be returned. If NO, Apple Radars will be returned.
+ * @param outError If the query fails, an error in the ANTErrorDomain will be returned.
+ */
+- (NSArray *) radarsWithOpenState: (BOOL) openState openRadar: (BOOL) openRadar error: (NSError **) outError {
+    PLSqliteDatabase *db = [self getConnectionAndReturnError: outError];
+    if (db == nil)
+        return nil;
+    
+    /* Enumerate the results */
+    NSMutableArray *results = [NSMutableArray array];
+    NSError *dbError;
+    BOOL dbFailed;
+    NSString *query = @"SELECT title, resolved, requires_attention, modified_date, (modified_date > last_read_date) FROM radar WHERE resolved = ? AND open_radar = ?";
+    dbFailed = [[db executeQueryAndReturnError: &dbError statement: query, @(!openState), @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
+        ANTCachedRadar *radar = [[ANTCachedRadar alloc] initWithTitle: rs[0]
+                                                    requiresAttention: [rs boolForColumnIndex: 1]
+                                                             resolved: [rs boolForColumnIndex: 2]
+                                                     lastModifiedDate: [rs dateForColumnIndex: 3]
+                                                               unread: [rs boolForColumnIndex: 4]];
+        [results addObject: radar];
+        
+    }];
+    
+    /* Handle query failure; should never fail */
+    if (dbFailed) {
+        if (outError != NULL)
+            *outError = [NSError pl_errorWithDomain: ANTErrorDomain code: ANTErrorStorageFailure localizedDescription: NSLocalizedString(@"Query failed.", nil) localizedFailureReason: nil underlyingError: dbError userInfo: nil];
+        
+        return nil;
+    }
+    
+    return results;
+}
+
+/**
+ * Return all Radars with the given @a state, as an array of ANTCachedRadar instances.
  *
  * @param state All radars matching this state will be returned.
  * @param openRadar If YES Open Radars will be returned. If NO, Apple Radars will be returned.
@@ -202,11 +265,13 @@
     NSMutableArray *results = [NSMutableArray array];
     NSError *dbError;
     BOOL dbFailed;
-    dbFailed = [[db executeQueryAndReturnError: &dbError statement: @"SELECT title, resolved, modified_date, (modified_date > last_read_date) FROM radar WHERE state = ? AND open_radar = ?", state, @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
+    NSString *query = @"SELECT title, requires_attention, resolved, modified_date, (modified_date > last_read_date) FROM radar WHERE state = ? AND open_radar = ?";
+    dbFailed = [[db executeQueryAndReturnError: &dbError statement: query, state, @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
         ANTCachedRadar *radar = [[ANTCachedRadar alloc] initWithTitle: rs[0]
-                                                             resolved: [rs boolForColumnIndex: 1]
-                                                     lastModifiedDate: [rs dateForColumnIndex: 2]
-                                                               unread: [rs boolForColumnIndex: 3]];
+                                                    requiresAttention: [rs boolForColumnIndex: 1]
+                                                             resolved: [rs boolForColumnIndex: 2]
+                                                     lastModifiedDate: [rs dateForColumnIndex: 3]
+                                                               unread: [rs boolForColumnIndex: 4]];
         [results addObject: radar];
         
     }];
@@ -238,11 +303,13 @@
     NSMutableArray *results = [NSMutableArray array];
     NSError *dbError;
     BOOL dbFailed;
-    dbFailed = [[db executeQueryAndReturnError: &dbError statement: @"SELECT title, resolved, modified_date, (modified_date > last_read_date) FROM radar WHERE last_modified > ? AND open_radar = ?", dateSince, @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
+    NSString *query = @"SELECT title, requires_attention, resolved, modified_date, (modified_date > last_read_date) FROM radar WHERE last_modified > ? AND open_radar = ?";
+    dbFailed = [[db executeQueryAndReturnError: &dbError statement: query, dateSince, @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
         ANTCachedRadar *radar = [[ANTCachedRadar alloc] initWithTitle: rs[0]
-                                                             resolved: [rs boolForColumnIndex: 1]
-                                                     lastModifiedDate: [rs dateForColumnIndex: 2]
-                                                               unread: [rs boolForColumnIndex: 3]];
+                                                    requiresAttention: [rs boolForColumnIndex: 1]
+                                                             resolved: [rs boolForColumnIndex: 2]
+                                                     lastModifiedDate: [rs dateForColumnIndex: 3]
+                                                               unread: [rs boolForColumnIndex: 4]];
         [results addObject: radar];
         
     }];
@@ -292,6 +359,9 @@
         /* The radars seen during this synchronization cycle, and the remaining number of summaries to process. Access to these values is synchronized via our serialContext. */
         NSMutableArray *radarsSeen = [NSMutableArray array];
         __block NSUInteger remainingItems = [summaries count];
+        
+        /* Maps state names to sets of radar numbers; used to collect all the updated radars for later notification dispatches. Access is synchronized via our serialContext. */
+        NSMutableDictionary *notificationData = [NSMutableDictionary dictionary];
 
         /* Iterate over the summary data, fetching and caching the Radar contents. */
         for (ANTRadarSummaryResponse *summaryResponse in summaries) {
@@ -347,7 +417,7 @@
                 __block NSError *txError = nil;
                 BOOL txSuccess = [db performTransactionWithRetryBlock: ^PLDatabaseTransactionResult {
                     /* Find any existing radar */
-                    NSString *query = @"SELECT originator, title, originated_date, modified_date, resolved, state, component FROM radar WHERE open_radar = 0 AND radar_number = ?";
+                    NSString *query = @"SELECT originator, title, originated_date, modified_date, requires_attention, resolved, state, component FROM radar WHERE open_radar = 0 AND radar_number = ?";
                     __block BOOL dirty = NO;
                     __block BOOL found = NO;
                     __block NSString *originatorName = nil;
@@ -374,9 +444,10 @@
                         CHECK_STALE(rs[1], radarResponse.title);
                         CHECK_STALE(rs[2], summaryResponse.originatedDate);
                         CHECK_STALE(rs[3], radarResponse.lastModifiedDate);
-                        CHECK_STALE(rs[4], ((NSNumber *) @(radarResponse.isResolved)));
-                        CHECK_STALE(rs[5], summaryResponse.stateName);
-                        CHECK_STALE(rs[6], summaryResponse.componentName);
+                        CHECK_STALE(rs[4], ((NSNumber *) @(summaryResponse.requiresAttention)));
+                        CHECK_STALE(rs[5], ((NSNumber *) @(radarResponse.isResolved)));
+                        CHECK_STALE(rs[6], summaryResponse.stateName);
+                        CHECK_STALE(rs[7], summaryResponse.componentName);
 
                         #undef CHECK_STALE
                     }]) {
@@ -386,12 +457,13 @@
                     
                     /* INSERT or UPDATE */
                     if (found && dirty) {
-                        NSString *query = @"UPDATE radar SET title = ?, originator = ?, originated_date = ?, modified_date = ?, resolved = ?, state = ?, component = ? WHERE radar_number = ? AND open_radar = 0";
+                        NSString *query = @"UPDATE radar SET title = ?, originator = ?, originated_date = ?, modified_date = ?, requires_attention = ?, resolved = ?, state = ?, component = ? WHERE radar_number = ? AND open_radar = 0";
                         if (![db executeUpdateAndReturnError: &txError statement: query,
                               radarResponse.title,
                               originatorName,
                               summaryResponse.originatedDate,
                               radarResponse.lastModifiedDate,
+                              @(summaryResponse.requiresAttention),
                               @(radarResponse.isResolved),
                               summaryResponse.stateName,
                               summaryResponse.componentName,
@@ -400,19 +472,28 @@
                             return PLDatabaseTransactionRollback;
                         }
                     } else if (!found) {
-                        NSString *query = @"INSERT INTO radar (radar_number, title, originator, originated_date, modified_date, resolved, state, component, open_radar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)";
+                        NSString *query = @"INSERT INTO radar (radar_number, title, originator, originated_date, modified_date, requires_attention, resolved, state, component, open_radar) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 0)";
                         if (![db executeUpdateAndReturnError: &txError statement: query,
                               summaryResponse.radarId,
                               radarResponse.title,
                               originatorName,
                               summaryResponse.originatedDate,
                               radarResponse.lastModifiedDate,
+                              @(summaryResponse.requiresAttention),
                               @(radarResponse.isResolved),
                               summaryResponse.stateName,
                               summaryResponse.componentName])
                         {
                             return PLDatabaseTransactionRollback;
                         }
+                    }
+                    
+                    /* Add to the notification set */
+                    if ((found && dirty) || !found) {
+                        if (notificationData[summaryResponse.stateName] == nil)
+                            notificationData[summaryResponse.stateName] = [NSMutableSet set];
+                        
+                        [notificationData[summaryResponse.stateName] addObject: summaryResponse.radarId];
                     }
                     
                     /* If this is the last lookup, clean up any Radars that were not seen during synchronization */
@@ -472,10 +553,17 @@
                 }
                 
                 /* Check for completion */
-                if (remainingItems == 0)
-                    PerformMultiCompletion(nil);
+                if (remainingItems == 0) {
+                    /* Notify observers */
+                    for (NSString *stateName in notificationData) {
+                        [_observers enumerateObserversRespondingToSelector: @selector(radarCache:didUpdateCachedRadarsWithIds:withState:) block:^(id observer) {
+                            [(id<ANTLocalRadarCacheObserver>)observer radarCache: self didUpdateCachedRadarsWithIds: notificationData[stateName] withState: stateName];
+                        }];
+                    }
 
-                
+                    PerformMultiCompletion(nil);
+                }
+
                 return;
             }];
         }

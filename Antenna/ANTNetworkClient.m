@@ -457,6 +457,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
             GetValue(hidden,            NSNumber,   issue[@"hide"]);
             GetValue(description,       NSString,   issue[@"problemDescription"]);
             GetValue(origDateString,    NSString,   issue[@"whenOriginatedDate"]);
+            GetValue(requiresAttention,    NSNumber,   issue[@"showHighlighted"]);
             
             /* The component name seems to be excluded on archived bug reports; in the case where it's missing,
              * provide a blank value. */
@@ -489,6 +490,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
                                                                   stateName: stateName
                                                                       title: title
                                                               componentName: componentName
+                                                          requiresAttention: [requiresAttention boolValue]
                                                                      hidden: [hidden boolValue]
                                                                 description: description
                                                              originatedDate: origDate];
