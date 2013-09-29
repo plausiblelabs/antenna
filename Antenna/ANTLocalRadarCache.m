@@ -548,7 +548,6 @@
                 
                 /* Report any query errors; this should never happen. */
                 if (txError != nil) {
-                    NSLog(@"TX ERROR");
                     NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
                                                           code: ANTErrorStorageFailure
                                           localizedDescription: NSLocalizedString(@"Could not update the radar cache.", nil)
