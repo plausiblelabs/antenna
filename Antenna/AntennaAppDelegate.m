@@ -202,7 +202,7 @@
 // property getter
 - (ANTRadarsWindowController *) radarsWindowController {
     if (_radarsWindowController == nil)
-        _radarsWindowController = [[ANTRadarsWindowController alloc] initWithClient: _networkClient];
+        _radarsWindowController = [[ANTRadarsWindowController alloc] initWithClient: _networkClient cache: _radarCache];
     return _radarsWindowController;
 }
 

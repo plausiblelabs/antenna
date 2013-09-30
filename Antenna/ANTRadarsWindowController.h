@@ -29,9 +29,10 @@
 #import <Cocoa/Cocoa.h>
 
 #import "ANTNetworkClient.h"
+#import "ANTLocalRadarCache.h"
 
 @interface ANTRadarsWindowController : NSWindowController
 
-- (id) initWithClient: (ANTNetworkClient *) client;
+- (id) initWithClient: (ANTNetworkClient *) client cache: (ANTLocalRadarCache *) cache;
 
 @end

@@ -46,6 +46,9 @@
 @private
     /** Backing network client */
     ANTNetworkClient *_client;
+    
+    /** Local radar cache */
+    ANTLocalRadarCache *_cache;
 
     /** Left-side source tree */
     __weak IBOutlet PXSourceList *_sourceList;
@@ -73,12 +76,14 @@
  * Initialize a new ANTRadarsWindowController instance.
  *
  * @param client The backing network Radar client.
+ * @param cache The local radar cache.
  */
-- (id) initWithClient: (ANTNetworkClient *) client {
+- (id) initWithClient: (ANTNetworkClient *) client cache: (ANTLocalRadarCache *) cache {
     if ((self = [super initWithWindowNibName: [self className] owner: self]) == nil)
         return nil;
     
     _client = client;
+    _cache = cache;
     _queue = dispatch_queue_create([[self className] UTF8String], DISPATCH_QUEUE_SERIAL);
     
     NSImage *folderIcon = [NSImage imageNamed: NSImageNameFolder];
