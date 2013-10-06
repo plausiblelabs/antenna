@@ -38,11 +38,13 @@
 /**
  * Initialize a new instance with the given CSRF token.
  *
+ * @param cookieJar Cookie storage containing all cookies set by the server.
  * @param csrfToken The CSRF token provided by the server.
  */
-- (instancetype) initWithCSRFToken: (NSString *) csrfToken {
+- (instancetype) initWithCookieJar: (ANTCookieJar *) cookieJar csrfToken: (NSString *) csrfToken {
     PLSuperInit();
-    
+
+    _cookieJar = cookieJar;
     _csrfToken = csrfToken;
     
     return self;

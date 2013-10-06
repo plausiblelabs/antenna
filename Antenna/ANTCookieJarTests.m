@@ -48,13 +48,47 @@
     XCTAssertNotNil(cookie, @"Failed to instantiate a cookie");
     [jar setCookie: cookie];
 
-    XCTAssertNotNil([jar cookiesForURL: [NSURL URLWithString: @"https://example.org/path"]], @"Cookie not found");
+    XCTAssertEqual([[jar cookiesForURL: [NSURL URLWithString: @"https://example.org/path"]] count], (NSUInteger) 1, @"Cookie not found");
     
     /* Test deletion */
     [jar deleteCookie: cookie];
     XCTAssertEqual([[jar cookiesForURL: [NSURL URLWithString: @"https://example.org/path"]] count], (NSUInteger) 0, @"Cookie not deleted");
 }
 
+- (void) testCopy {
+    /* Test set */
+    ANTCookieJar *jar = [ANTCookieJar new];
+    NSHTTPCookie *cookie = [NSHTTPCookie cookieWithProperties: @{
+                                                                 NSHTTPCookieDomain : @".example.org",
+                                                                 NSHTTPCookieSecure : @(YES),
+                                                                 NSHTTPCookieName : @"peanut",
+                                                                 NSHTTPCookiePath : @"/",
+                                                                 NSHTTPCookieValue : @"val"
+                                                                 }];
+    XCTAssertNotNil(cookie, @"Failed to instantiate a cookie");
+    [jar setCookie: cookie];
+
+    ANTCookieJar *copy = [jar mutableCopy];
+    
+    XCTAssertEqual([[jar cookiesForURL: [NSURL URLWithString: @"https://example.org"]] count], (NSUInteger) 1, @"Cookie not found");
+    XCTAssertEqual([[copy cookiesForURL: [NSURL URLWithString: @"https://example.org"]] count], (NSUInteger) 1, @"Cookie not found");
+}
+
+- (void) testNonHTTP {
+    ANTCookieJar *jar = [ANTCookieJar new];
+    NSHTTPCookie *cookie = [NSHTTPCookie cookieWithProperties: @{
+        NSHTTPCookieDomain : @".example.org",
+        NSHTTPCookieSecure : @(YES),
+        NSHTTPCookieName : @"peanut",
+        NSHTTPCookiePath : @"/",
+        NSHTTPCookieValue : @"val"
+    }];
+    XCTAssertNotNil(cookie, @"Failed to instantiate a cookie");
+    [jar setCookie: cookie];
+    
+    XCTAssertEqual([[jar cookiesForURL: [NSURL URLWithString: @"https://example.org"]] count], (NSUInteger) 1, @"Cookie not found");
+    XCTAssertEqual([[jar cookiesForURL: [NSURL URLWithString: @"x-wat-protocol://example.org"]] count], (NSUInteger) 0, @"Cookie not found");
+}
 
 - (void) testCookiesForURL {
     ANTCookieJar *jar = [ANTCookieJar new];
@@ -129,8 +163,14 @@
         NSHTTPCookieValue : @"value",
         NSHTTPCookieExpires : [NSDate distantPast]
     }]];
+    [jar setCookie: [NSHTTPCookie cookieWithProperties: @{
+        NSHTTPCookieDomain : @".example.org",
+        NSHTTPCookieName : @"non-expired",
+        NSHTTPCookiePath : @"/",
+        NSHTTPCookieValue : @"value",
+    }]];
     cookies = CookiesForURL(@"http://www.example.org/");
-    XCTAssertEqual([cookies count], (NSUInteger) 0, @"Incorrect number of cookies returned");
+    XCTAssertEqual([cookies count], (NSUInteger) 1, @"Incorrect number of cookies returned");
     [jar deleteAllCookies];
 }
 

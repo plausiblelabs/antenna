@@ -75,16 +75,16 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
 
     /** The authentication result, if available. Nil if authentication has not completed or has been invalidated. */
     ANTNetworkClientAuthResult *_authResult;
+    
+    /** The backing cookie storage, copied from the authResult. Nil if authentication has not completed or has been invalidated. */
+    ANTCookieJar *_cookieJar;
 
-    /** Date formatter to use for report dates (DD-MON-YYYY HH:mm), assuming local time zone. */
+    /** Date formatter to use for report dates (DD-MON-YYYY HH:mm), assuming GMT. */
     NSDateFormatter *_dateFormatter;
     
-    /** Date formatter to use for report dates (DD-MON-YYYY HH:mm:ss), assuming local time zone. */
+    /** Date formatter to use for report dates (DD-MON-YYYY HH:mm:ss), assuming GMT. */
     NSDateFormatter *_dateFormatterSeconds;
 
-    /** Date formatter to use for report dates (DD-MON-YYYY HH:mm:ss), assuming GMT. */
-    NSDateFormatter *_gmtDateFormatter;
-    
     /** (Concurrent) context on which to handle all parsing */
     id<PLDispatchContext> _parseContext;
 
@@ -121,28 +121,11 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     _dateFormatter = [[NSDateFormatter alloc] init];
     [_dateFormatter setDateFormat:@"dd-MMM-yyyy HH:mm"];
     [_dateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"]];
-    
-    /* Note that Radar Web seems to query the (in our case, embedded) browser for
-     * time zone information, and then uses this to return local times to the client.
-     * 
-     * If our local time zone changes after login, a +localTimeZone date formatter will
-     * be incorrect (it automatically updates to the current time zone). However,
-     * if we pass in a +defaultTimezone (which does not update), then future
-     * logins/logouts will use the incorrect time zone.
-     *
-     * TODO: We should modify our embedded login web view to report a GMT timezone, such
-     * that we can rely on the returned times always being correct.
-     */
-    [_dateFormatter setTimeZone: [NSTimeZone localTimeZone]];
+    [_dateFormatter setTimeZone: [NSTimeZone timeZoneForSecondsFromGMT: 0]];
+
     
     _dateFormatterSeconds = [_dateFormatter copy];
     [_dateFormatterSeconds setDateFormat:@"dd-MMM-yyyy HH:mm:ss"];
-
-    /* Formatter for 'gmtDate' fields */
-    _gmtDateFormatter = [[NSDateFormatter alloc] init];
-    [_gmtDateFormatter setDateFormat:@"dd-MMM-yyyy HH:mm:ss"];
-    [_gmtDateFormatter setLocale: [[NSLocale alloc] initWithLocaleIdentifier:@"en_US"]];
-    [_gmtDateFormatter setTimeZone: [NSTimeZone timeZoneForSecondsFromGMT: 0]];
 
     _parseContext = [[PLGCDDispatchContext alloc] initWithQueue: PL_DEFAULT_QUEUE];
     _opQueue = [NSOperationQueue new];
@@ -219,7 +202,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
         #define GetValue(_varname, _type, _source) \
             _type *_varname = Check([_type ma_castRequiredObject: _source]); \
             if (_varname == nil) { \
-                NSLog(@"Missing required var " # _source " in %@", jsonDict); \
+                NSLog(@"Missing required var " # _source " for radarId %@ in %@", radarId, jsonDict); \
                 return; \
             }
         
@@ -256,7 +239,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
             GetValue(gmtDateString,     NSString,       commentDict[@"gmtTime"]);
             
             /* Format the date */
-            NSDate *timestamp = [_gmtDateFormatter dateFromString: gmtDateString];
+            NSDate *timestamp = [_dateFormatter dateFromString: gmtDateString];
             if (timestamp == nil) {
                 NSLog(@"Could not format date: %@", gmtDateString);
                 NSError *parseError = [NSError pl_errorWithDomain: ANTErrorDomain
@@ -506,6 +489,30 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
 }
 
 /**
+ * @internal
+ *
+ * Add cookies required by the webapp to our internal cookie jar.
+ */
+- (void) injectRequiredCookies {
+    NSAssert(_cookieJar != nil, @"No cookie jar is available");
+    
+    /*
+     * Radar Web seems to query the (in our case, embedded) browser for
+     * time zone information, and then uses this to return local times to the client.
+     *
+     * We manually set the GMT offset cookie here, which should result in all dates being
+     * returned in GMT.
+     */
+    [_cookieJar setCookie: [NSHTTPCookie cookieWithProperties: @{
+        NSHTTPCookieOriginURL : [ANTNetworkClient bugReporterURL],
+        NSHTTPCookieName : @"clientTimeOffsetCookie",
+        NSHTTPCookieValue : @"0",
+        NSHTTPCookieSecure : @"TRUE",
+        NSHTTPCookiePath : @"/",
+    }]];
+}
+
+/**
  * Issue a login request.
  *
  * @param account The account details, or nil to request that account details be supplied by the authentication
@@ -554,9 +561,14 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
                 _authState = ANTNetworkClientAuthStateAuthenticated;
             } else {
                 _authState = ANTNetworkClientAuthStateLoggedOut;
+                // TODO - report error
+                NSLog(@"Failed: %@", error);
+                return;
             }
 
             _authResult = result;
+            _cookieJar = [result.cookieJar mutableCopy];
+            [self injectRequiredCookies];
         } OSSpinLockUnlock(&_lock);
 
         /* Inform the caller */
@@ -604,7 +616,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL: url];
 
     /* CSRF handling */
-    [req addValue: _authResult.csrfToken forHTTPHeaderField:@"csrftokencheck"];
+    [req addValue: _authResult.csrfToken forHTTPHeaderField: @"csrftokencheck"];
     
     /* Try to make the headers look more like the browser */
     [req setValue: [[ANTNetworkClient bugReporterURL] absoluteString] forHTTPHeaderField: @"Origin"];
@@ -614,8 +626,12 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     [req addValue: @"no-cache" forHTTPHeaderField: @"Cache-Control"];
     
     /* We need cookies for session and authentication verification done by the server */
-    [req setHTTPShouldHandleCookies: YES];
-    
+    [req setHTTPShouldHandleCookies: NO];
+    NSDictionary *cookieHeaders = [NSHTTPCookie requestHeaderFieldsWithCookies: [_cookieJar cookiesForURL: req.URL]];
+    for (NSString *name in cookieHeaders) {
+        [req addValue: cookieHeaders[name] forHTTPHeaderField: name];
+    }
+
     /* Used to track completion; allows for idempotent cancellation, as well as resolving
      * any potential A->B->A issues with cancellation of later requests. */
     __block BOOL finished = NO;
@@ -662,6 +678,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
         /* Otherwise, success! */
         OSSpinLockLock(&_lock); {
             _authResult = nil;
+            _cookieJar = nil;
             _authState = ANTNetworkClientAuthStateLoggedOut;
         } OSSpinLockUnlock(&_lock);
 
@@ -725,8 +742,12 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     [mreq addValue: @"no-cache" forHTTPHeaderField: @"Cache-Control"];
     
     /* We need cookies for session and authentication verification done by the server */
-    [mreq setHTTPShouldHandleCookies: YES];
-    
+    [mreq setHTTPShouldHandleCookies: NO];
+    NSDictionary *cookieHeaders = [NSHTTPCookie requestHeaderFieldsWithCookies: [_cookieJar cookiesForURL: mreq.URL]];
+    for (NSString *name in cookieHeaders) {
+        [mreq addValue: cookieHeaders[name] forHTTPHeaderField: name];
+    }
+
     /* Issue the request */
     [NSURLConnection pl_sendAsynchronousRequest: mreq queue: _opQueue cancelTicket: ticket completionHandler: ^(NSURLResponse *response, NSData *data, NSError *error) {
         [context performWithCancelTicket: ticket block:^{
@@ -749,6 +770,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
     /* Formulate the GET */
     NSURL *url = [NSURL URLWithString: resourcePath relativeToURL: [ANTNetworkClient bugReporterURL]];
     NSMutableURLRequest *req = [NSMutableURLRequest requestWithURL: url];
+    [req addValue: @"application/json, text/javascript, */*; q=0.01" forHTTPHeaderField: @"Accept"];
     
     /* Issue the request */
     [self sendRequest: req cancelTicket: ticket dispatchContext: [PLDirectDispatchContext context] completionHandler: ^(NSURLResponse *response, NSData *data, NSError *error) {

@@ -52,6 +52,23 @@
     return self;
 }
 
+// from NSCopying
+- (instancetype) mutableCopyWithZone: (NSZone *) zone {
+    ANTCookieJar *copy = [ANTCookieJar new];
+
+    OSSpinLockLock(&_lock); {
+        for (NSString *domain in _storage) {
+            for (NSString *path in _storage[domain]) {
+                for (NSString *name in _storage[domain][path]) {
+                    [copy setCookie: _storage[domain][path][name]];
+                }
+            }
+        }
+    } OSSpinLockUnlock(&_lock);
+    
+    return copy;
+}
+
 /**
  * Add @a aCookie to the receiver.
  *
@@ -109,13 +126,21 @@
     if ([[theURL scheme] compare: @"https" options: NSCaseInsensitiveSearch] == NSOrderedSame)
         secure = YES;
 
+    /* Only HTTP/HTTPS are supported */
+    if (![theURL.scheme isEqual: @"http"] && ![theURL.scheme isEqual: @"https"])
+        return @[];
+
     /* As per RFC 2965, we can ignore the port list attribute; cookies
      * do not provide isolation by port within a given domain. */
     NSMutableArray *results = [NSMutableArray array];
     OSSpinLockLock(&_lock); {
         for (NSString *domain in _storage) {
             /* Verify that the domain matches */
-            if (![domain isEqual: theURL.host] && !([domain hasPrefix: @"."] && [theURL.host hasSuffix: domain]))
+            NSString *urlPrefixHost = theURL.host;
+            if (![urlPrefixHost hasPrefix: @"."])
+                urlPrefixHost = [@"." stringByAppendingString: urlPrefixHost];
+            
+            if (![domain isEqual: theURL.host] && !([domain hasPrefix: @"."] && [urlPrefixHost hasSuffix: domain]))
                 continue;
             
             /* Find all matching paths */
@@ -135,7 +160,7 @@
                     NSHTTPCookie *cookie = _storage[domain][path][name];
                     
                     /* Check for expiration */
-                    if ([[cookie.expiresDate laterDate: now] isEqual: now]) {
+                    if (cookie.expiresDate != nil && [[cookie.expiresDate laterDate: now] isEqual: now]) {
                         [expired addObject: name];
                         continue;
                     }

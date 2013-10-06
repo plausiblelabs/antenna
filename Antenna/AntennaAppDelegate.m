@@ -141,7 +141,7 @@
     [_loginWindowController close];
     _loginWindowController = nil;
 
-    ANTNetworkClientAuthResult *result = [[ANTNetworkClientAuthResult alloc] initWithCSRFToken: csrfToken];
+    ANTNetworkClientAuthResult *result = [[ANTNetworkClientAuthResult alloc] initWithCookieJar: sender.cookieJar csrfToken: csrfToken];
     
     NSArray *callbacks = _authCallbacks;
     _authCallbacks = [NSMutableArray array];

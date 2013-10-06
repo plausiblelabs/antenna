@@ -30,6 +30,7 @@
 
 #import "ANTPreferences.h"
 #import "ANTNetworkClientAccount.h"
+#import "ANTCookieJar.h"
 
 @class ANTLoginWindowController;
 
@@ -52,6 +53,9 @@
 - (id) initWithAccount: (ANTNetworkClientAccount *) account preferences: (ANTPreferences *) preferences;
 
 - (void) start;
+
+/** The cookie jar used for the internally managed web view. */
+@property(nonatomic, readonly) ANTCookieJar *cookieJar;
 
 /** Login window controller delegate */
 @property(weak, nonatomic) id<LoginWindowControllerDelegate> delegate;

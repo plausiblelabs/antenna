@@ -27,10 +27,14 @@
  */
 
 #import <Foundation/Foundation.h>
+#import "ANTCookieJar.h"
 
 @interface ANTNetworkClientAuthResult : NSObject
 
-- (instancetype) initWithCSRFToken: (NSString *) csrfToken;
+- (instancetype) initWithCookieJar: (ANTCookieJar *) cookieJar csrfToken: (NSString *) csrfToken;
+
+/** Cookie storage containing all cookies set by the server. */
+@property(nonatomic, readonly) ANTCookieJar *cookieJar;
 
 /** The CSRF token provided by the server. */
 @property(nonatomic, readonly) NSString *csrfToken;

@@ -28,7 +28,7 @@
 
 #import <Foundation/Foundation.h>
 
-@interface ANTCookieJar : NSObject
+@interface ANTCookieJar : NSObject <NSMutableCopying>
 
 - (void) setCookie: (NSHTTPCookie *) aCookie;
 - (void) deleteCookie: (NSHTTPCookie *) aCookie;

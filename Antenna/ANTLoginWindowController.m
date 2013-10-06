@@ -29,6 +29,7 @@
 #import "ANTLoginWindowController.h"
 
 #import "ANTNetworkClient.h"
+#import "ANTCookieJar.h"
 
 #import "NSObject+MAErrorReporting.h"
 
@@ -90,6 +91,7 @@
     
     _account = account;
     _preferences = preferences;
+    _cookieJar = [ANTCookieJar new];
 
     return self;
 }
@@ -133,17 +135,46 @@
 }
 
 // from WebResourceLoadDelegate protocol
+- (NSURLRequest *) webView:(WebView *)sender resource:(id)identifier willSendRequest:(NSURLRequest *)request redirectResponse:(NSURLResponse *)redirectResponse fromDataSource:(WebDataSource *)dataSource {
+    /* Configure a replacement */
+    NSMutableURLRequest *replacement = [request mutableCopy];
+    [replacement setHTTPShouldHandleCookies: NO];
+    
+    /* Extract and save all cookies from the redirect response, if any. */
+    if (redirectResponse != nil && [redirectResponse isKindOfClass: [NSHTTPURLResponse class]]) {
+        NSHTTPURLResponse *httpRedirectResponse = (NSHTTPURLResponse *) redirectResponse;
+
+        NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields: [httpRedirectResponse allHeaderFields] forURL: [httpRedirectResponse URL]];
+        for (NSHTTPCookie *cookie in cookies)
+            [_cookieJar setCookie: cookie];
+    }
+
+    /* Insert our cookies */
+    NSArray *cookies = [_cookieJar cookiesForURL: [request URL]];
+    NSDictionary *fields = [NSHTTPCookie requestHeaderFieldsWithCookies: cookies];
+    for (NSString *name in fields)
+        [replacement addValue: fields[name] forHTTPHeaderField: name];
+
+    return replacement;
+}
+
+// from WebResourceLoadDelegate protocol
 - (void) webView: (WebView *) sender resource: (id) identifier didReceiveResponse: (NSURLResponse *) response fromDataSource: (WebDataSource *) dataSource {
+    if (![response isKindOfClass: [NSHTTPURLResponse class]])
+        return;
+    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *) response;
+
+    /* Extract and save all cookies */
+    NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields: [httpResponse allHeaderFields] forURL: [response URL]];
+    for (NSHTTPCookie *cookie in cookies)
+        [_cookieJar setCookie: cookie];
+
+    /* Skip response handling if we've already logged in, or if we haven't yet attempted to log in */
     if (_loginDone)
         return;
     
     if (!_didAttemptAutoLogin)
         return;
-
-    if (![response isKindOfClass: [NSHTTPURLResponse class]])
-        return;
-
-    NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *) response;
 
     /* Response must be a 200 (non-redirect) */
     if ([httpResponse statusCode] != 200)
@@ -172,6 +203,8 @@
                           localizedFailureReason: NSLocalizedString(@"The web interface returned an unexpected page", nil)
                                  underlyingError: nil
                                         userInfo: nil];
+    
+    _loginNotifyDone = YES;
     [_delegate loginWindowController: self didFailWithError: error];
 }
 

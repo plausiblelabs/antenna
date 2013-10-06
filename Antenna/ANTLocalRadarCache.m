@@ -362,12 +362,12 @@
         NSMutableSet *radarsDeleted = [NSMutableSet set];
         __block NSUInteger remainingItems = [summaries count];
         
+        /* The requests are all dispatched concurrently; we use an internal cancellation ticket to support cancelling all of our requests should
+         * one of our requests fail */
+        PLCancelTicketSource *multiRequestCancellation = [[PLCancelTicketSource alloc] initWithLinkedTickets: [NSSet setWithObjects: ticket, nil]];
+        
         /* Iterate over the summary data, fetching and caching the Radar contents. */
         for (ANTRadarSummaryResponse *summaryResponse in summaries) {
-            /* The requests are all dispatched concurrently; we use an internal cancellation ticket to support cancelling all of our requests should
-             * one of our requests fail */
-            PLCancelTicketSource *multiRequestCancellation = [[PLCancelTicketSource alloc] initWithLinkedTickets: [NSSet setWithObjects: ticket, nil]];
-
             /* Fetch the radar details for each radar summary and insert into the backing database. We maintain serialization through the use of a shared serial context*/
             [_client requestRadarWithId: summaryResponse.radarId cancelTicket: multiRequestCancellation.ticket dispatchContext: serialContext completionHandler: ^(ANTRadarResponse *radarResponse, NSError *error) {
                 PLSqliteDatabase *db;
@@ -386,7 +386,7 @@
                     [serialContext performWithCancelTicket: multiRequestCancellation.ticket block: ^{
                         /* Cancel all other requests, assuming any are still active */
                         [multiRequestCancellation cancel];
-                        
+
                         /* Issue the callback in the expected context. */
                         [context performWithCancelTicket: ticket block:^{
                             completionBlock(error);
