@@ -10,7 +10,6 @@
 		0510F8B417ED48120050AF5E /* ANTCachedRadar.m in Sources */ = {isa = PBXBuildFile; fileRef = 0510F8B317ED48120050AF5E /* ANTCachedRadar.m */; };
 		054F27CD17EB5AFD00CADC47 /* ANTDatabaseMigrationBuilderTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9D39B17EB558800A6C3A4 /* ANTDatabaseMigrationBuilderTests.m */; };
 		054F27CE17EB5B0100CADC47 /* PLFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
-		054F27CF17EB757E00CADC47 /* PlausibleDatabase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D38D17EB4EF400A6C3A4 /* PlausibleDatabase.framework */; };
 		054F27D217EBC75700CADC47 /* ANTRadarResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 054F27D117EBC75700CADC47 /* ANTRadarResponse.m */; };
 		0562055817D9A453009795FD /* ANTPreferencesWindowController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0562055717D9A453009795FD /* ANTPreferencesWindowController.xib */; };
 		0562055B17DAAC9C009795FD /* ANTPreferencesAccountCellView.m in Sources */ = {isa = PBXBuildFile; fileRef = 0562055A17DAAC9C009795FD /* ANTPreferencesAccountCellView.m */; };
@@ -24,6 +23,9 @@
 		05987EB517EA43AB006A4B8C /* ANTRadarsWindowItemHeader.m in Sources */ = {isa = PBXBuildFile; fileRef = 05987EB417EA43AB006A4B8C /* ANTRadarsWindowItemHeader.m */; };
 		05987EB817EA44AB006A4B8C /* ANTRadarsWindowItemFolder.m in Sources */ = {isa = PBXBuildFile; fileRef = 05987EB717EA44AB006A4B8C /* ANTRadarsWindowItemFolder.m */; };
 		05BB3E0D17F73C2700F464E9 /* ANTRadarSummariesResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 05BB3E0C17F73C2700F464E9 /* ANTRadarSummariesResponse.m */; };
+		05BB3E1217F9234F00F464E9 /* ANTCookieJar.m in Sources */ = {isa = PBXBuildFile; fileRef = 05BB3E1117F9234F00F464E9 /* ANTCookieJar.m */; };
+		05BB3E1417F9244A00F464E9 /* ANTCookieJarTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 05BB3E1317F9244A00F464E9 /* ANTCookieJarTests.m */; };
+		05BB3E1517F925D700F464E9 /* PlausibleDatabase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C9D38D17EB4EF400A6C3A4 /* PlausibleDatabase.framework */; };
 		05C84A3017D54D1B006EFB7D /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05C84A2F17D54D1B006EFB7D /* Security.framework */; };
 		05C84A3517D55861006EFB7D /* EMKeychainItem.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C84A3317D55861006EFB7D /* EMKeychainItem.m */; settings = {COMPILER_FLAGS = "-Wno-shorten-64-to-32 -fno-objc-arc"; }; };
 		05C84A3617D55861006EFB7D /* ReadMe.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 05C84A3417D55861006EFB7D /* ReadMe.rtf */; };
@@ -115,6 +117,9 @@
 		05BB3E0B17F73C2700F464E9 /* ANTRadarSummariesResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarSummariesResponse.h; sourceTree = "<group>"; };
 		05BB3E0C17F73C2700F464E9 /* ANTRadarSummariesResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarSummariesResponse.m; sourceTree = "<group>"; };
 		05BB3E0E17F7AB1E00F464E9 /* ANTLocalRadarCacheObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ANTLocalRadarCacheObserver.h; sourceTree = "<group>"; };
+		05BB3E1017F9234F00F464E9 /* ANTCookieJar.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTCookieJar.h; sourceTree = "<group>"; };
+		05BB3E1117F9234F00F464E9 /* ANTCookieJar.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTCookieJar.m; sourceTree = "<group>"; };
+		05BB3E1317F9244A00F464E9 /* ANTCookieJarTests.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTCookieJarTests.m; sourceTree = "<group>"; };
 		05C84A2F17D54D1B006EFB7D /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
 		05C84A3217D55861006EFB7D /* EMKeychainItem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EMKeychainItem.h; sourceTree = "<group>"; };
 		05C84A3317D55861006EFB7D /* EMKeychainItem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EMKeychainItem.m; sourceTree = "<group>"; };
@@ -193,7 +198,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				054F27CE17EB5B0100CADC47 /* PLFoundation.framework in Frameworks */,
-				054F27CF17EB757E00CADC47 /* PlausibleDatabase.framework in Frameworks */,
+				05BB3E1517F925D700F464E9 /* PlausibleDatabase.framework in Frameworks */,
 				05C9D3A617EB56BB00A6C3A4 /* XCTest.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -363,6 +368,9 @@
 				05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */,
 				054F27D017EBC75700CADC47 /* ANTRadarResponse.h */,
 				054F27D117EBC75700CADC47 /* ANTRadarResponse.m */,
+				05BB3E1017F9234F00F464E9 /* ANTCookieJar.h */,
+				05BB3E1117F9234F00F464E9 /* ANTCookieJar.m */,
+				05BB3E1317F9244A00F464E9 /* ANTCookieJarTests.m */,
 			);
 			name = "Network Client";
 			sourceTree = "<group>";
@@ -624,6 +632,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				054F27CD17EB5AFD00CADC47 /* ANTDatabaseMigrationBuilderTests.m in Sources */,
+				05BB3E1417F9244A00F464E9 /* ANTCookieJarTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -632,6 +641,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				05C9D9DF17D43DF90089603A /* main.m in Sources */,
+				05BB3E1217F9234F00F464E9 /* ANTCookieJar.m in Sources */,
 				054F27D217EBC75700CADC47 /* ANTRadarResponse.m in Sources */,
 				05C9D9E617D43DF90089603A /* AntennaAppDelegate.m in Sources */,
 				05C9DA0917D43EB00089603A /* ANTNetworkClient.m in Sources */,
@@ -727,7 +737,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 					"$(inherited)",
-					/Users/landonf/Documents/Code/Personal/Antenna/Dependencies,
+					"$(SRCROOT)/Dependencies",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AntennaTests/AntennaTests-Prefix.pch";
@@ -756,7 +766,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(DEVELOPER_FRAMEWORKS_DIR)",
 					"$(inherited)",
-					/Users/landonf/Documents/Code/Personal/Antenna/Dependencies,
+					"$(SRCROOT)/Dependencies",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "AntennaTests/AntennaTests-Prefix.pch";
