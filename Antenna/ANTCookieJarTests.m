@@ -35,6 +35,52 @@
 
 @implementation ANTCookieJarTests
 
+/**
+ * Tests both cookiesWithResponseHeaderFields:forURL: and validateCookie:forURL:
+ */
+- (void) testParseAndValidateCookie {
+    /* Try parsing a @a cookie for @a url. If 'expectedDomain' is nil, verify that the cookie is discarded; otherwise, we verify that the cookie's
+     * domain matches the provided value. */
+    void (^TestCookie)(NSString *cookie, NSString *url, NSString *expectedDomain) = ^(NSString *cookie, NSString *url, NSString *expectedDomain) {
+        NSArray *cookies = [ANTCookieJar cookiesWithResponseHeaderFields: @{ @"Set-Cookie": cookie } forURL: [NSURL URLWithString: url]];
+        if (expectedDomain == nil) {
+            XCTAssertEqual([cookies count], (NSUInteger) 0, @"No cookies should have been parsed for '%@': %@", cookie, cookies);
+            return;
+        }
+        
+        XCTAssertEqual([cookies count], (NSUInteger) 1, @"No cookies were parsed for %@@%@: %@", cookie, url, cookies);
+        if (cookies.count == 0)
+            return;
+
+        NSHTTPCookie *nscookie = [cookies objectAtIndex: 0];
+        XCTAssertEqualObjects(nscookie.domain, expectedDomain, @"The expected cookie domain was not returned for %@@%@", cookie, url);
+    };
+    
+    /* IP addresses */
+    TestCookie(@"n=v;domain=.example.org", @"http://[127.0.0.1]", @"127.0.0.1");
+    TestCookie(@"n=v;domain=.example.org", @"http://127.0.0.1", @"127.0.0.1");
+    
+    /* Exact match. Note that NSHTTPCookie inserts a '.' prefix by default. */
+    TestCookie(@"n=v;domain=www.example.org", @"http://www.example.org", @".www.example.org");
+
+    /* Domain handling */
+    TestCookie(@"n=v;domain=.example.org", @"http://www.example.org", @".example.org");
+    TestCookie(@"n=v;domain=.org", @"http://www.example.org", @"www.example.org");
+    
+    // XXX: If the ruleset is modified to remove *.uk, or parliament.uk is no longer
+    // excepted, the wildcard tests will begin to fail
+
+    /* Wildcard handling */
+    TestCookie(@"n=v;domain=.wildcard.uk", @"http://host.wildcard.uk", @"host.wildcard.uk");
+    
+    /* Wildcard exception handling */
+    TestCookie(@"n=v;domain=.parliament.uk", @"http://host.parliament.uk", @".parliament.uk");
+
+    /* Unknown TLD handling */
+    TestCookie(@"n=v;domain=.domain.invaltld", @"http://host.domain.invaltld", @"host.domain.invaltld");
+
+}
+
 - (void) testSetDeleteCookie {
     /* Test set */
     ANTCookieJar *jar = [ANTCookieJar new];

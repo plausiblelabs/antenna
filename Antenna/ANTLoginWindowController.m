@@ -144,7 +144,7 @@
     if (redirectResponse != nil && [redirectResponse isKindOfClass: [NSHTTPURLResponse class]]) {
         NSHTTPURLResponse *httpRedirectResponse = (NSHTTPURLResponse *) redirectResponse;
 
-        NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields: [httpRedirectResponse allHeaderFields] forURL: [httpRedirectResponse URL]];
+        NSArray *cookies = [ANTCookieJar cookiesWithResponseHeaderFields: [httpRedirectResponse allHeaderFields] forURL: [httpRedirectResponse URL]];
         for (NSHTTPCookie *cookie in cookies)
             [_cookieJar setCookie: cookie];
     }
@@ -165,7 +165,7 @@
     NSHTTPURLResponse *httpResponse = (NSHTTPURLResponse *) response;
 
     /* Extract and save all cookies */
-    NSArray *cookies = [NSHTTPCookie cookiesWithResponseHeaderFields: [httpResponse allHeaderFields] forURL: [response URL]];
+    NSArray *cookies = [ANTCookieJar cookiesWithResponseHeaderFields: [httpResponse allHeaderFields] forURL: [response URL]];
     for (NSHTTPCookie *cookie in cookies)
         [_cookieJar setCookie: cookie];
 

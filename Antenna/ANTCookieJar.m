@@ -29,6 +29,19 @@
 #import "ANTCookieJar.h"
 #import <PLFoundation/PLFoundation.h>
 
+#import "ANTEffectiveTLDNames.c"
+
+typedef enum {
+    /** A standard TLD rule */
+    TLDRuleTypeStandard = 0,
+    
+    /** A wildcard rule; everything *underneath* this rule is a TLD */
+    TLDRuleTypeWildcard = 1,
+    
+    /** Exception rule; overrides a wildcard rule */
+    TLDRuleTypeException = 2
+} TLDRuleType;
+
 /**
  * Provides a thread-safe, non-singleton replacement for NSHTTPCookieStorage.
  */
@@ -38,6 +51,163 @@
 
     /** Cookie storage. Maps (domain -> path -> cookie name -> NSHTTPCookie). */
     NSMutableDictionary *_storage;
+}
+
+/**
+ * Validate a cookie returned by the resource at @a theURL, rewriting the cookie's domain
+ * if it references a TLD, or otherwise fails to conform to cookie domain rules.
+ *
+ * @param headerFields The header fields as returned from an NSHTTPURLResponse.
+ * @param theURL The URL associated with the created cookies.
+ *
+ * @warning While there are RFCs that specify cookie requirements, none of the browsers actually
+ * seem to follow them. This implementation is modeled on Chrome's CookieMonster
+ * implementation ( http://www.chromium.org/developers/design-documents/network-stack/cookiemonster ),
+ * and uses Mozilla's registry of TLDs (in a whitelist configuration) fetched from
+ * http://publicsuffix.org/list/
+ */
++ (NSHTTPCookie *) validateCookie: (NSHTTPCookie *) cookie forURL: (NSURL *) theURL {
+    /* A simple block that replaces the cookie's domain with the URL's specified domain */
+    NSHTTPCookie *(^ReplaceDomain)(void)  = ^(void) {
+        NSMutableDictionary *props = [[cookie properties] mutableCopy];
+        [props setObject: theURL.host forKey: NSHTTPCookieDomain];
+        return [NSHTTPCookie cookieWithProperties: props];
+    };
+
+    /* If the cookie domain exactly matches the URL host, there's nothing else to validate */
+    if ([cookie.domain compare: theURL.host options: NSCaseInsensitiveSearch] == NSOrderedSame) {
+        return cookie;
+    }
+    
+    /* If the URL uses an IP address, the cookie domain must also. */
+    if ([[PLInet4Address alloc] initWithPresentationFormat: theURL.host] != nil || [[PLInet6Address alloc] initWithPresentationFormat: theURL.host]) {
+        return ReplaceDomain();
+    }
+    
+    /* If the cookie does not use a .domain host, or is not a prefix of the the URL's host, the cookie domain is invalid; the cookie
+     * will be ignored. */
+    NSString *lowercaseCookieDomain = [cookie.domain lowercaseString];
+    if (![cookie.domain hasPrefix: @"."])
+        return nil;
+    
+    if (![[@"." stringByAppendingString: [theURL.host lowercaseString]] hasSuffix: lowercaseCookieDomain])
+        return nil;
+    
+    /* If we've gotten this far, we know that the cookie is a .domain.cookie, and that it matches the URL. We now
+     * just need to search our TLD whitelist to ensure that:
+     *
+     * 1) The cookie domain is not a TLD.
+     * 2) The cookie domain is within a known TLD. This ensures fail-safe behavior in the case that new TLDs are added.
+     *
+     * First, we need to strip leading '.' characters. */
+    NSCharacterSet *periodCharSet = [NSCharacterSet characterSetWithCharactersInString: @"."];
+    
+    /* Now, we must walk the domain elements, searching for a valid TLD; if we match on the entirity of the domain,
+     * we have to reject the attempt to set a .domain.tld cookie. */
+    NSRange nextDot = NSMakeRange(0, 0);
+    NSInteger wildCardExceptionDepth = -1;
+    NSInteger domainDepth = 0;
+    while (nextDot.location != NSNotFound) {
+        /* If we've hit the end without matching on a TLD, this TLD isn't whitelisted and we have to enforce a host cookie domain */
+        if (nextDot.location == NSNotFound)
+            return ReplaceDomain();
+        
+        /* Our TLD table uses UTF-8 */
+        NSString *lookupDomain = [lowercaseCookieDomain substringFromIndex: nextDot.location+1];
+        const char *lookupDomainUTF8 = [lookupDomain UTF8String];
+        size_t lookupDomainUTF8Len = strlen(lookupDomainUTF8);
+        /* Ensure that our below cast to (unsigned int) is safe */
+        if (lookupDomainUTF8Len > UINT_MAX) {
+            /* Should never happen ... */
+            NSLog(@"Received an exceptionally long domain name, skipping cookie: %@", lookupDomain);
+            return nil;
+        }
+        
+        /* Look up the rule */
+        const struct TLDRule *rule = ANTTopLevelDomainTableLookup(lookupDomainUTF8, (unsigned int) lookupDomainUTF8Len);
+        
+        /*
+         * Evaluate the rule. A matching rule doesn't necessarily terminate iteration, as we must
+         * locate any wildcard rules for the domain
+         *
+         * Note that we have to validate the match string here, as perfect hashing refers to the items
+         * within the set, and we're evaluating arbitrary domain names.
+         */
+        if (rule != NULL && strcmp(ANTTopLevelDomainTableStringPool+rule->name, lookupDomainUTF8) == 0) {
+
+            /* Handle the rule types */
+            if (rule->type == TLDRuleTypeStandard && domainDepth == 0) {
+                /* The full domain is invalid */
+                return ReplaceDomain();
+
+            } else if (rule->type == TLDRuleTypeStandard) {
+                /* The domain has a valid TLD! */
+                return cookie;
+
+            } else if (rule->type == TLDRuleTypeException) {
+                /* The rule is excepted from a wildcard rule; we need to keep processing
+                 * rules. */
+                wildCardExceptionDepth = domainDepth;
+
+            } else if (rule->type == TLDRuleTypeWildcard && wildCardExceptionDepth != domainDepth-1) {
+                /* There's a wildcard rule, and no exception rule is in place */
+                if (domainDepth == 1) {
+                    /* The full domain is a TLD! */
+                    return ReplaceDomain();
+                } else {
+                    /* The domain has a valid TLD! */
+                    return cookie;
+                }
+
+            } else if (rule->type == TLDRuleTypeWildcard && wildCardExceptionDepth == domainDepth-1) {
+                /* The domain falls within a wildcard TLD, but has an exception rule -- it's valid! */
+                return cookie;
+
+            } else {
+                // Unreachable, unless we screwed up!
+                __builtin_trap();
+            }
+        }
+        
+        /* Find the next '.' */
+        nextDot = [lowercaseCookieDomain rangeOfCharacterFromSet: periodCharSet options: 0 range: NSMakeRange(nextDot.location+1, lowercaseCookieDomain.length - nextDot.location - 1)];
+    
+        /* Verify that our depth won't rollover. This really should *NEVER* happen ... */
+        if (domainDepth == NSIntegerMax-1) {
+            NSLog(@"The cookie domain components exceeded NSIntegerMax. That's sure some cookie!");
+            return ReplaceDomain();
+        }
+        domainDepth++;
+    };
+
+    /* If a TLD rule was not found, the domain does not have a whitelisted TLD; we must reset the cookie
+     * to be hostname-only */
+    return ReplaceDomain();
+}
+
+/**
+ * Returns an array of NSHTTPCookie objects corresponding to the provided response header fields for the provided URL.
+ * The cookies will be validated to ensure that they correctly match @a theURL. Cookies specifying an invalid host
+ * will be rewritten or discarded as necessary.
+ *
+ * @param headerFields The header fields as returned from an NSHTTPURLResponse.
+ * @param theURL The URL associated with the created cookies.
+ *
+ * @sa ANTCookieJar::validateCookie:forURL:
+ *
+ * @note Unlike NSHTTPCookie's implementation, this method will validate the returned cookies host/domain values correctly
+ * match @a theURL. Cookies specifying an invalid host will be rewritten or discarded as necessary.
+ */
++ (NSArray *) cookiesWithResponseHeaderFields: (NSDictionary *) headerFields forURL: (NSURL *) theURL {
+    NSArray *unfiltered = [NSHTTPCookie cookiesWithResponseHeaderFields: headerFields forURL: theURL];
+    NSMutableArray *results = [NSMutableArray arrayWithCapacity: unfiltered.count];
+    for (NSHTTPCookie *cookie in unfiltered) {
+        NSHTTPCookie *validated = [self validateCookie: cookie forURL: theURL];
+        if (validated != nil)
+            [results addObject: validated];
+    }
+
+    return results;
 }
 
 /**

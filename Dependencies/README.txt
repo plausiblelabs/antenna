@@ -1,3 +1,17 @@
+effective_tld_names
+    Description:
+      Mozilla's table of TLD names. These are used to perform lookups on TLD values
+      when validating HTTP cookie domains.
+
+    Version:
+      HG revision 06c405ba54b3 downloaded from http://publicsuffix.org/list/
+
+    License:
+      MPL (source list).
+
+    Modifications:
+      - None
+
 EMKeychain
     Description:
       Simple Cocoa wrapper for the keychain APIs.

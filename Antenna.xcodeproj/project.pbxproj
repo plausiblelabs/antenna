@@ -109,11 +109,16 @@
 		057D9E2717E54BCE00A0F377 /* PXSourceList.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = PXSourceList.m; sourceTree = "<group>"; };
 		057D9E2817E54BCE00A0F377 /* PXSourceListDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PXSourceListDataSource.h; sourceTree = "<group>"; };
 		057D9E2917E54BCE00A0F377 /* PXSourceListDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = PXSourceListDelegate.h; sourceTree = "<group>"; };
+		0584845E1803ABD200A56049 /* ANTEffectiveTLDNames.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; path = ANTEffectiveTLDNames.c; sourceTree = "<group>"; };
 		05987EB217EA41E3006A4B8C /* ANTRadarsWindowItemDataSource.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarsWindowItemDataSource.h; sourceTree = "<group>"; };
 		05987EB317EA43AB006A4B8C /* ANTRadarsWindowItemHeader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarsWindowItemHeader.h; sourceTree = "<group>"; };
 		05987EB417EA43AB006A4B8C /* ANTRadarsWindowItemHeader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarsWindowItemHeader.m; sourceTree = "<group>"; };
 		05987EB617EA44AB006A4B8C /* ANTRadarsWindowItemFolder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarsWindowItemFolder.h; sourceTree = "<group>"; };
 		05987EB717EA44AB006A4B8C /* ANTRadarsWindowItemFolder.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarsWindowItemFolder.m; sourceTree = "<group>"; };
+		05ACD003180249BC009B0FB9 /* Makefile */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.make; path = Makefile; sourceTree = "<group>"; };
+		05ACD00518024A28009B0FB9 /* effective_tld_names.dat */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = effective_tld_names.dat; sourceTree = "<group>"; };
+		05ACD00918024B6F009B0FB9 /* README.txt */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
+		05ACD00D18025274009B0FB9 /* process.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; path = process.py; sourceTree = "<group>"; };
 		05BB3E0B17F73C2700F464E9 /* ANTRadarSummariesResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarSummariesResponse.h; sourceTree = "<group>"; };
 		05BB3E0C17F73C2700F464E9 /* ANTRadarSummariesResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarSummariesResponse.m; sourceTree = "<group>"; };
 		05BB3E0E17F7AB1E00F464E9 /* ANTLocalRadarCacheObserver.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ANTLocalRadarCacheObserver.h; sourceTree = "<group>"; };
@@ -227,6 +232,18 @@
 				057D9E2917E54BCE00A0F377 /* PXSourceListDelegate.h */,
 			);
 			path = PXSourceList;
+			sourceTree = "<group>";
+		};
+		05ACD0021802498D009B0FB9 /* effective_tld_names */ = {
+			isa = PBXGroup;
+			children = (
+				05ACD00918024B6F009B0FB9 /* README.txt */,
+				05ACD003180249BC009B0FB9 /* Makefile */,
+				05ACD00D18025274009B0FB9 /* process.py */,
+				05ACD00518024A28009B0FB9 /* effective_tld_names.dat */,
+				0584845E1803ABD200A56049 /* ANTEffectiveTLDNames.c */,
+			);
+			path = effective_tld_names;
 			sourceTree = "<group>";
 		};
 		05C84A3117D55861006EFB7D /* EMKeychain */ = {
@@ -378,6 +395,7 @@
 		05C9DA1717D45F430089603A /* Dependencies */ = {
 			isa = PBXGroup;
 			children = (
+				05ACD0021802498D009B0FB9 /* effective_tld_names */,
 				057D9E2517E54B9C00A0F377 /* PXSourceList */,
 				05C84A3117D55861006EFB7D /* EMKeychain */,
 				05C9DA1817D45F430089603A /* MAPlistTypeChecking */,
@@ -864,6 +882,7 @@
 				INFOPLIST_FILE = "Antenna/Antenna-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/Dependencies/effective_tld_names";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Debug;
@@ -881,6 +900,7 @@
 				INFOPLIST_FILE = "Antenna/Antenna-Info.plist";
 				LD_RUNPATH_SEARCH_PATHS = "@loader_path/../Frameworks";
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				USER_HEADER_SEARCH_PATHS = "$(inherited) $(SRCROOT)/Dependencies/effective_tld_names";
 				WRAPPER_EXTENSION = app;
 			};
 			name = Release;
