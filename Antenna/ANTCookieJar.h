@@ -30,6 +30,7 @@
 
 @interface ANTCookieJar : NSObject <NSMutableCopying>
 
++ (NSHTTPCookie *) validateCookie: (NSHTTPCookie *) cookie forURL: (NSURL *) theURL;
 + (NSArray *) cookiesWithResponseHeaderFields: (NSDictionary *) headerFields forURL: (NSURL *) theURL;
 
 - (void) setCookie: (NSHTTPCookie *) aCookie;
