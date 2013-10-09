@@ -59,8 +59,7 @@ typedef void (^ANTNetworkClientAuthDelegateCallback)(ANTNetworkClientAuthResult 
  * Authenticate the user and call @a callback.
  *
  * @param sender The requesting network client.
- * @param account The account to use for authentication, or nil if the authentiation delegate is expected
- * to provide the account info.
+ * @param account The account to use for authentication.
  *
  * @param ticket The cancellation ticket for the request.
  * @param callback The block to be called upon request completion.  

@@ -515,8 +515,7 @@ NSString *ANTNetworkClientFolderTypeDrafts = @"Drafts";
 /**
  * Issue a login request.
  *
- * @param account The account details, or nil to request that account details be supplied by the authentication
- * delegate.
+ * @param account The account details to be used for authentication.
  * @param password The password to use for login.
  * @param ticket A request cancellation ticket.
  * @param callback The callback to be called upon completion.

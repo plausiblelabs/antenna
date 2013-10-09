@@ -51,8 +51,7 @@
     /** Login panel */
     __weak IBOutlet NSPanel *_loginPanel;
     
-    /** The account info to use for login, or nil if the info
-     * should be fetched automatically (eg, by displaying UI). */
+    /** The account info to use for login. */
     ANTNetworkClientAccount *_account;
 
     /** The keychain item used for the last authentication attempt, if any. This will be nil
@@ -349,40 +348,11 @@
         NSLog(@"Could not find required elements, giving up on auto-auth");
         return;
     }
-    
-    /* If an account isn't specified, first try to fetch the default authentication details from the keychain.
-     * If that fails, fall back on displaying an authentication dialog. */
-    if (_account == nil) {
-        _lastAuthKeychainItem = [_preferences appleKeychainItem];
-        NSString *accountName;
-        if (_lastAuthKeychainItem == nil) {
-            accountName = [accountElement getAttribute: @"value"];
-        } else {
-            accountName = _lastAuthKeychainItem.username;
-        }
 
-        /* Fetch the target URL */
-        NSURL *url = [NSURL URLWithString: [_webView mainFrameURL]];
-        
-        /* The scheme is validated in -findAccountElement:passwordElement:, but we double-check here */
-        NSAssert([[url scheme] isEqual: @"https"], @"Scheme must be HTTPS for kSecProtocolTypeHTTPS");
-        
-        /* Display login dialog */
-        if (accountName != nil)
-            [_loginUsernameField setStringValue: accountName];
-
-        if (_lastAuthKeychainItem != nil)
-            [_loginPasswordField setStringValue: _lastAuthKeychainItem.password];
-
-        if (_lastAuthKeychainItem == nil || _lastAuthKeychainItem.password == nil)
-            [NSApp runModalForWindow: _loginPanel];
-        else
-            [self didSubmitLoginDialog: self];
-    } else {
-        [_loginUsernameField setStringValue: _account.username];
-        [_loginPasswordField setStringValue: _account.password];
-        [self didSubmitLoginDialog: self];
-    }
+    /* Populate the form */
+    [_loginUsernameField setStringValue: _account.username];
+    [_loginPasswordField setStringValue: _account.password];
+    [self didSubmitLoginDialog: self];
 }
 
 // from NSWindowDelegate protocol

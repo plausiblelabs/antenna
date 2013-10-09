@@ -106,7 +106,12 @@
 // from NSApplicationDelegate protocol; sent after window restoration.
 - (void) applicationDidFinishLaunching: (NSNotification *) aNotification {
     /* Try to login by default */
-    [_networkClient loginWithAccount: nil cancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLGCDDispatchContext mainQueueContext] completionHandler: ^(NSError *error) {
+
+    // TODO: Multi-account support.
+    EMInternetKeychainItem *item = _preferences.appleKeychainItem;
+    ANTNetworkClientAccount *account = [[ANTNetworkClientAccount alloc] initWithUsername: item.username password: item.password];
+
+    [_networkClient loginWithAccount: account cancelTicket: [PLCancelTicketSource new].ticket dispatchContext: [PLGCDDispatchContext mainQueueContext] completionHandler: ^(NSError *error) {
         // TODO - Do we need to display an error here?
     }];
 
