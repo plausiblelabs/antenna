@@ -352,6 +352,8 @@
     [_client requestSummariesForSections: sections maximumCount: MAX_RADARS cancelTicket: ticket dispatchContext: concurrentContext completionHandler: ^(NSArray *summaries, NSError *error) {
         /* Handle network failure */
         if (error != nil) {
+            NSLog(@"A network request failure occured: %@", error);
+            // TODO: Convert to an ANTErrorDomain error
             PerformCompletion(error);
             return;
         }
