@@ -28,26 +28,23 @@
 
 #import <Foundation/Foundation.h>
 
-@class ANTLocalRadarCache;
+#import "ANTNetworkClient.h"
+#import "ANTRadarCacheEntry.h"
+#import "ANTRadarCacheObserver.h"
+#import "ANTRadarCacheDataSource.h"
 
-/**
- * Implement the ANTLocalRadarCacheObserver protocol to observe state events
- * dispatched by the ANTLocalRadarCache.
- */
-@protocol ANTLocalRadarCacheObserver <NSObject>
-@optional
+@interface ANTRadarCache : NSObject
 
-/**
- * Sent when radars with a given @a openState have been updated.
- *
- * @param cache The sending cache.
- * @param updatedRadarIds The radar ids (numbers) corresponding to the updated radars.
- * @param removedRadarIds The radar ids (numbers) corresponding to the removed radars.
- *
- * Note that the dispatched ordering of observer messages are not gauranteed; listeners should
- * not rely on the values here to provide the current Radar state, and should instead consult
- * the cache directly.
- */
-- (void) radarCache: (ANTLocalRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) updatedRadarIds didRemoveCachedRadarsWithIds: (NSSet *) removedRadarIds;
+- (instancetype) initWithClient: (ANTNetworkClient *) client path: (NSString *) path error: (NSError **) outError;
+
+- (void) performSyncWithCancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionBlock: (void(^)(NSError *error)) completionBlock;
+
+- (NSArray *) radarsWithOpenState: (BOOL) openState openRadar: (BOOL) openRadar error: (NSError **) outError;
+- (NSArray *) radarsUpdatedSince: (NSDate *) dateSince openRadar: (BOOL) openRadar error: (NSError **) outError;
+
+- (void) addObserver: (id<ANTRadarCacheObserver>) observer
+     dispatchContext: (id<PLDispatchContext>) context;
+
+- (void) removeObserver: (id<ANTNetworkClientObserver>) observer;
 
 @end

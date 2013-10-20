@@ -26,7 +26,7 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import "ANTLocalRadarCache.h"
+#import "ANTRadarCache.h"
 #import <PLFoundation/PLFoundation.h>
 #import <PlausibleDatabase/PlausibleDatabase.h>
 
@@ -37,14 +37,14 @@
 /* Maximum number of Radars to be fetched; this is admitedly a completely arbitrary sanity check. */
 #define MAX_RADARS 10000
 
-@interface ANTLocalRadarCache () <ANTNetworkClientObserver>
+@interface ANTRadarCache () <ANTNetworkClientObserver>
 
 @end
 
 /**
  * Manages a local Radar cache.
  */
-@implementation ANTLocalRadarCache {
+@implementation ANTRadarCache {
 @private
     /** Our storage directory */
     NSString *_path;
@@ -119,9 +119,17 @@
     _migrations = [ANTDatabaseMigrationBuilder new];
     _migrations.migration(1, ^(ANTDatabaseMigrationState *state) {
         state.update(
+             @"CREATE TABLE account ("
+                 "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                 "uuid TEXT UNIQUE NOT NULL"
+             ");"
+                     
+        );
+
+        state.update(
              @"CREATE TABLE radar ("
                  "id INTEGER PRIMARY KEY AUTOINCREMENT,"
-                 "open_radar INTEGER NOT NULL CHECK (open_radar == 0 OR open_radar == 1),"
+                 "account_id INTEGER REFERENCES account(uuid) ON DELETE CASCADE,"
                  "title TEXT NOT NULL,"
                  "originator TEXT,"
                  "originated_date DATETIME NOT NULL," // Originated date (as a UNIX timestamp)
@@ -132,7 +140,7 @@
                  "component TEXT NOT NULL,"
                  "radar_number INTEGER NOT NULL,"
                  "last_read_date DATETIME," // The last read comment's date (as a UNIX timestamp).
-                 "CONSTRAINT radar_unique_number UNIQUE (open_radar, radar_number)"
+                 "CONSTRAINT radar_unique_number UNIQUE (account_id, radar_number)"
              ");"
         );
         state.update(@"CREATE INDEX radar_number_idx ON radar (radar_number);");
@@ -176,7 +184,7 @@
  * @param observer The observer to add to the set. It will be weakly referenced.
  * @param context The context on which messages to @a observer will be dispatched.
  */
-- (void) addObserver: (id<ANTLocalRadarCacheObserver>) observer dispatchContext: (id<PLDispatchContext>) context {
+- (void) addObserver: (id<ANTRadarCacheObserver>) observer dispatchContext: (id<PLDispatchContext>) context {
     [_observers addObserver: observer dispatchContext: context];
 }
 
@@ -229,11 +237,11 @@
     BOOL dbFailed;
     NSString *query = @"SELECT title, resolved, requires_attention, modified_date, (modified_date > last_read_date) FROM radar WHERE resolved = ? AND open_radar = ?";
     dbFailed = [[db executeQueryAndReturnError: &dbError statement: query, @(!openState), @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
-        ANTCachedRadar *radar = [[ANTCachedRadar alloc] initWithTitle: rs[0]
-                                                    requiresAttention: [rs boolForColumnIndex: 1]
-                                                             resolved: [rs boolForColumnIndex: 2]
-                                                     lastModifiedDate: [rs dateForColumnIndex: 3]
-                                                               unread: [rs boolForColumnIndex: 4]];
+        ANTRadarCacheEntry *radar = [[ANTRadarCacheEntry alloc] initWithTitle: rs[0]
+                                                            requiresAttention: [rs boolForColumnIndex: 1]
+                                                                     resolved: [rs boolForColumnIndex: 2]
+                                                             lastModifiedDate: [rs dateForColumnIndex: 3]
+                                                                       unread: [rs boolForColumnIndex: 4]];
         [results addObject: radar];
         
     }];
@@ -267,11 +275,11 @@
     BOOL dbFailed;
     NSString *query = @"SELECT title, requires_attention, resolved, modified_date, (modified_date > last_read_date) FROM radar WHERE state = ? AND open_radar = ?";
     dbFailed = [[db executeQueryAndReturnError: &dbError statement: query, state, @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
-        ANTCachedRadar *radar = [[ANTCachedRadar alloc] initWithTitle: rs[0]
-                                                    requiresAttention: [rs boolForColumnIndex: 1]
-                                                             resolved: [rs boolForColumnIndex: 2]
-                                                     lastModifiedDate: [rs dateForColumnIndex: 3]
-                                                               unread: [rs boolForColumnIndex: 4]];
+        ANTRadarCacheEntry *radar = [[ANTRadarCacheEntry alloc] initWithTitle: rs[0]
+                                                            requiresAttention: [rs boolForColumnIndex: 1]
+                                                                     resolved: [rs boolForColumnIndex: 2]
+                                                             lastModifiedDate: [rs dateForColumnIndex: 3]
+                                                                       unread: [rs boolForColumnIndex: 4]];
         [results addObject: radar];
         
     }];
@@ -305,11 +313,11 @@
     BOOL dbFailed;
     NSString *query = @"SELECT title, requires_attention, resolved, modified_date, (modified_date > last_read_date) FROM radar WHERE last_modified > ? AND open_radar = ?";
     dbFailed = [[db executeQueryAndReturnError: &dbError statement: query, dateSince, @(openRadar)] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
-        ANTCachedRadar *radar = [[ANTCachedRadar alloc] initWithTitle: rs[0]
-                                                    requiresAttention: [rs boolForColumnIndex: 1]
-                                                             resolved: [rs boolForColumnIndex: 2]
-                                                     lastModifiedDate: [rs dateForColumnIndex: 3]
-                                                               unread: [rs boolForColumnIndex: 4]];
+        ANTRadarCacheEntry *radar = [[ANTRadarCacheEntry alloc] initWithTitle: rs[0]
+                                                            requiresAttention: [rs boolForColumnIndex: 1]
+                                                                     resolved: [rs boolForColumnIndex: 2]
+                                                             lastModifiedDate: [rs dateForColumnIndex: 3]
+                                                                       unread: [rs boolForColumnIndex: 4]];
         [results addObject: radar];
         
     }];
@@ -323,6 +331,31 @@
     }
     
     return results;
+}
+
+// XXX TODO
+- (void) syncAccountUUIDs {
+    PLSqliteDatabase *db;
+    NSError *dbError;
+
+    /* Fetch a connection from the pool */
+    if ((db = [_connectionPool getConnectionAndReturnError: &dbError]) == nil) {
+        NSError *err = [NSError pl_errorWithDomain: ANTErrorDomain
+                                              code: ANTErrorStorageFailure
+                              localizedDescription: NSLocalizedString(@"Failed to acquire a database connection.", nil)
+                            localizedFailureReason: nil
+                                   underlyingError: dbError
+                                          userInfo: nil];
+        NSLog(@"Failed: %@", err);
+        return;
+    }
+    
+    if (![[db executeQueryAndReturnError: &dbError statement: @"SELECT uuid FROM account"] enumerateAndReturnError: &dbError block:^(id<PLResultSet> rs, BOOL *stop) {
+        NSString *uuidString = rs[@"uuid"];
+        NSLog(@"UUID: %@", uuidString);
+    }]) {
+        NSLog(@"Query failed: %@", dbError);
+    }
 }
 
 /**
@@ -565,7 +598,7 @@
                     /* Notify observers */
                     [_observers enumerateObserversRespondingToSelector: @selector(radarCache:didUpdateCachedRadarsWithIds:didRemoveCachedRadarsWithIds:) block:^(id observer) {
                         if ([radarsUpdated count] > 0 || [radarsDeleted count] > 0)
-                            [(id<ANTLocalRadarCacheObserver>)observer radarCache: self didUpdateCachedRadarsWithIds: radarsUpdated didRemoveCachedRadarsWithIds: radarsDeleted];
+                            [(id<ANTRadarCacheObserver>)observer radarCache: self didUpdateCachedRadarsWithIds: radarsUpdated didRemoveCachedRadarsWithIds: radarsDeleted];
                     }];
 
                     /* Notify caller of completion */

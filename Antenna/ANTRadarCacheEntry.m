@@ -26,13 +26,32 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Cocoa/Cocoa.h>
+#import "ANTRadarCacheEntry.h"
+#import <PLFoundation/PLFoundation.h>
 
-#import "ANTNetworkClient.h"
-#import "ANTRadarCache.h"
+/**
+ * A single cached Radar, either fetched from Apple or Open Radar.
+ */
+@implementation ANTRadarCacheEntry
 
-@interface ANTRadarsWindowController : NSWindowController
+/**
+ * Initialize a new instance.
+ */
+- (instancetype) initWithTitle: (NSString *) title
+             requiresAttention: (BOOL) requiresAttention
+                      resolved: (BOOL) resolved
+              lastModifiedDate: (NSDate *) lastModifiedDate
+                        unread: (BOOL) unread
+{
+    PLSuperInit();
+    
+    _title = title;
+    _requiresAttention = requiresAttention;
+    _resolved = resolved;
+    _lastModifiedDate = lastModifiedDate;
+    _unread = unread;
 
-- (id) initWithClient: (ANTNetworkClient *) client cache: (ANTRadarCache *) cache;
+    return self;
+}
 
 @end

@@ -26,13 +26,28 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
 
-#import "ANTNetworkClient.h"
-#import "ANTRadarCache.h"
+@class ANTRadarCache;
 
-@interface ANTRadarsWindowController : NSWindowController
+/**
+ * Implement the ANTLocalRadarCacheObserver protocol to observe state events
+ * dispatched by the ANTLocalRadarCache.
+ */
+@protocol ANTRadarCacheObserver <NSObject>
+@optional
 
-- (id) initWithClient: (ANTNetworkClient *) client cache: (ANTRadarCache *) cache;
+/**
+ * Sent when radars with a given @a openState have been updated.
+ *
+ * @param cache The sending cache.
+ * @param updatedRadarIds The radar ids (numbers) corresponding to the updated radars.
+ * @param removedRadarIds The radar ids (numbers) corresponding to the removed radars.
+ *
+ * Note that the dispatched ordering of observer messages are not gauranteed; listeners should
+ * not rely on the values here to provide the current Radar state, and should instead consult
+ * the cache directly.
+ */
+- (void) radarCache: (ANTRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) updatedRadarIds didRemoveCachedRadarsWithIds: (NSSet *) removedRadarIds;
 
 @end

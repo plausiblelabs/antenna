@@ -48,7 +48,7 @@
     ANTNetworkClient *_client;
     
     /** Local radar cache */
-    ANTLocalRadarCache *_cache;
+    ANTRadarCache *_cache;
 
     /** Left-side source tree */
     __weak IBOutlet PXSourceList *_sourceList;
@@ -78,7 +78,7 @@
  * @param client The backing network Radar client.
  * @param cache The local radar cache.
  */
-- (id) initWithClient: (ANTNetworkClient *) client cache: (ANTLocalRadarCache *) cache {
+- (id) initWithClient: (ANTNetworkClient *) client cache: (ANTRadarCache *) cache {
     if ((self = [super initWithWindowNibName: [self className] owner: self]) == nil)
         return nil;
     

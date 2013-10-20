@@ -26,13 +26,31 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Cocoa/Cocoa.h>
+#import <Foundation/Foundation.h>
+#import "ANTRadarCacheAccount.h"
 
-#import "ANTNetworkClient.h"
-#import "ANTRadarCache.h"
+@class ANTRadarCache;
 
-@interface ANTRadarsWindowController : NSWindowController
+/**
+ * Implement the ANTRadarCacheDataSource to provide cachable Radar data
+ * to the ANTRadarcache.
+ */
+@protocol ANTRadarCacheDataSource <NSObject>
 
-- (id) initWithClient: (ANTNetworkClient *) client cache: (ANTRadarCache *) cache;
+/**
+ * Return all configured ANTRadarCacheAccount instances.
+ *
+ * @param cache The requesting cache instance.
+ */
+- (NSArray *) accountsForRadarCache: (ANTRadarCache *) cache;
+
+
+/**
+ * Return the network client instance to be used to synchronize @a cache for @a account.
+ *
+ * @param cache The requesting cache instance.
+ * @param account 
+ */
+- (ANTNetworkClient *) radarClientForRadarCache: (ANTRadarCache *) cache account: (ANTRadarCacheAccount *) account;
 
 @end

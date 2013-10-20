@@ -26,29 +26,27 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import <Foundation/Foundation.h>
+#import "ANTRadarCacheAccount.h"
+#import <PLFoundation/PLFoundation.h>
 
-@interface ANTCachedRadar : NSObject
+/**
+ * Uniquely identifies a locally cached Apple or Open Radar account.
+ */
+@implementation ANTRadarCacheAccount
 
-- (instancetype) initWithTitle: (NSString *) title
-             requiresAttention: (BOOL) requiresAttention
-                      resolved: (BOOL) resolved
-              lastModifiedDate: (NSDate *) lastModifiedDate
-                        unread: (BOOL) unread;
+/**
+ * Initialize a new instance.
+ *
+ * @param uuid The locally assigned UUID for this account.
+ * @param type The account type.
+ */
+- (instancetype) initWithAccountUUID: (NSUUID *) uuid type: (ANTCachedRadarAccountType) type {
+    PLSuperInit();
+    
+    _uuid = uuid;
+    _type = type;
 
-/** The issue title */
-@property(nonatomic, readonly) NSString *title;
-
-/** YES if the Radar is marked as requiring a user response, NO otherwise. */
-@property(nonatomic, readonly) BOOL requiresAttention;
-
-/** YES if the Radar is marked as resolved, NO otherwise */
-@property(nonatomic, readonly, getter=isResolved) BOOL resolved;
-
-/** The time at which this Radar was last modified. */
-@property(nonatomic, readonly) NSDate *lastModifiedDate;
-
-/** YES if this Radar is marked as unread, NO otherwise. */
-@property(nonatomic, readonly) BOOL unread;
+    return self;
+}
 
 @end

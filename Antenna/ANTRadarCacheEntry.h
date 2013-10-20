@@ -28,22 +28,27 @@
 
 #import <Foundation/Foundation.h>
 
-#import "ANTNetworkClient.h"
-#import "ANTCachedRadar.h"
-#import "ANTLocalRadarCacheObserver.h"
+@interface ANTRadarCacheEntry : NSObject
 
-@interface ANTLocalRadarCache : NSObject
+- (instancetype) initWithTitle: (NSString *) title
+             requiresAttention: (BOOL) requiresAttention
+                      resolved: (BOOL) resolved
+              lastModifiedDate: (NSDate *) lastModifiedDate
+                        unread: (BOOL) unread;
 
-- (instancetype) initWithClient: (ANTNetworkClient *) client path: (NSString *) path error: (NSError **) outError;
+/** The issue title */
+@property(nonatomic, readonly) NSString *title;
 
-- (void) performSyncWithCancelTicket: (PLCancelTicket *) ticket dispatchContext: (id<PLDispatchContext>) context completionBlock: (void(^)(NSError *error)) completionBlock;
+/** YES if the Radar is marked as requiring a user response, NO otherwise. */
+@property(nonatomic, readonly) BOOL requiresAttention;
 
-- (NSArray *) radarsWithOpenState: (BOOL) openState openRadar: (BOOL) openRadar error: (NSError **) outError;
-- (NSArray *) radarsUpdatedSince: (NSDate *) dateSince openRadar: (BOOL) openRadar error: (NSError **) outError;
+/** YES if the Radar is marked as resolved, NO otherwise */
+@property(nonatomic, readonly, getter=isResolved) BOOL resolved;
 
-- (void) addObserver: (id<ANTLocalRadarCacheObserver>) observer
-     dispatchContext: (id<PLDispatchContext>) context;
+/** The time at which this Radar was last modified. */
+@property(nonatomic, readonly) NSDate *lastModifiedDate;
 
-- (void) removeObserver: (id<ANTNetworkClientObserver>) observer;
+/** YES if this Radar is marked as unread, NO otherwise. */
+@property(nonatomic, readonly) BOOL unread;
 
 @end

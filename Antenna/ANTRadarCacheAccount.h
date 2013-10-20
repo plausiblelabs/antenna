@@ -26,32 +26,26 @@
  * OTHER DEALINGS IN THE SOFTWARE.
  */
 
-#import "ANTCachedRadar.h"
-#import <PLFoundation/PLFoundation.h>
+#import <Foundation/Foundation.h>
 
-/**
- * A single cached Radar, either fetched from Apple or Open Radar.
- */
-@implementation ANTCachedRadar
 
-/**
- * Initialize a new instance.
- */
-- (instancetype) initWithTitle: (NSString *) title
-             requiresAttention: (BOOL) requiresAttention
-                      resolved: (BOOL) resolved
-              lastModifiedDate: (NSDate *) lastModifiedDate
-                        unread: (BOOL) unread
-{
-    PLSuperInit();
+typedef NS_ENUM(NSUInteger, ANTCachedRadarAccountType) {
+    /** An Apple Radar account. */
+    ANTCachedRadarAccountTypeAppleRadar = 1,
     
-    _title = title;
-    _requiresAttention = requiresAttention;
-    _resolved = resolved;
-    _lastModifiedDate = lastModifiedDate;
-    _unread = unread;
+    /** An Open Radar account. */
+    ANTCachedRadarAccountTypeOpenRadar
+};
 
-    return self;
-}
+
+@interface ANTRadarCacheAccount : NSObject
+
+- (instancetype) initWithAccountUUID: (NSUUID *) uuid type: (ANTCachedRadarAccountType) type;
+
+/** The account type. */
+@property(nonatomic, readonly) ANTCachedRadarAccountType type;
+
+/** The locally assigned UUID for this account */
+@property(nonatomic, readonly) NSUUID *uuid;
 
 @end

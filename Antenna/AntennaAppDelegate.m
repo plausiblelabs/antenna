@@ -30,14 +30,14 @@
 
 #import "ANTLoginWindowController.h"
 #import "ANTPreferencesWindowController.h"
-#import "ANTLocalRadarCache.h"
+#import "ANTRadarCache.h"
 
 #import "ANTRadarsWindowController.h"
 #import "AntennaApp.h"
 
 #import "ANTPreferences.h"
 
-@interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, ANTLocalRadarCacheObserver, LoginWindowControllerDelegate, AntennaAppDelegate>
+@interface AntennaAppDelegate () <ANTNetworkClientAuthDelegate, ANTRadarCacheObserver, LoginWindowControllerDelegate, AntennaAppDelegate>
 
 /** The primary viewer window. */
 @property(nonatomic, readonly) ANTRadarsWindowController *radarsWindowController;
@@ -62,7 +62,7 @@
     ANTPreferencesWindowController *_prefsWindowController;
 
     /** The local Radar cache */
-    ANTLocalRadarCache *_radarCache;
+    ANTRadarCache *_radarCache;
     
     /**
      * All pending authentication blocks; these should be dispatched when the login
@@ -86,7 +86,7 @@
     _networkClient = [[ANTNetworkClient alloc] initWithAuthDelegate: self];
 
     /* Set up the Radar cache */
-    _radarCache = [[ANTLocalRadarCache alloc] initWithClient: _networkClient path: [cacheDir stringByAppendingPathComponent: @"Radars"] error: &error];
+    _radarCache = [[ANTRadarCache alloc] initWithClient: _networkClient path: [cacheDir stringByAppendingPathComponent: @"Radars"] error: &error];
     if (_radarCache == nil) {
         [[NSAlert alertWithError: error] runModal];
         [NSApp terminate: nil];
@@ -98,7 +98,7 @@
     _authCallbacks = [NSMutableArray array];
 }
 
-- (void) radarCache: (ANTLocalRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) updatedRadarIds didRemoveCachedRadarsWithIds: (NSSet *) removedRadarIds {
+- (void) radarCache: (ANTRadarCache *) cache didUpdateCachedRadarsWithIds: (NSSet *) updatedRadarIds didRemoveCachedRadarsWithIds: (NSSet *) removedRadarIds {
     NSLog(@"Updated = %@", updatedRadarIds);
     NSLog(@"Removed = %@", removedRadarIds);
 }
