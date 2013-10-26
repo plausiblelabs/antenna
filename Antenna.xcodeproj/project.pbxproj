@@ -52,6 +52,7 @@
 		05C9DA3817D45F830089603A /* MAErrorReportingObject.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2017D45F430089603A /* MAErrorReportingObject.m */; };
 		05C9DA3A17D45F830089603A /* NSObject+MAErrorReporting.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA2317D45F430089603A /* NSObject+MAErrorReporting.m */; };
 		05C9DA3D17D462EE0089603A /* ANTRadarSummaryResponse.m in Sources */ = {isa = PBXBuildFile; fileRef = 05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */; };
+		05E251FC1819E366003384C2 /* Antenna.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 05E251FB1819E366003384C2 /* Antenna.xcassets */; };
 		05E8332B17D93B0900DF3F9D /* PLFoundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
 		05E8332D17D93B2100DF3F9D /* PLFoundation.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 05E8332A17D93B0900DF3F9D /* PLFoundation.framework */; };
 		05E8333417D96EDB00DF3F9D /* ANTErrorDomain.m in Sources */ = {isa = PBXBuildFile; fileRef = 05E8333317D96EDA00DF3F9D /* ANTErrorDomain.m */; };
@@ -183,6 +184,7 @@
 		05C9DA2C17D45F430089603A /* README.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = README.txt; sourceTree = "<group>"; };
 		05C9DA3B17D462EE0089603A /* ANTRadarSummaryResponse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTRadarSummaryResponse.h; sourceTree = "<group>"; };
 		05C9DA3C17D462EE0089603A /* ANTRadarSummaryResponse.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ANTRadarSummaryResponse.m; sourceTree = "<group>"; };
+		05E251FB1819E366003384C2 /* Antenna.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Antenna.xcassets; sourceTree = "<group>"; };
 		05E8332A17D93B0900DF3F9D /* PLFoundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = PLFoundation.framework; sourceTree = "<group>"; };
 		05E8332E17D93C4100DF3F9D /* ANTNetworkClientAuthDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTNetworkClientAuthDelegate.h; sourceTree = "<group>"; };
 		05E8333217D96EDA00DF3F9D /* ANTErrorDomain.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ANTErrorDomain.h; sourceTree = "<group>"; };
@@ -522,6 +524,7 @@
 			isa = PBXGroup;
 			children = (
 				0562055E17DAD909009795FD /* openradar_icon.pdf */,
+				05E251FB1819E366003384C2 /* Antenna.xcassets */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -636,6 +639,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				05E251FC1819E366003384C2 /* Antenna.xcassets in Resources */,
 				05C9D9DD17D43DF90089603A /* InfoPlist.strings in Resources */,
 				05C9D9E317D43DF90089603A /* Credits.rtf in Resources */,
 				05C9D9E917D43DF90089603A /* MainMenu.xib in Resources */,
